@@ -189,6 +189,19 @@
                             @endif
                     </span>
                 </h2>
+                <div
+                class="bg-white/60 rounded-xl w-fit flex items-center gap-4">
+                <p class="text-sm text-gray-800 font-medium whitespace-nowrap">
+                    Filtrez les données ci-dessous en choisissant la période :
+                </p>
+                <select
+                    class="border border-gray-300 rounded-full px-4 py-2 w-64 text-sm text-gray-700 bg-white/80 shadow-inner focus:outline-none focus:ring-2 focus:ring-purple-500 transition">
+                    <option disabled selected>Période</option>
+                    <option>Juillet 2025</option>
+                    <option>Juin 2025</option>
+                    <option>Mai 2025</option>
+                </select>
+            </div>
                 <div>
                     <div class="flex bg-gray-100 border border-gray-300 gap-2 p-4 items-center rounded-md shadow-sm">
                         <i class="bi bi-calendar-week text-blue-800 text-2xl"></i>
@@ -209,7 +222,7 @@
                             </div>
                             <div class="ml-4">
                                 <h3 class="text-lg font-semibold text-gray-700">Formations Sanitaires</h3>
-                                <p class="text-3xl font-bold text-blue-600">45</p>
+                                <p class="text-3xl font-bold text-blue-600">{{ $nb_fs }}</p>
                                 <p class="text-sm text-gray-500">Total dans le district</p>
                             </div>
                         </div>
@@ -223,12 +236,15 @@
                             </div>
                             <div class="ml-4">
                                 <h3 class="text-lg font-semibold text-gray-700">Agents de Santé</h3>
-                                <p class="text-3xl font-bold text-green-600">46</p>
-                                <p class="text-sm text-gray-500">ASC actifs</p>
+                                <p class="text-3xl font-bold text-green-600">{{ $nb_asc }}</p>
+                                <p class="text-sm text-gray-500">Total dans le district</p>
                             </div>
                         </div>
                     </div>
-
+                    @php
+                        $reste_fs = $nb_fs - $nb_fs_soumission;
+                        $reste_asc = $nb_fs - $nb_asc_soumission;
+                    @endphp
                     <!-- FS ayant soumis -->
                     <div class="bg-slate-100 rounded-lg shadow-lg p-6 border-l-4 border-orange-500">
                         <div class="flex items-center">
@@ -238,8 +254,8 @@
                             </div>
                             <div class="ml-4">
                                 <h3 class="text-lg font-semibold text-gray-700">FS Soumissions</h3>
-                                <p class="text-3xl font-bold text-orange-600">45</p>
-                                <p class="text-sm text-gray-500">sur 55 FS</p>
+                                <p class="text-3xl font-bold text-orange-600">{{ $nb_fs_soumission }}</p>
+                                <p class="text-sm text-gray-500">sur {{ $nb_fs }} FS | Non soumis : {{ $reste_fs }}</p>
                             </div>
                         </div>
                     </div>
@@ -253,8 +269,8 @@
                             </div>
                             <div class="ml-4">
                                 <h3 class="text-lg font-semibold text-gray-700">ASC Soumissions</h3>
-                                <p class="text-3xl font-bold text-purple-600">57</p>
-                                <p class="text-sm text-gray-500">sur 23 ASC</p>
+                                <p class="text-3xl font-bold text-purple-600">{{ $nb_asc_soumission }}</p>
+                                <p class="text-sm text-gray-500">sur {{ $nb_fs }} ASC (FS) | Non soumis : {{ $reste_asc }}</p>
                             </div>
                         </div>
                     </div>
@@ -266,9 +282,10 @@
                                 <i class="bi bi-patch-check text-cyan-600 text-2xl"></i>
                             </div>
                             <div class="ml-4">
-                                <h3 class="text-lg font-semibold text-gray-700">FS Validés</h3>
-                                <p class="text-3xl font-bold text-cyan-600">42</p>
-                                <p class="text-sm text-gray-500">Consommations validées</p>
+                                <h3 class="text-lg font-semibold text-gray-700">Consommations FS Validés</h3>
+                                <p class="text-3xl font-bold text-cyan-600">{{ $nb_fs_valide }}</p>
+                                <p class="text-sm text-gray-500">Sur {{ $nb_fs_soumission }} | Reste à validé :
+                                    {{ $nb_fs_soumission - $nb_fs_valide }}</p>
                             </div>
                         </div>
                     </div>
@@ -281,27 +298,16 @@
                                 <i class="bi bi-patch-check-fill text-indigo-600 text-2xl"></i>
                             </div>
                             <div class="ml-4">
-                                <h3 class="text-lg font-semibold text-gray-700">ASC Validés</h3>
-                                <p class="text-3xl font-bold text-indigo-600">35</p>
-                                <p class="text-sm text-gray-500">Consommations validées</p>
+                                <h3 class="text-lg font-semibold text-gray-700">Consommations ASC Validés</h3>
+                                <p class="text-3xl font-bold text-indigo-600">{{ $nb_asc_valide }}</p>
+                                <p class="text-sm text-gray-500">Sur {{ $nb_asc_soumission }} | Reste à validé :
+                                    {{ $nb_asc_soumission - $nb_asc_valide }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div
-                class="mt-6 ml-12 bg-white/60 backdrop-blur-sm px-6 py-4 rounded-xl shadow-md w-fit border border-gray-200 flex items-center gap-4">
-                <p class="text-sm text-gray-800 font-medium whitespace-nowrap">
-                    Filtrez les données ci-dessous en choisissant la période :
-                </p>
-                <select
-                    class="border border-gray-300 rounded-full px-4 py-2 w-64 text-sm text-gray-700 bg-white/80 shadow-inner focus:outline-none focus:ring-2 focus:ring-purple-500 transition">
-                    <option disabled selected>Période</option>
-                    <option>Juillet 2025</option>
-                    <option>Juin 2025</option>
-                    <option>Mai 2025</option>
-                </select>
-            </div>
+            
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
                 <div class="bg-slate-100 p-6 rounded-xl shadow-md">
                     <div class="flex items-center mb-4">
@@ -309,27 +315,29 @@
                         <h3 class="text-xl font-semibold text-gray-800">Complétude des Rapports</h3>
                     </div>
                     <div class="space-y-6">
+                        @php
+                            $fs_pourcentage = $nb_fs > 0 ? intval(($nb_fs_soumission / $nb_fs) * 100) : 0;
+                            $asc_pourcentage = $nb_fs > 0 ? intval(($nb_asc_soumission / $nb_fs) * 100) : 0;
+                        @endphp
                         <div x-data="{ loaded: false }" x-init="setTimeout(() => loaded = true, 1000)" class="space-y-6">
-
                             <div>
                                 <div class="flex justify-between mb-1">
                                     <span class="text-sm font-medium text-gray-700">Formation Sanitaire (FS)</span>
-                                    <span class="text-sm font-semibold text-indigo-600">92%</span>
+                                    <span class="text-sm font-semibold text-indigo-600">{{ $fs_pourcentage }}%</span>
                                 </div>
                                 <div class="w-full bg-gray-300 rounded-full h-4">
                                     <div class="bg-indigo-600 h-4 rounded-full transition-all duration-1000 ease-in-out"
-                                        :style="loaded ? 'width: 92%' : 'width: 0%'"></div>
+                                        :style="loaded ? 'width: {{ $fs_pourcentage }}%' : 'width: 0%'"></div>
                                 </div>
                             </div>
-                            <!-- Complétude ASC -->
                             <div>
                                 <div class="flex justify-between mb-1">
                                     <span class="text-sm font-medium text-gray-700">Agents Santé Communautaire (ASC)</span>
-                                    <span class="text-sm font-semibold text-teal-600">78%</span>
+                                    <span class="text-sm font-semibold text-teal-600">{{ $asc_pourcentage }}%</span>
                                 </div>
                                 <div class="w-full bg-gray-300 rounded-full h-4">
                                     <div class="bg-teal-500 h-4 rounded-full transition-all duration-1000 ease-in-out"
-                                        :style="loaded ? 'width: 78%' : 'width: 0%'"></div>
+                                        :style="loaded ? 'width: {{ $asc_pourcentage }}%' : 'width: 0%'"></div>
                                 </div>
                             </div>
                         </div>

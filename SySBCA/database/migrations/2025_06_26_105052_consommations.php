@@ -21,6 +21,7 @@ return new class extends Migration
                 ->onDelete('cascade');
             $table->enum('acteur', ['FS','ASC']);
             $table->enum('etat', ['en_cours','soumis', 'valide']);
+            $table->timestamp('submitted_at')->nullable();
             $table->timestamps();
         });
     }

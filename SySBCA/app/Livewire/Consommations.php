@@ -33,7 +33,7 @@ class Consommations extends Component
     public $not_edit = [];
     public $fs_choisie;
     public $formation_sanitaire = [];
-    public $confirm_chargement = false;
+    public $conso_passee;
     public $periode_choisie;
     public $periode_actuelle;
     public $periode_search;
@@ -118,9 +118,11 @@ class Consommations extends Component
             $this->periode_choisie = null;
             return;
         }
-
         $id_max = $periode_actuelle->id;
-        $periodes = Periode::where('id', '<=', $id_max)->orderByDesc('id')->get();
+
+        $periodes = Periode::where('id', '<=', $id_max)
+            ->orderByDesc('id')
+            ->get();
 
         $consommations_existantes = Consommation::where('formation_sanitaire_id', $entity_id)
             ->where('acteur', $this->type_structure)
@@ -133,8 +135,9 @@ class Consommations extends Component
         })->values();
 
         $this->periode_choisie = $this->periodes_disponibles->isNotEmpty()
-            ? $this->periodes_disponibles->first()->id
+            ? $this->periodes_disponibles->sortByDesc('id')->first()->id
             : null;
+
     }
     public function render()
     {
@@ -172,13 +175,44 @@ class Consommations extends Component
         if ($conso) {
             $this->type_structure = $conso->acteur;
             $this->periode_choisie = $conso->periode_id;
-            $this->chargerMedicaments();
+            $entity_id = auth()->user()->entity_id;
+            $conso_check = Consommation::where('formation_sanitaire_id', $entity_id)
+                ->where('periode_id', $this->periode_choisie)
+                ->where('acteur', $this->type_structure)
+                ->first();
+            if ($conso_check !== null) {
+                $this->periodes_disponibles = Periode::where('id', $this->periode_choisie)->get();
+                $this->modifierConso = true;
+                $consommations_existantes = ConsommationMedicament::where('consommation_id', $conso_check->id)->get()->keyBy('medicament_id');
+                foreach ($this->medicaments as $index => $medicament) {
+                    if ($consommations_existantes->has($medicament->id)) {
+                        $conso = $consommations_existantes[$medicament->id];
+                        $this->consommations[$index] = [
+                            'medicament_id' => $medicament->id,
+                            'stk_dsp_deb_trim' => $conso->qte_dispo_deb_periode,
+                            'qte_get_in_trim' => $conso->qte_recu,
+                            'qte_en_stock' => $conso->qte_en_stock,
+                            'qte_used' => $conso->qte_utilisee,
+                            'nb_beneficiaire' => $conso->nb_beneficiaire,
+                            'perimee' => $conso->perimee,
+                            'perte_avarie' => $conso->perte_avarie,
+                            'qte_ret_cameg' => $conso->qte_retour_cameg,
+                            'nb_jour_rupture' => $conso->nb_jour_rupture,
+                            'qte_stock_fin_trim' => $conso->qte_restante,
+                            'stk_de_securite' => $conso->stock_securite,
+                            'ccma' => $conso->cmma,
+                            'cmd_trim_svt' => $conso->cmd_trim_svt,
+                        ];
+                    }
+                }
+            }
             $this->formulaireVisible = true;
             $this->tableauVisible = false;
         }
     }
     public function chargerMedicaments()
     {
+        $entity = auth()->user()->entity_id;
         if (!$this->type_structure) {
             $this->medicaments = collect();
             $this->consommations = [];
@@ -186,67 +220,59 @@ class Consommations extends Component
         }
         if ($this->type_structure === 'FS') {
             $this->medicaments = Medicament::all();
-        } else {
-            // Ici type_structure = 'ASC' ou autre
+        }
+        if ($this->type_structure === 'ASC') {
             $medicaments_fs_only = Medicament::where('fs_only', true)->pluck('id');
             $this->medicaments = Medicament::whereNotIn('id', $medicaments_fs_only)->get();
         }
-        $entity_id = auth()->user()->entity_id;
-
-        $conso_check = Consommation::where('formation_sanitaire_id', $entity_id)
-            ->where('periode_id', $this->periode_choisie)
-            ->where('acteur', $this->type_structure)
-            ->first();
-
-        if ($conso_check !== null) {
-            $this->periodes_disponibles = Periode::where('id', $this->periode_choisie)->get();
-            $this->modifierConso = true;
-            $consommations_existantes = ConsommationMedicament::where('consommation_id', $conso_check->id)->get()->keyBy('medicament_id');
-            foreach ($this->medicaments as $index => $medicament) {
-                if ($consommations_existantes->has($medicament->id)) {
-                    $conso = $consommations_existantes[$medicament->id];
-                    $this->consommations[$index] = [
-                        'medicament_id' => $medicament->id,
-                        'stk_dsp_deb_trim' => $conso->qte_dispo_deb_periode,
-                        'qte_get_in_trim' => $conso->qte_recu,
-                        'qte_en_stock' => $conso->qte_en_stock,
-                        'qte_used' => $conso->qte_utilisee,
-                        'nb_beneficiaire' => $conso->nb_beneficiaire,
-                        'perimee' => $conso->perimee,
-                        'perte_avarie' => $conso->perte_avarie,
-                        'qte_ret_cameg' => $conso->qte_retour_cameg,
-                        'nb_jour_rupture' => $conso->nb_jour_rupture,
-                        'qte_stock_fin_trim' => $conso->qte_restante,
-                        'stk_de_securite' => $conso->stock_securite,
-                        'ccma' => $conso->cmma,
-                        'cmd_trim_svt' => $conso->cmd_trim_svt,
-                    ];
+        $this->chargerPeriodeActeur();
+        $this->consoPassee();
+        $this->reset('consommations');
+        foreach ($this->medicaments as $index => $medicament) {
+            if (!is_null($this->conso_passee)) {
+                $conso_prec = $this->conso_passee->firstWhere('medicament_id', $medicament->id);
+                if ($conso_prec) {
+                    $stock_debut_attendu = $conso_prec->qte_restante;
                 }
+            } else {
+                $stock_debut_attendu = 0;
             }
-        } else {
-            $this->reset('consommations');
-            foreach ($this->medicaments as $index => $medicament) {
-                $this->consommations[$index] = [
-                    'medicament_id' => $medicament->id,
-                    'stk_dsp_deb_trim' => null,
-                    'qte_get_in_trim' => null,
-                    'qte_en_stock' => null,
-                    'qte_used' => null,
-                    'nb_beneficiaire' => null,
-                    'perimee' => null,
-                    'perte_avarie' => null,
-                    'qte_ret_cameg' => null,
-                    'nb_jour_rupture' => null,
-                    'qte_stock_fin_trim' => null,
-                    'stk_de_securite' => null,
-                    'ccma' => null,
-                    'cmd_trim_svt' => null,
-                ];
-            }
-            $this->chargerPeriodeActeur();
+            $this->consommations[$index] = [
+                'medicament_id' => $medicament->id,
+                'stock_debut_attendu' => $stock_debut_attendu,
+                'stk_dsp_deb_trim' => null,
+                'qte_get_in_trim' => null,
+                'qte_en_stock' => null,
+                'qte_used' => null,
+                'nb_beneficiaire' => null,
+                'perimee' => null,
+                'perte_avarie' => null,
+                'qte_ret_cameg' => null,
+                'nb_jour_rupture' => null,
+                'qte_stock_fin_trim' => null,
+                'stk_de_securite' => null,
+                'ccma' => null,
+                'cmd_trim_svt' => null,
+            ];
         }
     }
 
+    public function consoPassee()
+    {
+        $entity = auth()->user()->entity_id;
+        $periodes = Periode::all();
+        $sorted = $periodes->sortByDesc('id')->values();
+
+        $index = $sorted->search(function ($periode) {
+            return $periode->id === $this->periode_choisie;
+        });
+        $periode_précédente_id = $sorted->get($index + 1)?->id;
+        $conso_passee = Consommation::where('formation_sanitaire_id', $entity)->where('acteur', $this->type_structure)
+            ->where('periode_id', $periode_précédente_id)->first();
+        if (!is_null($conso_passee)) {
+            $this->conso_passee = ConsommationMedicament::where('consommation_id', $conso_passee->id)->get();
+        }
+    }
 
     public function validateInputs()
     {
@@ -306,7 +332,6 @@ class Consommations extends Component
     public function ajouterConsommation()
     {
         $this->nettoyerValeursNul();
-
         if ($this->periode_choisie && $this->type_structure && !is_null($this->consommations)) {
             $user = auth()->user();
             $entity = $user->entity;
@@ -315,26 +340,19 @@ class Consommations extends Component
                 ->where('periode_id', $this->periode_choisie)
                 ->where('acteur', $this->type_structure)
                 ->first();
-
             $this->validateInputs();
             $this->calculValeur();
-
             if (!is_null($existe)) {
-                // Mise à jour des médicaments
                 foreach ($this->consommations as $conso) {
                     // Cherche le médicament correspondant
                     $consommation_medicament = ConsommationMedicament::where('consommation_id', $existe->id)
                         ->where('medicament_id', $conso['medicament_id'])
                         ->first();
-
-                    // S'il n'existe pas, on le crée
                     if (!$consommation_medicament) {
                         $consommation_medicament = new ConsommationMedicament();
                         $consommation_medicament->consommation_id = $existe->id;
                         $consommation_medicament->medicament_id = $conso['medicament_id'];
                     }
-
-                    // Mise à jour des champs
                     $consommation_medicament->qte_dispo_deb_periode = $conso['stk_dsp_deb_trim'];
                     $consommation_medicament->qte_recu = $conso['qte_get_in_trim'];
                     $consommation_medicament->qte_en_stock = $conso['qte_en_stock'];
@@ -351,7 +369,6 @@ class Consommations extends Component
                     $consommation_medicament->save();
                 }
             } else {
-                // Création d'une nouvelle consommation
                 $consommation = new Consommation();
                 $consommation->periode_id = $this->periode_choisie;
                 $consommation->acteur = $this->type_structure;
@@ -460,21 +477,20 @@ class Consommations extends Component
     }
     public function chargerConsommations($periode_id, $acteur)
     {
-
         $user = auth()->user();
+
         if (in_array($user->role->nom_role, ['District', 'Administrateur']) && $this->fs) {
-            // Charger la consommation de la FS sélectionnée
             $this->conso = Consommation::where('formation_sanitaire_id', $this->fs)
                 ->where('periode_id', $periode_id)
                 ->where('acteur', $acteur)
                 ->first();
-
         } else {
             $this->conso = Consommation::where('formation_sanitaire_id', $user->entity_id)
                 ->where('periode_id', $periode_id)
                 ->where('acteur', $acteur)
                 ->first();
         }
+
         if ($this->conso) {
             $this->consommations_all = ConsommationMedicament::where('consommation_id', $this->conso->id)->get();
             $this->etat = $this->conso->etat;
@@ -482,6 +498,11 @@ class Consommations extends Component
             $this->consommations_all = collect();
             $this->etat = null;
         }
+
+        // 🔁 RÉINITIALISATION ici
+        $this->edit = [];
+        $this->not_edit = [];
+
         foreach ($this->consommations_all as $consommation) {
             $id = $consommation->medicament_id;
             $this->edit[$id] = false;
@@ -489,10 +510,12 @@ class Consommations extends Component
         }
     }
 
-    public function soumettreConsommation($id){
+    public function soumettreConsommation($id)
+    {
         $conso = Consommation::where('id', $id)->first();
-        if($conso){
+        if ($conso) {
             $conso->etat = 'soumis';
+            $conso->submitted_at = now();
             $conso->save();
             $this->chargerConsommations($conso->periode_id, $conso->acteur);
             $this->conso = $conso;
@@ -533,35 +556,5 @@ class Consommations extends Component
         }
         $this->chercherConsommations();
     }
-
-    public function chargerDepuisSession()
-    {
-        $this->confirm_chargement = false;
-
-        $entity_id = auth()->user()->entity_id;
-        $cle_session = "consommations_{$this->type_structure}_{$this->periode_choisie}_{$entity_id}";
-        $donnees_session = session()->get($cle_session);
-        if (!$donnees_session || !isset($donnees_session['consommations'])) {
-            return;
-        }
-        foreach ($donnees_session['consommations'] as $index => $donnees) {
-            if (isset($this->consommations[$index])) {
-                $this->consommations[$index]['stk_dsp_deb_trim'] = $donnees['stk_dsp_deb_trim'] ?? null;
-                $this->consommations[$index]['qte_get_in_trim'] = $donnees['qte_get_in_trim'] ?? null;
-                $this->consommations[$index]['qte_en_stock'] = $donnees['qte_en_stock'] ?? null;
-                $this->consommations[$index]['qte_used'] = $donnees['qte_used'] ?? null;
-                $this->consommations[$index]['nb_beneficiaire'] = $donnees['nb_beneficiaire'] ?? null;
-                $this->consommations[$index]['perimee'] = $donnees['perimee'] ?? null;
-                $this->consommations[$index]['perte_avarie'] = $donnees['perte_avarie'] ?? null;
-                $this->consommations[$index]['qte_ret_cameg'] = $donnees['qte_ret_cameg'] ?? null;
-                $this->consommations[$index]['nb_jour_rupture'] = $donnees['nb_jour_rupture'] ?? null;
-                $this->consommations[$index]['qte_stock_fin_trim'] = $donnees['qte_stock_fin_trim'] ?? null;
-                $this->consommations[$index]['stk_de_securite'] = $donnees['stk_de_securite'] ?? null;
-                $this->consommations[$index]['ccma'] = $donnees['ccma'] ?? null;
-                $this->consommations[$index]['cmd_trim_svt'] = $donnees['cmd_trim_svt'] ?? null;
-            }
-        }
-    }
-
 
 }
