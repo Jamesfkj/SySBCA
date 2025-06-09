@@ -8,8 +8,15 @@ Route::get('/', function () {
 });
 
 Route::get('regions', function () {
-    return view('Regions.index');
+    return view('regions.index');
 })->name('regions.index');
+Route::get('regions/{region}', function ($region) {
+    return view('regions.show', ['region' => $region]);
+})->name('regions.show');
+Route::get('regions/create', function () {
+    return view('regions.create');
+})->name('regions.create');
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');
