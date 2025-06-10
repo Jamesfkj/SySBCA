@@ -45,23 +45,8 @@
     <livewire:sidebar />
 
     <!-- Main -->
-    <main id="main-content" class="flex-1 overflow-y-auto h-full">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-6 pb-10 pt-20">
-            <div class="bg-white rounded-xl shadow p-4">
-                <h2 class="font-semibold text-lg text-green-700">Consommations</h2>
-                <p class="text-3xl font-bold text-gray-900 mt-2">86</p>
-            </div>
-            <div class="bg-white rounded-xl shadow p-4">
-                <h2 class="font-semibold text-lg text-green-700">Besoins</h2>
-                <p class="text-3xl font-bold text-gray-900 mt-2">23</p>
-            </div>
-            <div class="bg-white rounded-xl shadow p-4">
-                <h2 class="font-semibold text-lg text-green-700">Utilisation (7 jours)</h2>
-                <div class="h-24 bg-gray-100 rounded mt-2 flex items-center justify-center text-gray-400 text-sm">
-                    Graphique ici
-                </div>
-            </div>
-        </div>
+    <main id="main-content" class="flex-1 overflow-y-auto h-full pt-16  p-4">  
+        {{ $slot }}
     </main>
 
 </body>

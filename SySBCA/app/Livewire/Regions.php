@@ -6,8 +6,11 @@ use Livewire\Component;
 
 class Regions extends Component
 {
+    public $moi = 'Ministry of Interior';
+
     public function render()
     {
-        return view('livewire.Regions.index');
+        return view('livewire.regions');
     }
 }
+

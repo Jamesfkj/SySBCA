@@ -1,21 +1,17 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Vues;
 use Illuminate\Support\Facades\Route;
+use App\Livewire\Regions;
+
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('regions', function () {
-    return view('regions.index');
-})->name('regions.index');
-Route::get('regions/{region}', function ($region) {
-    return view('regions.show', ['region' => $region]);
-})->name('regions.show');
-Route::get('regions/create', function () {
-    return view('regions.create');
-})->name('regions.create');
+
+Route::get('/regions', [Vues::class, 'regions'])->name('regions.index');
 
 
 Route::get('/dashboard', function () {
