@@ -20,4 +20,9 @@ class Vues extends Controller
     {
         return view('user.fs');
     }
+
+    public function medicament()
+    {
+        return view('user.medicament');
+    }
 }

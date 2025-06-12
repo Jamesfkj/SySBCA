@@ -24,15 +24,17 @@
 
     <!-- Header -->
     <header class="w-full fixed top-0 left-0 z-10">
-        <nav class="bg-white text-gray-800 flex items-center justify-between px-4 py-3 shadow">
+        <nav class="bg-white text-gray-800 flex items-center justify-between shadow">
             <!-- Left -->
-            <div class="flex items-center gap-4">
-                <button @click="sidebarOpen = !sidebarOpen" class="text-gray-800 focus:outline-none">
-                    <i class="bi bi-list text-2xl"></i>
-                </button>
-                <span class="text-lg font-semibold"></span>
+            <div>
+                <div class="flex items-center gap-4">
+                    <img src="{{ asset('images/pnlp3.jpg') }}" alt="">
+                    <button @click="sidebarOpen = !sidebarOpen" class="text-gray-800 focus:outline-none text-teal-600 font-bold">
+                        <i class="bi bi-list text-2xl"></i>
+                    </button>
+                    
+                </div>
             </div>
-
             <!-- Right -->
             <div class="flex items-center gap-2 p-1 bg-green-600 rounded-full">
                 <span class="text-sm text-white">JF</span>
@@ -45,9 +47,11 @@
     <livewire:sidebar />
 
     <!-- Main -->
-    <main id="main-content" class="flex-1 overflow-y-auto h-full pt-16  p-4">  
+    <main id="main-content" class="flex-1 overflow-y-auto h-full pt-20 p-4"
+        style="background-image: url('{{ asset('images/bg3.jpg') }}')">
         {{ $slot }}
     </main>
+
 
 </body>
 

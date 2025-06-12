@@ -2,9 +2,30 @@
     <!-- En-tête -->
     <div class="flex justify-between items-center">
         <h2 class="text-2xl font-semibold text-teal-600">
-            <span x-show="!showCreateForm && !showEditForm">Liste des Formations Sanitaires</span>
-            <span x-show="showCreateForm">Ajouter une Formation Sanitaires</span>
-            <span x-show="showEditForm">Modifier une Formation Sanitaires</span>
+            <template x-if="!showCreateForm && !showEditForm">
+                <span class="flex items-center gap-2">
+                    <div class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
+                        <i class="bi bi-hospital-fill"></i>
+                    </div>
+                    <p>Liste des formations sanitaires</p>
+                </span>
+            </template>
+            <template x-if="showCreateForm">
+                <span class="flex items-center gap-2">
+                    <div class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
+                        <i class="bi bi-plus"></i>
+                    </div>
+                    <p>Ajouter une formation</p>
+                </span>
+            </template>
+            <template x-if="showEditForm">
+                <span class="flex items-center gap-2">
+                    <div class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
+                        <i class="bi bi-pen-fill"></i>
+                    </div>
+                    <p>Modifier une formation</p>
+                </span>
+            </template>
         </h2>
 
         <div x-show="!showCreateForm && !showEditForm">
@@ -12,26 +33,28 @@
                 placeholder="Rechercher une formation sanitaire..."
                 class="w-96 rounded-full px-4 py-2 border focus:outline-none focus:ring-teal-500" />
         </div>
-        <button @click="showCreateForm = false; showEditForm = false; editData = null"
-            x-show="showCreateForm || showEditForm" x-cloak
-            class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
-            <span class="flex items-center gap-2">
-                <div class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 text-blue-500 shadow">
-                    <i class="bi bi-eye"></i>
-                </div>Voir la liste
-            </span>
-        </button>
 
-        <!-- Bouton Ajouter -->
-        <button @click="showCreateForm = true; showEditForm = false; editData = null"
-            x-show="!showCreateForm && !showEditForm"
-            class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
-            <span class="flex items-center gap-2">
-                <div class="w-7 h-7 flex items-center justify-center rounded-full bg-white text-blue-600 shadow">
-                    <i class="bi bi-plus"></i>
-                </div>Ajouter une formation
-            </span>
-        </button>
+        <template x-if="showCreateForm || showEditForm">
+            <button @click="showCreateForm = false; showEditForm = false; editData = null"
+                class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
+                <span class="flex items-center gap-2">
+                    <div class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 text-blue-500 shadow">
+                        <i class="bi bi-eye"></i>
+                    </div>Voir la liste
+                </span>
+            </button>
+        </template>
+
+        <template x-if="!showCreateForm && !showEditForm">
+            <button @click="showCreateForm = true; showEditForm = false; editData = null"
+                class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
+                <span class="flex items-center gap-2">
+                    <div class="w-7 h-7 flex items-center justify-center rounded-full bg-white text-blue-600 shadow">
+                        <i class="bi bi-plus"></i>
+                    </div>Ajouter une formation
+                </span>
+            </button>
+        </template>
     </div>
 
     <!-- Tableau -->
@@ -39,35 +62,24 @@
         <table class="min-w-full border-collapse">
             <thead>
                 <tr class="bg-gray-100">
-                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 border-b">Formation Sanitaires</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 border-b">Formation Sanitaire</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 border-b">District</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 border-b">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <template
-                    x-for="district in [{ id: 1, name: 'District 1', region: 'Région Maritime' }, { id: 2, name: 'District 2', region: 'Région des Plateaux' }]">
+                <template x-for="district in [{ id: 1, name: 'District 1', region: 'Région Maritime' }, { id: 2, name: 'District 2', region: 'Région des Plateaux' }]">
                     <tr class="border-b hover:bg-gray-50">
                         <td class="px-6 py-4 text-blue-900" x-text="district.name"></td>
                         <td class="px-6 py-4 text-gray-700" x-text="district.region"></td>
                         <td class="px-6 py-4 flex gap-4">
-                            <!-- Modifier -->
                             <button @click="showEditForm = true; showCreateForm = false; editData = district"
                                 class="text-blue-600 hover:text-blue-700 flex items-center justify-center w-9 h-9 rounded-full bg-blue-100 shadow-md">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15.232 4.232l4.536 4.536-10.536 10.536H4v-4.536L15.232 4.232z" />
-                                </svg>
+                                <i class="bi bi-pen-fill"></i>
                             </button>
-                            <!-- Supprimer -->
                             <button type="submit"
                                 class="text-red-600 hover:text-red-700 flex items-center justify-center w-9 h-9 rounded-full bg-red-100 shadow-md">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                                <i class="bi bi-trash3-fill"></i>
                             </button>
                         </td>
                     </tr>
@@ -84,21 +96,16 @@
                 <input type="text" id="district_name" wire:model="name"
                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
                     required>
-                @error('name')
-                    <span class="text-red-600">{{ $message }}</span>
-                @enderror
+                @error('name') <span class="text-red-600">{{ $message }}</span> @enderror
             </div>
             <div class="mb-4">
                 <label for="district_region" class="block text-sm font-medium text-gray-700">District</label>
                 <select id="district_region" wire:model="region_id"
                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
                     required>
-                    <option value="">Sélectionnez une région</option>
-
+                    <option value="">Sélectionnez un district</option>
                 </select>
-                @error('region_id')
-                    <span class="text-red-600">{{ $message }}</span>
-                @enderror
+                @error('region_id') <span class="text-red-600">{{ $message }}</span> @enderror
             </div>
             <button type="submit"
                 class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200">
@@ -115,9 +122,7 @@
                 <input type="text" id="edit_district_name" wire:model="editName"
                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
                     required>
-                @error('editName')
-                    <span class="text-red-600">{{ $message }}</span>
-                @enderror
+                @error('editName') <span class="text-red-600">{{ $message }}</span> @enderror
             </div>
             <div class="mb-4">
                 <label for="edit_district_region" class="block text-sm font-medium text-gray-700">District</label>
@@ -125,11 +130,8 @@
                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
                     required>
                     <option value="">Sélectionnez un district</option>
-
                 </select>
-                @error('editRegionId')
-                    <span class="text-red-600">{{ $message }}</span>
-                @enderror
+                @error('editRegionId') <span class="text-red-600">{{ $message }}</span> @enderror
             </div>
             <button type="submit"
                 class="w-full bg-yellow-600 text-white py-2 px-4 rounded-lg hover:bg-yellow-700 transition duration-200">

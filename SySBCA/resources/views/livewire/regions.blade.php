@@ -2,9 +2,24 @@
     <!-- En-tête -->
     <div class="flex justify-between items-center">
         <h2 class="text-2xl font-semibold text-teal-600">
-            <span x-show="!showCreateForm && !showEditForm">Liste des Régions</span>
-            <span x-show="showCreateForm">Ajouter une Région</span>
-            <span x-show="showEditForm">Modifier une Région</span>
+            <span x-show="!showCreateForm && !showEditForm" class="flex items-center gap-2">
+                <div class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
+                    <i class="bi bi-globe"></i>
+                </div>
+                <p>Liste des Régions</p>
+            </span>
+            <span x-show="showCreateForm" class="flex items-center gap-2">
+                <div class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
+                    <i class="bi bi-plus"></i>
+                </div>
+                <p>Ajouter une region</p>
+            </span>
+            <span x-show="showEditForm" class="flex items-center gap-2">
+                <div class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
+                    <i class="bi bi-pen-fill"></i>
+                </div>
+                <p>Modifier une région</p>
+            </span>
         </h2>
 
         <div x-show="!showCreateForm && !showEditForm">
@@ -55,20 +70,12 @@
                             <!-- Modifier -->
                             <button @click="showEditForm = true; showCreateForm = false; editData = region"
                                 class="text-blue-600 hover:text-blue-700 flex items-center justify-center w-9 h-9 rounded-full bg-blue-100 shadow-md">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15.232 4.232l4.536 4.536-10.536 10.536H4v-4.536L15.232 4.232z" />
-                                </svg>
+                                <i class="bi bi-pen-fill"></i>
                             </button>
                             <!-- Supprimer -->
                             <button type="submit"
                                 class="text-red-600 hover:text-red-700 flex items-center justify-center w-9 h-9 rounded-full bg-red-100 shadow-md">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                                <i class="bi bi-trash3-fill"></i>
                             </button>
                         </td>
                     </tr>
