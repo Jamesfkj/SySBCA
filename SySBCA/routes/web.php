@@ -12,6 +12,8 @@ Route::get('/', function () {
 
 
 Route::get('/regions', [Vues::class, 'regions'])->name('regions.index');
+Route::get('/districts', [Vues::class, 'districts'])->name('districts.index');
+Route::get('/fs', [Vues::class, 'fs'])->name('fs.index');
 
 
 Route::get('/dashboard', function () {

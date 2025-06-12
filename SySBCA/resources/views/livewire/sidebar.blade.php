@@ -15,13 +15,13 @@
             </div>
             <span x-show="sidebarOpen" class="truncate">Régions</span>
         </a>
-        <a href="#" class="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
+        <a href="{{ route('districts.index') }}" class="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
             <div class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
                 <i class="bi bi-map-fill"></i>
             </div>
             <span x-show="sidebarOpen" class="truncate">Districts</span>
         </a>
-        <a href="#" class="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
+        <a href="{{ route('fs.index') }}" class="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
             <div class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
                 <i class="bi bi-hospital-fill"></i>
             </div>
@@ -29,9 +29,9 @@
         </a>
         <a href="#" class="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
             <div class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
-                <i class="bi bi-bug-fill"></i>
+                <i class="bi bi-capsule"></i>
             </div>
-            <span x-show="sidebarOpen" class="truncate">Antipaludiques</span>
+            <span x-show="sidebarOpen" class="truncate">Médicaments</span>
         </a>
         <a href="#" class="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
             <div class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
