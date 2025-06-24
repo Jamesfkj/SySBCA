@@ -29,10 +29,8 @@
         </div>
 
         <!-- Bouton Ajouter ou Voir la liste -->
-        <button 
-            @click="showCreateForm = false; showEditForm = false; editData = null"
-            x-show="showCreateForm || showEditForm"
-            x-cloak
+        <button @click="showCreateForm = false; showEditForm = false; editData = null"
+            x-show="showCreateForm || showEditForm" x-cloak
             class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
             <span class="flex items-center gap-2">
                 <div class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 text-blue-500 shadow">
@@ -41,8 +39,7 @@
             </span>
         </button>
 
-        <button 
-            @click="showCreateForm = true; showEditForm = false; editData = null"
+        <button @click="showCreateForm = true; showEditForm = false; editData = null"
             x-show="!showCreateForm && !showEditForm"
             class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
             <span class="flex items-center gap-2">
@@ -63,7 +60,8 @@
                 </tr>
             </thead>
             <tbody>
-                <template x-for="region in [{ id: 1, name: 'Région Maritime' }, { id: 2, name: 'Région des Plateaux' }]">
+                <template
+                    x-for="region in [{ id: 1, name: 'Région Maritime' }, { id: 2, name: 'Région des Plateaux' }]">
                     <tr class="border-b hover:bg-gray-50">
                         <td class="px-6 py-4 text-blue-900" x-text="region.name"></td>
                         <td class="px-6 py-4 flex gap-4">
@@ -96,12 +94,34 @@
                     <span class="text-red-600">{{ $message }}</span>
                 @enderror
             </div>
+
+            <div class="mb-4">
+                <label for="username" class="block text-sm font-medium text-gray-700">Nom d'utilisateur</label>
+                <input type="text" id="username" wire:model="username"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
+                    required>
+                @error('username')
+                    <span class="text-red-600">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="mb-6">
+                <label for="password" class="block text-sm font-medium text-gray-700">Mot de passe</label>
+                <input type="password" id="password" wire:model="password"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
+                    required>
+                @error('password')
+                    <span class="text-red-600">{{ $message }}</span>
+                @enderror
+            </div>
+
             <button type="submit"
                 class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200">
                 Enregistrer
             </button>
         </form>
     </div>
+
 
     <!-- Formulaire de modification -->
     <div x-show="showEditForm" x-cloak x-transition>

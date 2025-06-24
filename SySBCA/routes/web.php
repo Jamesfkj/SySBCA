@@ -15,6 +15,7 @@ Route::get('/regions', [Vues::class, 'regions'])->name('regions.index');
 Route::get('/districts', [Vues::class, 'districts'])->name('districts.index');
 Route::get('/fs', [Vues::class, 'fs'])->name('fs.index');
 Route::get('/medicaments', [Vues::class, 'medicament'])->name('medicaments.index');
+Route::get('/consommations', [Vues::class, 'consommation'])->name('consommations.index');
 
 
 

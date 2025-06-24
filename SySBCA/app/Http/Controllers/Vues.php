@@ -25,4 +25,8 @@ class Vues extends Controller
     {
         return view('user.medicament');
     }
+    public function consommation()
+    {
+        return view('user.consommation');
+    }
 }

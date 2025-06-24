@@ -4,7 +4,8 @@
         <h2 class="text-2xl font-semibold text-teal-600">
             <template x-if="!showCreateForm && !showEditForm">
                 <span class="flex items-center gap-2">
-                    <div class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
+                    <div
+                        class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
                         <i class="bi bi-hospital-fill"></i>
                     </div>
                     <p>Liste des formations sanitaires</p>
@@ -12,7 +13,8 @@
             </template>
             <template x-if="showCreateForm">
                 <span class="flex items-center gap-2">
-                    <div class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
+                    <div
+                        class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
                         <i class="bi bi-plus"></i>
                     </div>
                     <p>Ajouter une formation</p>
@@ -20,7 +22,8 @@
             </template>
             <template x-if="showEditForm">
                 <span class="flex items-center gap-2">
-                    <div class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
+                    <div
+                        class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
                         <i class="bi bi-pen-fill"></i>
                     </div>
                     <p>Modifier une formation</p>
@@ -68,7 +71,8 @@
                 </tr>
             </thead>
             <tbody>
-                <template x-for="district in [{ id: 1, name: 'District 1', region: 'Région Maritime' }, { id: 2, name: 'District 2', region: 'Région des Plateaux' }]">
+                <template
+                    x-for="district in [{ id: 1, name: 'District 1', region: 'Région Maritime' }, { id: 2, name: 'District 2', region: 'Région des Plateaux' }]">
                     <tr class="border-b hover:bg-gray-50">
                         <td class="px-6 py-4 text-blue-900" x-text="district.name"></td>
                         <td class="px-6 py-4 text-gray-700" x-text="district.region"></td>
@@ -96,8 +100,11 @@
                 <input type="text" id="district_name" wire:model="name"
                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
                     required>
-                @error('name') <span class="text-red-600">{{ $message }}</span> @enderror
+                @error('name')
+                    <span class="text-red-600">{{ $message }}</span>
+                @enderror
             </div>
+
             <div class="mb-4">
                 <label for="district_region" class="block text-sm font-medium text-gray-700">District</label>
                 <select id="district_region" wire:model="region_id"
@@ -105,8 +112,31 @@
                     required>
                     <option value="">Sélectionnez un district</option>
                 </select>
-                @error('region_id') <span class="text-red-600">{{ $message }}</span> @enderror
+                @error('region_id')
+                    <span class="text-red-600">{{ $message }}</span>
+                @enderror
             </div>
+
+            <div class="mb-4">
+                <label for="username" class="block text-sm font-medium text-gray-700">Nom d'utilisateur</label>
+                <input type="text" id="username" wire:model="username"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
+                    required>
+                @error('username')
+                    <span class="text-red-600">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="mb-6">
+                <label for="password" class="block text-sm font-medium text-gray-700">Mot de passe</label>
+                <input type="password" id="password" wire:model="password"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
+                    required>
+                @error('password')
+                    <span class="text-red-600">{{ $message }}</span>
+                @enderror
+            </div>
+
             <button type="submit"
                 class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200">
                 Enregistrer
@@ -118,11 +148,14 @@
     <div x-show="showEditForm" x-cloak x-transition>
         <form wire:submit.prevent="update" class="bg-white shadow-lg rounded-lg p-6">
             <div class="mb-4">
-                <label for="edit_district_name" class="block text-sm font-medium text-gray-700">Formation sanitaire</label>
+                <label for="edit_district_name" class="block text-sm font-medium text-gray-700">Formation
+                    sanitaire</label>
                 <input type="text" id="edit_district_name" wire:model="editName"
                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
                     required>
-                @error('editName') <span class="text-red-600">{{ $message }}</span> @enderror
+                @error('editName')
+                    <span class="text-red-600">{{ $message }}</span>
+                @enderror
             </div>
             <div class="mb-4">
                 <label for="edit_district_region" class="block text-sm font-medium text-gray-700">District</label>
@@ -131,7 +164,9 @@
                     required>
                     <option value="">Sélectionnez un district</option>
                 </select>
-                @error('editRegionId') <span class="text-red-600">{{ $message }}</span> @enderror
+                @error('editRegionId')
+                    <span class="text-red-600">{{ $message }}</span>
+                @enderror
             </div>
             <button type="submit"
                 class="w-full bg-yellow-600 text-white py-2 px-4 rounded-lg hover:bg-yellow-700 transition duration-200">

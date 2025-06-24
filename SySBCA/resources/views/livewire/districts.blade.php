@@ -109,6 +109,24 @@
                     <span class="text-red-600">{{ $message }}</span>
                 @enderror
             </div>
+            <div class="mb-4">
+                <label for="district_username" class="block text-sm font-medium text-gray-700">Nom d'utilisateur</label>
+                <input type="text" id="district_username" wire:model="district_username"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
+                    required>
+                @error('district_username')
+                    <span class="text-red-600">{{ $message }}</span>
+                @enderror
+            </div>
+            <div class="mb-4">
+                <label for="district_password" class="block text-sm font-medium text-gray-700">Mot de passe</label>
+                <input type="text" id="district_password" wire:model="district_password"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
+                    required>
+                @error('district_password')
+                    <span class="text-red-600">{{ $message }}</span>
+                @enderror
+            </div>
             <button type="submit"
                 class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200">
                 Enregistrer

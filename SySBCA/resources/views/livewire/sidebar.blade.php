@@ -9,6 +9,13 @@
             </div>
             <span x-show="sidebarOpen" class="truncate">Tableau de bord</span>
         </a>
+        <a href=""
+            class="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
+            <div class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
+                <i class="bi bi-person-circle"></i>
+            </div>
+            <span x-show="sidebarOpen" class="truncate">Utilisateurs</span>
+        </a>
         <a href="{{ route('regions.index') }}"
             class="{{ str_starts_with(request()->path(), 'regions') ? 'bg-green-100 text-green-700' : '' }} flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
             <div class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
@@ -39,20 +46,14 @@
             </div>
             <span x-show="sidebarOpen" class="truncate">Médicaments</span>
         </a>
-        <a href="#"
-            class="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
+        <a href="{{ route('consommations.index') }}"
+            class=" {{ str_starts_with(request()->path(), 'consommations') ? 'bg-green-100 text-green-700' : '' }} flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
             <div class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
                 <i class="bi bi-box-fill"></i>
             </div>
             <span x-show="sidebarOpen" class="truncate">Consommations</span>
         </a>
-        <a href="#"
-            class="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
-            <div class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
-                <i class="bi bi-cart-fill"></i>
-            </div>
-            <span x-show="sidebarOpen" class="truncate">Besoins</span>
-        </a>
+        
 
         <hr class="border-white/30 my-3">
 
