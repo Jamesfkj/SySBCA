@@ -56,9 +56,9 @@
         <table class="min-w-full border-collapse">
             <thead>
                 <tr class="bg-gray-100">
-                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 border-b">Nom</th>
-                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 border-b">Région</th>
-                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 border-b">Actions</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Nom</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Région</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -66,7 +66,7 @@
                     x-for="district in [{ id: 1, name: 'District 1', region: 'Région Maritime' }, { id: 2, name: 'District 2', region: 'Région des Plateaux' }]">
                     <tr class="border-b hover:bg-gray-50">
                         <td class="px-6 py-4 text-blue-900" x-text="district.name"></td>
-                        <td class="px-6 py-4 text-gray-700" x-text="district.region"></td>
+                        <td class="px-6 py-4 text-blue-900" x-text="district.region"></td>
                         <td class="px-6 py-4 flex gap-4">
                             <!-- Modifier -->
                             <button @click="showEditForm = true; showCreateForm = false; editData = district"
@@ -89,7 +89,7 @@
     <div x-show="showCreateForm" x-cloak x-transition>
         <form wire:submit.prevent="save" class="bg-white shadow-lg rounded-lg p-6">
             <div class="mb-4">
-                <label for="district_name" class="block text-sm font-medium text-gray-700">Nom du District</label>
+                <label for="district_name" class="block text-sm font-medium text-blue-900">Nom du District</label>
                 <input type="text" id="district_name" wire:model="name"
                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
                     required>
@@ -98,7 +98,7 @@
                 @enderror
             </div>
             <div class="mb-4">
-                <label for="district_region" class="block text-sm font-medium text-gray-700">Région</label>
+                <label for="district_region" class="block text-sm font-medium text-blue-900">Région</label>
                 <select id="district_region" wire:model="region_id"
                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
                     required>
@@ -109,8 +109,9 @@
                     <span class="text-red-600">{{ $message }}</span>
                 @enderror
             </div>
+            <p class="mb-4 text-gray-500">-- Enrégistrer l'utilisateur lié à cet district --</p>
             <div class="mb-4">
-                <label for="district_username" class="block text-sm font-medium text-gray-700">Nom d'utilisateur</label>
+                <label for="district_username" class="block text-sm font-medium text-blue-900">Nom d'utilisateur</label>
                 <input type="text" id="district_username" wire:model="district_username"
                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
                     required>
@@ -119,7 +120,7 @@
                 @enderror
             </div>
             <div class="mb-4">
-                <label for="district_password" class="block text-sm font-medium text-gray-700">Mot de passe</label>
+                <label for="district_password" class="block text-sm font-medium text-blue-900">Mot de passe</label>
                 <input type="text" id="district_password" wire:model="district_password"
                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
                     required>
@@ -138,7 +139,7 @@
     <div x-show="showEditForm" x-cloak x-transition>
         <form wire:submit.prevent="update" class="bg-white shadow-lg rounded-lg p-6">
             <div class="mb-4">
-                <label for="edit_district_name" class="block text-sm font-medium text-gray-700">Nom du District</label>
+                <label for="edit_district_name" class="block text-sm font-medium text-blue-900">Nom du District</label>
                 <input type="text" id="edit_district_name" wire:model="editName"
                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
                     required>
@@ -147,7 +148,7 @@
                 @enderror
             </div>
             <div class="mb-4">
-                <label for="edit_district_region" class="block text-sm font-medium text-gray-700">Région</label>
+                <label for="edit_district_region" class="block text-sm font-medium text-blue-900">Région</label>
                 <select id="edit_district_region" wire:model="editRegionId"
                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
                     required>

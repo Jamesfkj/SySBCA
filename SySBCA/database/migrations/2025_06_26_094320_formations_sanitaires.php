@@ -11,9 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create("roles", function (Blueprint $table) {
+        Schema::create('formations_sanitaires', function (Blueprint $table) {
             $table->id();
-            $table->string("nom_role")->unique();
+            $table->string('nom')->unique();
+            $table->foreignId('district_id')
+                ->constrained('districts')
+                ->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -23,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists("role");
+        Schema::dropIfExists('formations_sanitaires');
     }
 };
