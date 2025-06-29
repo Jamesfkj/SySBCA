@@ -1,5 +1,5 @@
-<aside id="sidebar" :class="sidebarOpen ? 'w-auto' : 'w-16'"
-    class="bg-gradient-to-t from-teal-900 to-teal-600 text-white shadow-lg pt-16 flex-shrink-0 transition-all duration-1000 overflow-hidden">
+<aside id="sidebar" x-bind:class="sidebarOpen ? 'w-auto' : 'w-16'" 
+    class="">
 
     <nav class="space-y-3 text-sm px-2 pt-6">
         <a href="#"
@@ -53,7 +53,7 @@
             </div>
             <span x-show="sidebarOpen" class="truncate">Consommations</span>
         </a>
-        
+
 
         <hr class="border-white/30 my-3">
 
