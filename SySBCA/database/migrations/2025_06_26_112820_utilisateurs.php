@@ -17,8 +17,9 @@ return new class extends Migration {
             $table->enum('etat', ['actif', 'suspendu'])->default('actif');
             $table->foreignId('role_id')
                 ->constrained('roles')
-                ->default(3);
-            $table->unsignedBigInteger('entity_id')->nullable(); // qui veut dire que si le role est fs, 4 correspondra à l'enregistrement 4 de la table fs
+                ->default(4);
+            $table->unsignedBigInteger('entity_id'); 
+            $table->string('entity_type');
             $table->boolean('doit_renitialiser_pwd')->default(true);
             $table->rememberToken();
             $table->timestamps();

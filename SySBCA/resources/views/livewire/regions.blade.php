@@ -1,15 +1,12 @@
 <div>
-    @if (session()->has('message'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <span class="block sm:inline">{{ session('message') }}</span>
-            <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
-                <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20" onclick="this.parentElement.parentElement.remove()">
-                    <title>Close</title>
-                    <path
-                        d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.697l-2.651 2.652a1.2 1.2 0 1 1-1.697-1.697L8.303 10 5.651 7.348a1.2 1.2 0 1 1 1.697-1.697L10 8.303l2.651-2.652a1.2 1.2 0 0 1 1.697 1.697L11.697 10l2.651 2.651a1.2 1.2 0 0 1 0 1.698z" />
-                </svg>
-            </span>
+    @if (session('message'))
+        <div id="alert"
+            class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4 flex justify-between items-center"
+            role="alert">
+            <span>{{ session('message') }}</span>
+            <button onclick="document.getElementById('alert').remove()" class="text-green-500">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
     @endif
     <div wire:loading wire:target="afficherFormulaire,afficherEdition,afficherTableau,create,updateRegion,delete"
@@ -46,7 +43,7 @@
 
             @if (!$showCreateForm && !$showEditForm)
                 <div>
-                    <input type="text" wire:model.debounce.300ms="search" name="search_region"
+                    <input type="text" wire:model.live="search" name="search_region"
                         placeholder="Rechercher une région..."
                         class="w-96 rounded-full px-4 py-2 border focus:outline-none focus:ring-teal-500" />
                 </div>
@@ -56,7 +53,8 @@
                 <button wire:click="afficherTableau"
                     class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
                     <span class="flex items-center gap-2">
-                        <div class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 text-blue-500 shadow">
+                        <div
+                            class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 text-blue-500 shadow">
                             <i class="bi bi-eye"></i>
                         </div>Voir la liste
                     </span>
@@ -67,7 +65,8 @@
                 <button wire:click="afficherFormulaire"
                     class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
                     <span class="flex items-center gap-2">
-                        <div class="w-7 h-7 flex items-center justify-center rounded-full bg-white text-blue-600 shadow">
+                        <div
+                            class="w-7 h-7 flex items-center justify-center rounded-full bg-white text-blue-600 shadow">
                             <i class="bi bi-plus"></i>
                         </div>Ajouter une Région
                     </span>
@@ -102,7 +101,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="2" class="px-6 py-4 text-center text-gray-500">Aucune région trouvée.</td>
+                                <td colspan="2" class="px-6 py-4 text-center text-gray-500">Aucune région trouvée.
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>

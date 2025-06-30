@@ -16,7 +16,7 @@ class RoleSeeder extends Seeder
             ['nom_role' => 'admin'],
             ['nom_role' => 'region'],
             ['nom_role' => 'district'],
-            ['nom_role' => 'fs'],//qui désigne formation sanitaire
+            ['nom_role' => 'fs'],
         ]);
     }
 }
