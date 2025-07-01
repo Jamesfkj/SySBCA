@@ -11,4 +11,8 @@ class Utilisateur extends Model
     public function entity(){
         return $this->morphTo();
     }
+
+    public function role(){
+        return $this->belongsTo(Role::class);
+    }
 }

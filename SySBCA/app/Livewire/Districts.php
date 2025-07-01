@@ -117,6 +117,11 @@ class Districts extends Component
     {
         $district = District::find($districtId);
         if ($district) {
+            $utilisateur = Utilisateur::where('entity_id', $districtId);
+            if ($utilisateur){
+                $utilisateur->etat = 'suspendu';
+                $utilisateur->save();
+            }
             $district->delete();
             session()->flash('message', 'District supprimé avec succès !');
         }

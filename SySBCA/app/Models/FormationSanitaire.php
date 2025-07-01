@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class FormSani extends Model
+class FormationSanitaire extends Model
 {
     protected $table = "formations_sanitaires";
 
-    public function districts(){
+    public function district(){
         return $this->belongsTo(District::class);
     }
 

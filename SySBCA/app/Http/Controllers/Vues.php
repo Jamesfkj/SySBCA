@@ -21,6 +21,10 @@ class Vues extends Controller
         return view('user.fs');
     }
 
+    public function utilisateurs()
+    {
+        return view('user.utilisateurs');
+    }
     public function medicament()
     {
         return view('user.medicament');
@@ -29,4 +33,6 @@ class Vues extends Controller
     {
         return view('user.consommation');
     }
+
+
 }

@@ -151,20 +151,4 @@
             </div>
         @endif
     </div>
-
-    <style>
-        @keyframes progress-bar {
-            0% {
-                width: 0%;
-            }
-
-            100% {
-                width: 100%;
-            }
-        }
-
-        .animate-progress-bar {
-            animation: progress-bar 2s linear infinite;
-        }
-    </style>
 </div>

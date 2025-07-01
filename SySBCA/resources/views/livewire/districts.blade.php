@@ -100,6 +100,7 @@
                                         <i class="bi bi-pen-fill"></i>
                                     </button>
                                     <button wire:click="delete({{ $district->id }})"
+                                        wire:confirm="Êtes-vous sûr de vouloir supprimer cet district ?"
                                         class="text-red-600 hover:text-red-700 flex items-center justify-center w-9 h-9 rounded-full bg-red-100 shadow-md">
                                         <i class="bi bi-trash3-fill"></i>
                                     </button>
@@ -215,20 +216,4 @@
             </div>
         @endif
     </div>
-
-    <style>
-        @keyframes progress-bar {
-            0% {
-                width: 0%;
-            }
-
-            100% {
-                width: 100%;
-            }
-        }
-
-        .animate-progress-bar {
-            animation: progress-bar 2s linear infinite;
-        }
-    </style>
 </div>
