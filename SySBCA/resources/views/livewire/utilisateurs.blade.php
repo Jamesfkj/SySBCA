@@ -159,7 +159,7 @@
                                 <option value="{{ $role->id }}">{{ $role->nom_role }}</option>
                             @endforeach
                         </select>
-                    </div>
+                    </div> 
                     @php
                         $role_choisi = $roles->firstWhere('id', $role_id);
                     @endphp
@@ -171,9 +171,12 @@
                                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-blue-900 overflow-auto">
                                 <option>-- Sélectionnez {{ $role_choisi->nom_role }} --</option>
                                 @foreach ($zones as $zone)
-                                    <option>{{ $zone->nom }}</option>
+                                    <option value="{{ $zone->id }}">{{ $zone->nom }}</option>
                                 @endforeach
                             </select>
+                            @error('zone_sanitaire')
+                            <span class="text-red-600">{{ $message }}</span>
+                        @enderror
                         </div>
                     @endif
                     <!-- Mot de passe -->

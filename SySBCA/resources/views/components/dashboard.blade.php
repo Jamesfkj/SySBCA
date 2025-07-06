@@ -45,7 +45,7 @@
     
      
     <main id="main-content" class="flex-1 overflow-y-auto pt-16 p-4"
-        style="background-image: url('{{ asset('images/bg3.jpg') }}')">
+        style="background-image: url('{{ asset('images/bg.png') }}'); background-repeat: no-repeat; background-size: cover; background-position: center;">
         {{ $slot }}
     </main>
        @livewireScripts

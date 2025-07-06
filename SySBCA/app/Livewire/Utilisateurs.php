@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use Illuminate\Validation\Rules\Exists;
 use Livewire\Component;
 use App\Models\Region;
 use App\Models\District;
@@ -28,6 +29,7 @@ class Utilisateurs extends Component
 
     public $role_choisi;
     public $zones = [];
+    public $zone_sanitaire;
     public $entity_id;
     public $entity_type;
 
@@ -77,44 +79,87 @@ class Utilisateurs extends Component
     }
 
     public function create()
-    {
-        $this->validate([
-            'username' => 'required|string|max:255|unique:utilisateurs,username',
-            'mot_de_passe' => 'required|string|min:6|same:confirmation_mot_de_passe',
-            'role_id' => 'required',
-            'entity_id' => 'required',
-            'entity_type' => 'required',
-        ], [
-            'username.required' => "Le nom d'utilisateur est obligatoire.",
-            'username.string' => "Le nom d'utilisateur doit être une chaîne de caractères.",
-            'username.max' => "Le nom d'utilisateur ne doit pas dépasser 255 caractères.",
-            'username.unique' => "Ce nom d'utilisateur est déjà utilisé.",
+{
+    $this->validate([
+        'username' => 'required|string|max:255|unique:utilisateurs,username',
+        'mot_de_passe' => 'required|string|min:6|same:confirmation_mot_de_passe',
+        'role_id' => 'required',
+        'zone_sanitaire' => 'required',
+    ], [
+        'username.required' => "Le nom d'utilisateur est obligatoire.",
+        'username.string' => "Le nom d'utilisateur doit être une chaîne de caractères.",
+        'username.max' => "Le nom d'utilisateur ne doit pas dépasser 255 caractères.",
+        'username.unique' => "Ce nom d'utilisateur est déjà utilisé.",
+        'mot_de_passe.required' => 'Le mot de passe est obligatoire.',
+        'mot_de_passe.min' => 'Le mot de passe doit contenir au moins 6 caractères.',
+        'mot_de_passe.same' => 'La confirmation du mot de passe ne correspond pas.',
+        'role_id.required' => 'Le rôle est obligatoire.',
+        'zone_sanitaire.required' => 'La zone est obligatoire.',
+    ]);
 
-            'mot_de_passe.required' => 'Le mot de passe est obligatoire.',
-            'mot_de_passe.string' => 'Le mot de passe doit être une chaîne de caractères.',
-            'mot_de_passe.min' => 'Le mot de passe doit contenir au moins 6 caractères.',
-            'mot_de_passe.same' => 'La confirmation du mot de passe ne correspond pas.',
+    $role = Role::find($this->role_id);
+    $utilisateur = new Utilisateur();
+    $utilisateur->username = $this->username;
+    $utilisateur->password = Hash::make($this->mot_de_passe);
+    $utilisateur->etat = 'actif';
+    $utilisateur->role_id = $this->role_id;
 
-            'role_id.required' => 'Le rôle est obligatoire.',
+    if ($role) {
+        switch ($role->nom_role) {
+            case 'District':
+                // Vérifie si un utilisateur est déjà assigné à ce district
+                $exists = Utilisateur::where('entity_id', $this->zone_sanitaire)
+                                     ->where('etat', 'actif')
+                                     ->where('entity_type', District::class)
+                                     ->exists();
+                if ($exists) {
+                    $this->addError('zone_sanitaire', 'Un utilisateur actif est déjà assigné à ce district.');
+                    return;
+                }
 
-            'entity_type.required' => 'Le type de rattachement est obligatoire.',
-            'entity_type.string' => 'Le type de rattachement doit être une chaîne de caractères.',
-        ]);
+                $utilisateur->entity_id = $this->zone_sanitaire;
+                $utilisateur->entity_type = District::class;
+                $utilisateur->doit_renitialiser_pwd = true;
+                break;
 
+            case 'Formation sanitaire':
+                $exists = Utilisateur::where('entity_id', $this->zone_sanitaire)    
+                                     ->where('etat', 'actif')
+                                     ->where('entity_type', FormationSanitaire::class)
+                                     ->exists();
+                if ($exists) {
+                    $this->addError('zone_sanitaire', 'Un utilisateur actif est déjà assigné à cette formation sanitaire.');
+                    return;
+                }
 
-        $utilisateur = new Utilisateur();
-        $utilisateur->username = $this->username;
-        $utilisateur->password = Hash::make($this->mot_de_passe);
-        $utilisateur->etat = 'actif';
-        $utilisateur->role_id = $this->role_id;
-        $utilisateur->entity_id = $this->entity_id;
-        $utilisateur->entity_type = $this->entity_type;
-        $utilisateur->doit_renitialiser_pwd = true;
-        $utilisateur->save();
+                $utilisateur->entity_id = $this->zone_sanitaire;
+                $utilisateur->entity_type = FormationSanitaire::class;
+                $utilisateur->doit_renitialiser_pwd = true;
+                break;
 
-        session()->flash('message', 'Utilisateur créé avec succès !');
-        $this->afficherTableau();
+            case 'Administrateur':
+                $utilisateur->entity_id = null;
+                $utilisateur->entity_type = null;
+                $utilisateur->doit_renitialiser_pwd = false;
+                break;
+        }
     }
+
+    $utilisateur->save();
+
+    session()->flash('message', 'Utilisateur créé avec succès !');
+
+    $this->reset([
+        'username',
+        'mot_de_passe',
+        'confirmation_mot_de_passe',
+        'role_id',
+        'zone_sanitaire',
+    ]);
+
+    $this->afficherFormulaire();
+}
+
 
     public function updateUtilisateur()
     {

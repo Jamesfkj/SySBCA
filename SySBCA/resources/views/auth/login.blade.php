@@ -1,7 +1,13 @@
 <x-guest-layout>
-    <div class="bg-gray-100 min-h-screen flex items-center justify-center">
-        <div class="max-w-xl w-full p-8 bg-white shadow-lg rounded-lg">
-            <h1 class="text-2xl font-bold text-center text-green-700 mb-2">Connexion</h1>
+    <div class="min-h-screen flex items-center justify-center font-[Rubik]"
+     style="background-image: url('{{ asset('images/bg.png') }}'); background-repeat: no-repeat; background-size: cover; background-position: center;">
+        <div class="max-w-xl w-full p-6 bg-white shadow-lg rounded-lg">
+
+            <div class="flex justify-center">
+                <img src="{{ asset('images/pnlp3.jpg') }}" alt="Logo" class="h-20">
+            </div>
+
+            <h1 class="text-2xl font-bold text-center text-teal-600 mb-2">Connexion</h1>
             <p class="text-center text-gray-500 font-semibold mb-4">
                 Entrez vos identifiants pour vous connecter !
             </p>
@@ -14,25 +20,25 @@
 
                 <!-- Email -->
                 <div>
-                    <label for="email" class="block text-green-700 font-semibold mb-1">Email</label>
-                    <input type="email" id="email" name="email" :value="old('email')" required autofocus
-                        placeholder="Email"
-                        class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700">
+                    <label for="email" class="block text-teal-600 font-semibold mb-1">Nom d'utilisateuur</label>
+                    <input type="text" id="username" name="username" :value="old('username')" required autofocus
+                        placeholder="Nom d'utilisateur"
+                        class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600">
                     <x-input-error :messages="$errors->get('email')" class="mt-2 text-sm text-red-500" />
                 </div>
 
                 <!-- Password -->
                 <div class="mt-4">
-                    <label for="password" class="block text-green-700 font-semibold mb-1">Mot de passe</label>
+                    <label for="password" class="block text-teal-600 font-semibold mb-1">Mot de passe</label>
                     <input type="password" id="password" name="password" required placeholder="Mot de passe"
-                        class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700">
+                        class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600">
                     <x-input-error :messages="$errors->get('password')" class="mt-2 text-sm text-red-500" />
                 </div>
 
                 <!-- Remember Me -->
                 <div class="flex items-center">
                     <input id="remember_me" type="checkbox" name="remember"
-                        class="rounded border-gray-300 text-green-700 shadow-sm focus:ring-green-700">
+                        class="rounded border-gray-300 text-teal-600 shadow-sm focus:ring-teal-600">
                     <label for="remember_me" class="ml-2 text-sm text-gray-600">
                         {{ __('Se souvenir de moi') }}
                     </label>
@@ -41,20 +47,20 @@
                 <!-- Login Button and Forgot Password -->
                 <div class="flex items-center justify-between mt-4">
                     @if (Route::has('password.request'))
-                        <a class="underline text-sm text-gray-600 hover:text-green-700"
+                        <a class="underline text-sm text-gray-600 hover:text-teal-900"
                             href="{{ route('password.request') }}">
                             {{ __('Mot de passe oublié ?') }}
                         </a>
                     @endif
 
                     <button type="submit"
-                        class="bg-green-700 text-white px-6 py-2 rounded-md hover:bg-green-700 transition duration-300">
+                        class="bg-teal-600 text-white px-6 py-2 rounded-md hover:bg-teal-900 transition duration-300">
                         Se connecter
                     </button>
                 </div>
             </form>
 
-            <div class="text-3xl font-semibold text-center text-green-700 mt-12">PNLP Togo</div>
+            <div class="text-3xl font-semibold text-center text-teal-600 mt-12">PNLP Togo</div>
         </div>
     </div>
 </x-guest-layout>
