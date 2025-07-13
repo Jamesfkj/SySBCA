@@ -1,53 +1,58 @@
 <x-guest-layout>
-    <div class="min-h-screen flex items-center justify-center font-[Rubik]"
-     style="background-image: url('{{ asset('images/bg.png') }}'); background-repeat: no-repeat; background-size: cover; background-position: center;">
-        <div class="max-w-xl w-full p-6 bg-white shadow-lg rounded-lg">
+    <div class="min-h-screen w-full flex items-center justify-center font-[Rubik]"
+        style="background-image: url('{{ asset('images/bg.png') }}'); background-repeat: no-repeat; background-size: cover; background-position: center;">
 
-            <div class="flex justify-center">
-                <img src="{{ asset('images/pnlp3.jpg') }}" alt="Logo" class="h-20">
+        <div
+            class="w-full max-w-xl p-6 bg-teal-900 bg-opacity-40 shadow-lg rounded-lg m-4 backdrop-filter backdrop-blur-lg">
+
+            @if ($errors->has('error'))
+                <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 3000)" x-show="show"
+                    x-transition.opacity role="alert"
+                    class="text-red-600 bg-red-100 text-center text-sm mt-2 px-4 py-2 rounded-full shadow-sm">
+                    {{ $errors->first('error') }}
+                </div>
+            @endif
+
+
+            <div class="flex justify-center mt-1">
+                <img src="{{ asset('images/pnlp3.jpg') }}" alt="Logo" class="h-20 font-size-2xl">
             </div>
 
             <h1 class="text-2xl font-bold text-center text-teal-600 mb-2">Connexion</h1>
-            <p class="text-center text-gray-500 font-semibold mb-4">
+            <p class="text-center text-gray-700 font-semibold mb-4">
                 Entrez vos identifiants pour vous connecter !
             </p>
-
-            <!-- Session Status -->
             <x-auth-session-status class="mb-4 text-center" :status="session('status')" />
 
             <form class="space-y-5" method="POST" action="{{ route('login') }}">
                 @csrf
-
-                <!-- Email -->
                 <div>
-                    <label for="email" class="block text-teal-600 font-semibold mb-1">Nom d'utilisateuur</label>
+                    <label for="email" class="block text-teal-600 font-semibold mb-1">Nom d'utilisateur</label>
                     <input type="text" id="username" name="username" :value="old('username')" required autofocus
                         placeholder="Nom d'utilisateur"
                         class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600">
-                    <x-input-error :messages="$errors->get('email')" class="mt-2 text-sm text-red-500" />
+                    <x-input-error :messages="$errors->get('username')"
+                        class="mt-2 text-sm text-red-600 bg-transparent bg-white" />
                 </div>
 
-                <!-- Password -->
                 <div class="mt-4">
                     <label for="password" class="block text-teal-600 font-semibold mb-1">Mot de passe</label>
                     <input type="password" id="password" name="password" required placeholder="Mot de passe"
                         class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600">
-                    <x-input-error :messages="$errors->get('password')" class="mt-2 text-sm text-red-500" />
+                    <x-input-error :messages="$errors->get('password')" class="mt-2 text-sm text-red-600" />
                 </div>
 
-                <!-- Remember Me -->
                 <div class="flex items-center">
                     <input id="remember_me" type="checkbox" name="remember"
                         class="rounded border-gray-300 text-teal-600 shadow-sm focus:ring-teal-600">
-                    <label for="remember_me" class="ml-2 text-sm text-gray-600">
+                    <label for="remember_me" class="ml-2 text-sm text-gray-700">
                         {{ __('Se souvenir de moi') }}
                     </label>
                 </div>
 
-                <!-- Login Button and Forgot Password -->
                 <div class="flex items-center justify-between mt-4">
                     @if (Route::has('password.request'))
-                        <a class="underline text-sm text-gray-600 hover:text-teal-900"
+                        <a class="underline text-sm text-gray-00 hover:text-teal-900"
                             href="{{ route('password.request') }}">
                             {{ __('Mot de passe oublié ?') }}
                         </a>

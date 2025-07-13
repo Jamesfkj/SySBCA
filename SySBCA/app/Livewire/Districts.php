@@ -85,7 +85,7 @@ class Districts extends Component
 
         session()->flash('message', 'District ajouté avec succès !');
 
-        $this->afficherFormulaire();
+        $this->afficherTableau();
     }
 
 

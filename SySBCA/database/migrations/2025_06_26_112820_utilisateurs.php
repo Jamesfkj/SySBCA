@@ -18,8 +18,8 @@ return new class extends Migration {
             $table->foreignId('role_id')
                 ->constrained('roles')
                 ->default(4);
-            $table->unsignedBigInteger('entity_id'); 
-            $table->string('entity_type');
+            $table->unsignedBigInteger('entity_id')->nullable(); 
+            $table->string('entity_type')->nullable();
             $table->boolean('doit_renitialiser_pwd')->default(true);
             $table->rememberToken();
             $table->timestamps();

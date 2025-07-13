@@ -1,12 +1,9 @@
 <div>
     @if (session('message'))
-        <div id="alerte"
+        <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 2000)" x-show="show" x-transition
             class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4 flex justify-between items-center"
             role="alert">
             <span>{{ session('message') }}</span>
-            <button onclick="document.getElementById('alerte').remove()" class="text-green-500">
-                <i class="bi bi-x-lg"></i>
-            </button>
         </div>
     @endif
 

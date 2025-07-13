@@ -2,17 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Utilisateur extends Model
+class Utilisateur extends Authenticatable
 {
     protected $table = "utilisateurs";
 
-    public function entity(){
+    public function entity(): MorphTo
+    {
         return $this->morphTo();
     }
 
-    public function role(){
+    public function role(): BelongsTo
+    {
         return $this->belongsTo(Role::class);
     }
 }

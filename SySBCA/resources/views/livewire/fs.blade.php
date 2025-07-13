@@ -1,12 +1,9 @@
 <div>
     @if (session('message'))
-        <div id="alerte"
+        <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 2000)" x-show="show" x-transition
             class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4 flex justify-between items-center"
             role="alert">
             <span>{{ session('message') }}</span>
-            <button onclick="document.getElementById('alerte').remove()" class="text-green-500">
-                <i class="bi bi-x-lg"></i>
-            </button>
         </div>
     @endif
 
@@ -79,6 +76,7 @@
                     <thead>
                         <tr class="bg-gray-100">
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Formation sanitaire</th>
+                            <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Nombre d'ASC</th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">District</th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Actions</th>
                         </tr>
@@ -87,6 +85,7 @@
                         @forelse ($formations as $fs)
                             <tr wire:key="{{ $fs->id }}" class="border-b hover:bg-gray-50">
                                 <td class="px-6 py-4 text-blue-900">{{ $fs->nom }}</td>
+                                <td class="px-6 py-4 text-blue-900">{{ $fs->nb_asc }}</td>
                                 <td class="px-6 py-4 text-blue-900">{{ $fs->district->nom }}</td>
                                 <td class="px-6 py-4 flex gap-4">
                                     <button wire:click="afficherEdition({{ $fs->id }})"
@@ -119,7 +118,11 @@
                         <input type="text" wire:model="nom" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900" required>
                         @error('nom') <span class="text-red-600">{{ $message }}</span> @enderror
                     </div>
-
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-blue-900">Nombre d'ASC</label>
+                        <input type="number" min="0" wire:model="nb_asc" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900" required>
+                        @error('nb_asc') <span class="text-red-600">{{ $message }}</span> @enderror
+                    </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-blue-900">District</label>
                         <select wire:model="district_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900" required>
@@ -164,7 +167,11 @@
                         <input type="text" wire:model="nomEdition" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900" required>
                         @error('nomEdition') <span class="text-red-600">{{ $message }}</span> @enderror
                     </div>
-
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-blue-900">Nombre d'ASC</label>
+                        <input type="number" min="0" wire:model="nb_ascEdition" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900" required>
+                        @error('nb_ascEdition') <span class="text-red-600">{{ $message }}</span> @enderror
+                    </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-blue-900">District</label>
                         <select wire:model="districtIdEdition" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900" required>

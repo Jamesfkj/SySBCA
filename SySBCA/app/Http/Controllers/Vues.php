@@ -33,6 +33,9 @@ class Vues extends Controller
     {
         return view('user.consommation');
     }
-
+    public function dashboard()
+    {
+        return view('user.dashboard');
+    }
 
 }

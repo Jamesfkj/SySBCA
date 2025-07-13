@@ -2,8 +2,8 @@
     class="">
 
     <nav class="space-y-3 text-sm px-2 pt-6">
-        <a href="#"
-            class="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
+        <a href="{{ route('dashboard') }}"
+            class="{{ str_starts_with(request()->path(), 'dashboard') ? 'bg-green-100 text-green-700' : '' }} flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
             <div class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
                 <i class="bi bi-speedometer"></i>
             </div>
@@ -64,12 +64,15 @@
             </div>
             <span x-show="sidebarOpen" class="truncate">Profil</span>
         </a>
-        <a href="{{ route('logout') }}"
-            class="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-red-100 hover:text-red-700 transition">
-            <div class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
-                <i class="bi bi-box-arrow-right"></i>
-            </div>
-            <span x-show="sidebarOpen" class="truncate">Déconnexion</span>
-        </a>
+        <form action="{{ route('logout') }}" method="post">
+            @csrf
+            <button type="submit"
+                class="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-red-100 hover:text-red-700 transition w-full text-left">
+                <div class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
+                    <i class="bi bi-box-arrow-left"></i>
+                </div>
+                <span x-show="sidebarOpen" class="truncate">Déconnexion</span>
+            </button>
+        </form>
     </nav>
 </aside>

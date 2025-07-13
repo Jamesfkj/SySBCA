@@ -1,12 +1,9 @@
 <div>
     @if (session('message'))
-        <div id="alerte"
+        <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 2000)" x-show="show" x-transition
             class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4 flex justify-between items-center"
             role="alert">
             <span>{{ session('message') }}</span>
-            <button onclick="document.getElementById('alerte').remove()" class="text-green-500">
-                <i class="bi bi-x-lg"></i>
-            </button>
         </div>
     @endif
 
@@ -53,8 +50,7 @@
                 <button wire:click="afficherTableau"
                     class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
                     <span class="flex items-center gap-2">
-                        <div
-                            class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 text-blue-500 shadow">
+                        <div class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 text-blue-500 shadow">
                             <i class="bi bi-eye"></i>
                         </div>Voir la liste
                     </span>
@@ -65,8 +61,7 @@
                 <button wire:click="afficherFormulaire"
                     class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
                     <span class="flex items-center gap-2">
-                        <div
-                            class="w-7 h-7 flex items-center justify-center rounded-full bg-white text-blue-600 shadow">
+                        <div class="w-7 h-7 flex items-center justify-center rounded-full bg-white text-blue-600 shadow">
                             <i class="bi bi-plus"></i>
                         </div>Ajouter un utilisateur
                     </span>
@@ -78,14 +73,13 @@
         @if (!$afficherFormulaireCreation && !$afficherFormulaireEdition)
             <div class="text-[15px] text text-gray-500">Pour effectuer une recherche selon la date, entrez au format :
                 aaaa-mm-jj</div>
-            <div class="bg-white shadow-lg rounded-lg">
+            <div class="bg-white shadow-lg rounded-lg overflow-auto max-h-[400px]">
                 <table class="min-w-full border-collapse">
                     <thead>
                         <tr class="bg-gray-100">
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Nom d'utilisateur
                             </th>
-                            <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Niveau sanitaire
-                            </th>
+                            <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Niveau sanitaire</th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Nom de zone</th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Statut</th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Créé le</th>
@@ -97,10 +91,8 @@
                         @forelse ($utilisateurs as $utilisateur)
                             <tr class="border-b hover:bg-gray-50">
                                 <td class="px-6 py-4 text-blue-900">{{ $utilisateur->username }}</td>
-                                <td class="px-6 py-4 text-blue-900">{{ ucfirst($utilisateur->role->nom_role ?? 'N/A') }}
-                                </td>
-                                <td class="px-6 py-4 text-blue-900">{{ ucfirst($utilisateur->entity->nom ?? 'N/A') }}
-                                </td>
+                                <td class="px-6 py-4 text-blue-900">{{ ucfirst($utilisateur->role->nom_role ?? 'N/A') }}</td>
+                                <td class="px-6 py-4 text-blue-900">{{ ucfirst($utilisateur->entity->nom ?? 'N/A') }}</td>
                                 <td class="px-6 py-4">
                                     <span
                                         class="px-2 py-1 text-xs font-semibold rounded-full {{ $utilisateur->etat === 'actif' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
@@ -114,25 +106,44 @@
                                     {{ $utilisateur->updated_at?->format('d/m/Y H:i') }}
                                 </td>
                                 <td class="px-6 py-4 flex gap-4">
+                                    <!-- Bouton de suspension ou réactivation -->
+                                    @if ($utilisateur->etat === 'suspendu')
+                                        <button wire:click="reactiver({{ $utilisateur->id }})"
+                                            class="text-green-600 hover:text-green-700 flex items-center justify-center w-9 h-9 rounded-full bg-green-100 shadow-md"
+                                            title="Réactiver cet utilisateur">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </button>
+                                        <button wire:click="delete({{ $utilisateur->id }})"
+                                            wire:confirm="Êtes-vous sûr de vouloir supprimer définitivement cet utilisateur ?"
+                                            class="text-red-600 hover:text-red-700 flex items-center justify-center w-9 h-9 rounded-full bg-red-100 shadow-md"
+                                            title="Supprimer cet utilisateur">
+                                            <i class="bi bi-trash3-fill"></i>
+                                        </button>
+                                    @else
+                                    <!-- Bouton d'édition -->
                                     <button wire:click="afficherEdition({{ $utilisateur->id }})"
-                                        class="text-blue-600 hover:text-blue-700 flex items-center justify-center w-9 h-9 rounded-full bg-blue-100 shadow-md">
+                                        class="text-blue-600 hover:text-blue-700 flex items-center justify-center w-9 h-9 rounded-full bg-blue-100 shadow-md"
+                                        title="Modifier cet utilisateur">
                                         <i class="bi bi-pen-fill"></i>
                                     </button>
-                                    <button wire:click="delete({{ $utilisateur->id }})"
-                                        class="text-red-600 hover:text-red-700 flex items-center justify-center w-9 h-9 rounded-full bg-red-100 shadow-md">
-                                        <i class="bi bi-trash3-fill"></i>
-                                    </button>
+                                        <button wire:click="suspendre({{ $utilisateur->id }})"
+                                            wire:confirm="Êtes-vous sûr de vouloir suspendre cet utilisateur ?"
+                                            class="text-red-600 hover:text-red-700 flex items-center justify-center w-9 h-9 rounded-full bg-red-100 shadow-md"
+                                            title="Suspendre cet utilisateur">
+                                            <i class="bi bi-trash3-fill"></i>
+                                        </button>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-6 py-4 text-center text-gray-500">Aucun utilisateur trouvé.
-                                </td>
+                                <td colspan="7" class="px-6 py-4 text-center text-gray-500">Aucun utilisateur trouvé.</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
+
         @endif
 
 
@@ -159,7 +170,7 @@
                                 <option value="{{ $role->id }}">{{ $role->nom_role }}</option>
                             @endforeach
                         </select>
-                    </div> 
+                    </div>
                     @php
                         $role_choisi = $roles->firstWhere('id', $role_id);
                     @endphp
@@ -175,8 +186,8 @@
                                 @endforeach
                             </select>
                             @error('zone_sanitaire')
-                            <span class="text-red-600">{{ $message }}</span>
-                        @enderror
+                                <span class="text-red-600">{{ $message }}</span>
+                            @enderror
                         </div>
                     @endif
                     <!-- Mot de passe -->
@@ -206,10 +217,10 @@
             </div>
         @endif
 
-        <!-- FORMULAIRE D'ÉDITION -->
         @if ($afficherFormulaireEdition)
             <div class="bg-white shadow-lg rounded-lg p-6">
                 <form wire:submit.prevent="updateUtilisateur">
+                    <!-- Nom d'utilisateur -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-blue-900">Nom d'utilisateur</label>
                         <input type="text" wire:model="usernameEdition"
@@ -219,13 +230,14 @@
                         @enderror
                     </div>
 
+                    <!-- Sélection du rôle -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-blue-900">Rôle</label>
-                        <select wire:model="roleIdEdition"
+                        <select wire:model.live="roleIdEdition"
                             class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-blue-900">
                             <option value="">-- Sélectionnez un rôle --</option>
                             @foreach ($roles as $role)
-                                <option value="{{ $role->id }}">{{ $role->nom }}</option>
+                                <option value="{{ $role->id }}">{{ $role->nom_role }}</option>
                             @endforeach
                         </select>
                         @error('roleIdEdition')
@@ -233,11 +245,42 @@
                         @enderror
                     </div>
 
+                    @php
+                        $role_choisiEdition = $roles->firstWhere('id', $roleIdEdition);
+                    @endphp
+
+                    @if ($role_choisiEdition && in_array($role_choisiEdition->nom_role, ['District', 'Formation sanitaire']))
+                        @php
+                            if ($role_choisiEdition->nom_role === 'District') {
+                                $zones = \App\Models\District::all();
+                            } elseif ($role_choisiEdition->nom_role === 'Formation sanitaire') {
+                                $zones = \App\Models\FormationSanitaire::all();
+                            } else {
+                                $zones = collect();
+                            }
+                        @endphp
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-blue-900">{{ $role_choisiEdition->nom_role }}</label>
+                            <select wire:model="zone_sanitaireEdition"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-blue-900">
+                                <option>-- Sélectionnez {{ $role_choisiEdition->nom_role }} --</option>
+                                @foreach ($zones as $zone)
+                                    <option value="{{ $zone->id }}">{{ $zone->nom }}</option>
+                                @endforeach
+                            </select>
+                            @error('zone_sanitaireEdition')
+                                <span class="text-red-600">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    @endif
+
                     <button type="submit"
-                        class="w-full bg-yellow-600 text-white py-2 px-4 rounded-lg hover:bg-yellow-700 transition duration-200">Mettre
-                        à jour</button>
+                        class="w-full bg-yellow-600 text-white py-2 px-4 rounded-lg hover:bg-yellow-700 transition duration-200">
+                        Mettre à jour
+                    </button>
                 </form>
             </div>
         @endif
+
     </div>
 </div>

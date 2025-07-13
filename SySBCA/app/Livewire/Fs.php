@@ -21,10 +21,11 @@ class Fs extends Component
     public $confirmation_mot_de_passe = '';
     public $nom = '';
     public $district_id = '';
-
+    public $nb_asc; 
     public $idEdition;
     public $nomEdition;
     public $districtIdEdition;
+    public $nb_ascEdition;
 
     public function afficherFormulaire()
     {
@@ -38,6 +39,7 @@ class Fs extends Component
         if ($fs) {
             $this->reset(['afficherFormulaireCreation', 'nom', 'district_id']);
             $this->afficherFormulaireEdition = true;
+            $this->nb_ascEdition = $fs->nb_asc;
             $this->idEdition = $fs->id;
             $this->nomEdition = $fs->nom;
             $this->districtIdEdition = $fs->district_id;
@@ -64,6 +66,7 @@ class Fs extends Component
     {
         $this->validate([
             'nom' => 'required|string|max:255|unique:formations_sanitaires,nom',
+            'nb_asc' => 'required|integer|min:0',
             'district_id' => 'required|exists:districts,id',
             'username' => 'nullable|string|max:255|unique:utilisateurs,username',
             'mot_de_passe' => 'required_with:username|string|min:6|same:confirmation_mot_de_passe',
@@ -71,6 +74,9 @@ class Fs extends Component
         ], [
             'nom.required' => 'Le nom est obligatoire.',
             'nom.unique' => 'Cette formation sanitaire existe déjà.',
+            'nb_asc.required' => 'Le nombre d\'ASC est obligatoire.',
+            'nb_asc.integer' => 'Le nombre d\'ASC doit être un entier.',
+            'nb_asc.min' => 'Le nombre d\'ASC ne peut pas être négatif.',
             'district_id.required' => 'Le district est obligatoire.',
             'district_id.exists' => 'Le district sélectionné est invalide.',
             'username.unique' => 'Ce nom d’utilisateur est déjà utilisé.',
@@ -81,6 +87,7 @@ class Fs extends Component
 
         $fs = new FormationSanitaire();
         $fs->nom = $this->nom;
+        $fs->nb_asc = $this->nb_asc;
         $fs->district_id = $this->district_id;
         $fs->save();
 
@@ -100,17 +107,21 @@ class Fs extends Component
 
         session()->flash('message', 'Formation sanitaire ajoutée avec succès !');
 
-        $this->afficherFormulaire();
+        $this->afficherTableau();
     }
 
     public function update()
     {
         $this->validate([
             'nomEdition' => 'required|string|max:255|unique:formations_sanitaires,nom,' . $this->idEdition,
+            'nb_ascEdition' => 'required|integer|min:0',
             'districtIdEdition' => 'required|exists:districts,id',
         ], [
             'nomEdition.required' => 'Le nom est obligatoire.',
             'nomEdition.unique' => 'Cette formation sanitaire existe déjà.',
+            'nb_ascEdition.required' => 'Le nombre d\'ASC est obligatoire.',
+            'nb_ascEdition.integer' => 'Le nombre d\'ASC doit être un entier.',
+            'nb_ascEdition.min' => 'Le nombre d\'ASC ne peut pas être négatif.',
             'districtIdEdition.required' => 'Le district est obligatoire.',
             'districtIdEdition.exists' => 'Le district sélectionné est invalide.',
         ]);
@@ -118,6 +129,7 @@ class Fs extends Component
         $fs = FormationSanitaire::find($this->idEdition);
         if ($fs) {
             $fs->nom = $this->nomEdition;
+            $fs->nb_asc = $this->nb_ascEdition;
             $fs->district_id = $this->districtIdEdition;
             $fs->save();
 

@@ -110,7 +110,7 @@ class Antipaludiques extends Component
         $medicament->save();
 
         session()->flash('message', 'Médicament ajouté avec succès !');
-        $this->afficherFormulaire();
+        $this->afficherTableau();
     }
 
 

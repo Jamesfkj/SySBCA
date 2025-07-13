@@ -10,6 +10,7 @@ use App\Models\FormationSanitaire;
 use App\Models\Role;
 use App\Models\Utilisateur;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class Utilisateurs extends Component
 {
@@ -18,9 +19,7 @@ class Utilisateurs extends Component
     public $regions = [];
     public $districts = [];
     public $formationsSanitaires = [];
-
     public $recherche = '';
-
     // Champs création
     public $username;
     public $mot_de_passe;
@@ -32,16 +31,14 @@ class Utilisateurs extends Component
     public $zone_sanitaire;
     public $entity_id;
     public $entity_type;
-
-
-
     // Champs édition
+    public $role_choisiEdition;
     public $idEdition;
     public $usernameEdition;
+    public $zone_sanitaireEdition;
     public $roleIdEdition;
     public $entityIdEdition;
     public $entityTypeEdition;
-
     // Contrôle affichage
     public $afficherFormulaireCreation = false;
     public $afficherFormulaireEdition = false;
@@ -65,10 +62,10 @@ class Utilisateurs extends Component
         $utilisateur = Utilisateur::findOrFail($utilisateurId);
         $this->reset(['afficherFormulaireCreation']);
         $this->afficherFormulaireEdition = true;
-
         $this->idEdition = $utilisateur->id;
         $this->usernameEdition = $utilisateur->username;
         $this->roleIdEdition = $utilisateur->role_id;
+        $this->zone_sanitaireEdition = $utilisateur->entity_id;
         $this->entityIdEdition = $utilisateur->entity_id;
         $this->entityTypeEdition = $utilisateur->entity_type;
     }
@@ -77,111 +74,166 @@ class Utilisateurs extends Component
     {
         $this->reset(['afficherFormulaireCreation', 'afficherFormulaireEdition', 'username', 'mot_de_passe', 'confirmation_mot_de_passe', 'role_id', 'entity_id', 'entity_type']);
     }
-
     public function create()
-{
-    $this->validate([
-        'username' => 'required|string|max:255|unique:utilisateurs,username',
-        'mot_de_passe' => 'required|string|min:6|same:confirmation_mot_de_passe',
-        'role_id' => 'required',
-        'zone_sanitaire' => 'required',
-    ], [
-        'username.required' => "Le nom d'utilisateur est obligatoire.",
-        'username.string' => "Le nom d'utilisateur doit être une chaîne de caractères.",
-        'username.max' => "Le nom d'utilisateur ne doit pas dépasser 255 caractères.",
-        'username.unique' => "Ce nom d'utilisateur est déjà utilisé.",
-        'mot_de_passe.required' => 'Le mot de passe est obligatoire.',
-        'mot_de_passe.min' => 'Le mot de passe doit contenir au moins 6 caractères.',
-        'mot_de_passe.same' => 'La confirmation du mot de passe ne correspond pas.',
-        'role_id.required' => 'Le rôle est obligatoire.',
-        'zone_sanitaire.required' => 'La zone est obligatoire.',
-    ]);
+    {
+        // Valide les données du formulaire
+        $this->validate([
+            'username' => 'required|string|max:255|unique:utilisateurs,username',
+            'mot_de_passe' => 'required|string|min:6|same:confirmation_mot_de_passe',
+            'role_id' => 'required|exists:roles,id',
+            'zone_sanitaire' => [
+                \Illuminate\Validation\Rule::requiredIf(function () {
+                    $role = Role::find($this->role_id);
+                    return $role && in_array($role->nom_role, ['District', 'Formation sanitaire']);
+                }),
+                'nullable',
+                'integer',
+            ]
+        ], [
+            'username.required' => "Le nom d'utilisateur est obligatoire.",
+            'username.string' => "Le nom d'utilisateur doit être une chaîne de caractères.",
+            'username.max' => "Le nom d'utilisateur ne doit pas dépasser 255 caractères.",
+            'username.unique' => "Ce nom d'utilisateur est déjà utilisé.",
+            'role_id.exists' => 'Le rôle sélectionné est invalide.',
+            'mot_de_passe.required' => 'Le mot de passe est obligatoire.',
+            'mot_de_passe.min' => 'Le mot de passe doit contenir au moins 6 caractères.',
+            'mot_de_passe.same' => 'La confirmation du mot de passe ne correspond pas.',
+            'role_id.required' => 'Le rôle est obligatoire.',
+            'zone_sanitaire.required' => 'La zone sanitaire est obligatoire pour les rôles District ou Formation sanitaire.',
+            'zone_sanitaire.integer' => 'La zone sanitaire doit être un nombre entier.',
+        ]);
 
-    $role = Role::find($this->role_id);
-    $utilisateur = new Utilisateur();
-    $utilisateur->username = $this->username;
-    $utilisateur->password = Hash::make($this->mot_de_passe);
-    $utilisateur->etat = 'actif';
-    $utilisateur->role_id = $this->role_id;
+        // Récupère l'objet Role après validation réussie
+        $role = Role::find($this->role_id);
+        if (!$role) {
+            $this->addError('role_id', 'Le rôle sélectionné est invalide.');
+            return;
+        }
+        $utilisateur = new Utilisateur();
+        $utilisateur->username = $this->username;
+        $utilisateur->password = Hash::make($this->mot_de_passe);
+        $utilisateur->etat = 'actif';
+        $utilisateur->role_id = $this->role_id;
 
-    if ($role) {
-        switch ($role->nom_role) {
-            case 'District':
-                // Vérifie si un utilisateur est déjà assigné à ce district
-                $exists = Utilisateur::where('entity_id', $this->zone_sanitaire)
-                                     ->where('etat', 'actif')
-                                     ->where('entity_type', District::class)
-                                     ->exists();
-                if ($exists) {
-                    $this->addError('zone_sanitaire', 'Un utilisateur actif est déjà assigné à ce district.');
+        $nomRole = Str::lower($role->nom_role);
+        if ($nomRole === 'administrateur') {
+            $utilisateur->entity_id = null;
+            $utilisateur->entity_type = null;
+            $utilisateur->doit_renitialiser_pwd = false;
+        } else {
+            $entityMap = [
+                'district' => District::class,
+                'formation sanitaire' => FormationSanitaire::class,
+            ];
+
+            if (array_key_exists($nomRole, $entityMap)) {
+                $entityClass = $entityMap[$nomRole];
+                $alreadyAssigned = Utilisateur::where('entity_id', $this->zone_sanitaire)
+                    ->where('etat', 'actif')
+                    ->where('entity_type', $entityClass)
+                    ->exists();
+
+                if ($alreadyAssigned) {
+                    $this->addError('zone_sanitaire', "Un utilisateur actif est déjà assigné à cette {$nomRole}.");
                     return;
                 }
-
                 $utilisateur->entity_id = $this->zone_sanitaire;
-                $utilisateur->entity_type = District::class;
+                $utilisateur->entity_type = $entityClass;
                 $utilisateur->doit_renitialiser_pwd = true;
-                break;
-
-            case 'Formation sanitaire':
-                $exists = Utilisateur::where('entity_id', $this->zone_sanitaire)    
-                                     ->where('etat', 'actif')
-                                     ->where('entity_type', FormationSanitaire::class)
-                                     ->exists();
-                if ($exists) {
-                    $this->addError('zone_sanitaire', 'Un utilisateur actif est déjà assigné à cette formation sanitaire.');
-                    return;
-                }
-
-                $utilisateur->entity_id = $this->zone_sanitaire;
-                $utilisateur->entity_type = FormationSanitaire::class;
-                $utilisateur->doit_renitialiser_pwd = true;
-                break;
-
-            case 'Administrateur':
+            } else {
                 $utilisateur->entity_id = null;
                 $utilisateur->entity_type = null;
                 $utilisateur->doit_renitialiser_pwd = false;
-                break;
+            }
         }
+        $utilisateur->save();
+        session()->flash('message', 'Utilisateur créé avec succès !');
+        $this->reset([
+            'username',
+            'mot_de_passe',
+            'confirmation_mot_de_passe',
+            'role_id',
+            'zone_sanitaire',
+        ]);
+        $this->afficherTableau();
     }
-
-    $utilisateur->save();
-
-    session()->flash('message', 'Utilisateur créé avec succès !');
-
-    $this->reset([
-        'username',
-        'mot_de_passe',
-        'confirmation_mot_de_passe',
-        'role_id',
-        'zone_sanitaire',
-    ]);
-
-    $this->afficherFormulaire();
-}
-
-
     public function updateUtilisateur()
     {
         $this->validate([
             'usernameEdition' => 'required|string|max:255|unique:utilisateurs,username,' . $this->idEdition,
             'roleIdEdition' => 'required|exists:roles,id',
-            'entityIdEdition' => 'required|integer',
-            'entityTypeEdition' => 'required|string',
+            'zone_sanitaireEdition' => [
+                \Illuminate\Validation\Rule::requiredIf(function () {
+                    $role = Role::find($this->roleIdEdition);
+                    return $role && in_array($role->nom_role, ['District', 'Formation sanitaire']);
+                }),
+                'nullable',
+                'integer',
+            ],
+        ], [
+            'usernameEdition.required' => "Le nom d'utilisateur est obligatoire.",
+            'usernameEdition.string' => "Le nom d'utilisateur doit être une chaîne de caractères.",
+            'usernameEdition.max' => "Le nom d'utilisateur ne doit pas dépasser 255 caractères.",
+            'usernameEdition.unique' => "Ce nom d'utilisateur est déjà utilisé par un autre compte.",
+            'roleIdEdition.required' => 'Le rôle est obligatoire.',
+            'roleIdEdition.exists' => 'Le rôle sélectionné est invalide.',
+            'zone_sanitaireEdition.required' => 'La zone sanitaire est obligatoire pour le rôle sélectionné.',
+            'zone_sanitaireEdition.integer' => 'La zone sanitaire doit être un nombre entier.',
         ]);
 
+        $role = Role::find($this->roleIdEdition);
+
+        if (!$role) {
+            $this->addError('roleIdEdition', 'Le rôle sélectionné est invalide.');
+            return;
+        }
+
         $utilisateur = Utilisateur::findOrFail($this->idEdition);
+
         $utilisateur->username = $this->usernameEdition;
         $utilisateur->role_id = $this->roleIdEdition;
-        $utilisateur->entity_id = $this->entityIdEdition;
-        $utilisateur->entity_type = $this->entityTypeEdition;
+
+        $nomRole = Str::lower($role->nom_role);
+
+        if ($nomRole === 'administrateur') {
+            $utilisateur->entity_id = null;
+            $utilisateur->entity_type = null;
+            $utilisateur->doit_renitialiser_pwd = false;
+        } else {
+            $entityMap = [
+                'district' => District::class,
+                'formation sanitaire' => FormationSanitaire::class,
+            ];
+            if (array_key_exists($nomRole, $entityMap)) {
+                $entityClass = $entityMap[$nomRole];
+                $alreadyAssigned = Utilisateur::where('entity_id', $this->zone_sanitaireEdition)
+                    ->where('etat', 'actif')
+                    ->where('entity_type', $entityClass)
+                    ->where('id', '!=', $this->idEdition)
+                    ->exists();
+
+                if ($alreadyAssigned) {
+                    $this->addError('zone_sanitaireEdition', "Un utilisateur actif est déjà assigné à cette {$nomRole}.");
+                    return;
+                }
+
+                $utilisateur->entity_id = $this->zone_sanitaireEdition;
+                $utilisateur->entity_type = $entityClass;
+                $utilisateur->doit_renitialiser_pwd = true;
+            } else {
+                $utilisateur->entity_id = null;
+                $utilisateur->entity_type = null;
+                $utilisateur->doit_renitialiser_pwd = false;
+            }
+        }
+
         $utilisateur->save();
 
         session()->flash('message', 'Utilisateur modifié avec succès !');
+
         $this->afficherTableau();
     }
-
-    public function delete($id)
+    public function suspendre($id)
     {
         $utilisateur = Utilisateur::find($id);
         if ($utilisateur) {
@@ -189,12 +241,32 @@ class Utilisateurs extends Component
             $utilisateur->save();
 
             session()->flash('message', 'Utilisateur suspendu avec succès !');
+            $this->afficherTableau();
         }
     }
+    public function reactiver($id)
+{
+    $utilisateur = Utilisateur::findOrFail($id);
+    $utilisateur->etat = 'actif';
+    $utilisateur->save();
+
+    session()->flash('message', 'Utilisateur réactivé avec succès.');
+}
+ 
+public function delete($id){
+    $utilisateur = Utilisateur::find($id);
+    if ($utilisateur) {
+        $utilisateur->delete();
+        session()->flash('message', 'Utilisateur supprimé avec succès !');
+        $this->afficherTableau();
+    }
+    else {
+        session()->flash('error', 'Utilisateur non trouvé.');
+    }
+}
 
     public function render()
     {
-        // Requête avec recherche sur l'utilisateur, son rôle et son entité liée
         $this->utilisateurs = Utilisateur::with('role')
             ->when($this->recherche, function ($query) {
                 $query->where(function ($q) {
@@ -210,16 +282,14 @@ class Utilisateurs extends Component
                         });
                 });
             })
-            ->orderBy('username')
+            ->orderBy('etat', 'asc')
+            ->orderBy('created_at', 'desc')
             ->get();
-
         // Rôles
         $this->roles = Role::all();
-
         // Zones selon le rôle sélectionné
         if ($this->role_choisi) {
             $role_choisi = Role::firstWhere('id', $this->role_choisi);
-
             if ($role_choisi) {
                 switch ($role_choisi->nom_role) {
                     case 'District':
@@ -231,7 +301,6 @@ class Utilisateurs extends Component
                 }
             }
         }
-
         return view('livewire.utilisateurs', [
             'utilisateurs' => $this->utilisateurs,
             'roles' => $this->roles,

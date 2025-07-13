@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('formations_sanitaires', function (Blueprint $table) {
             $table->id();
             $table->string('nom')->unique();
+            $table->integer('nb_asc');
             $table->foreignId('district_id')
                 ->constrained('districts')
                 ->onDelete('cascade');

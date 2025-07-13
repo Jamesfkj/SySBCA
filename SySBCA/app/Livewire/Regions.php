@@ -56,7 +56,7 @@ class Regions extends Component
 
         session()->flash('message', 'Région ajoutée avec succès !');
 
-        $this->afficherFormulaire();
+        $this->afficherTableau();
     }
 
     

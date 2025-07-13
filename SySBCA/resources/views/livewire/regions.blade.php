@@ -1,14 +1,13 @@
 <div>
     @if (session('message'))
-        <div id="alert"
+        <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 2000)" x-show="show" x-transition
             class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4 flex justify-between items-center"
             role="alert">
             <span>{{ session('message') }}</span>
-            <button onclick="document.getElementById('alert').remove()" class="text-green-500">
-                <i class="bi bi-x-lg"></i>
-            </button>
         </div>
     @endif
+
+
     <div wire:loading wire:target="afficherFormulaire,afficherEdition,afficherTableau,create,updateRegion,delete"
         class="absolute top-0 left-0 w-full h-1 bg-teal-600 animate-progress-bar z-20"></div>
     <div class="flex flex-col gap-6">
@@ -43,8 +42,7 @@
 
             @if (!$showCreateForm && !$showEditForm)
                 <div>
-                    <input type="text" wire:model.live="search" name="search_region"
-                        placeholder="Rechercher une région..."
+                    <input type="text" wire:model.live="search" name="search_region" placeholder="Rechercher une région..."
                         class="w-96 rounded-full px-4 py-2 border focus:outline-none focus:ring-teal-500" />
                 </div>
             @endif
@@ -53,8 +51,7 @@
                 <button wire:click="afficherTableau"
                     class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
                     <span class="flex items-center gap-2">
-                        <div
-                            class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 text-blue-500 shadow">
+                        <div class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 text-blue-500 shadow">
                             <i class="bi bi-eye"></i>
                         </div>Voir la liste
                     </span>
@@ -65,8 +62,7 @@
                 <button wire:click="afficherFormulaire"
                     class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
                     <span class="flex items-center gap-2">
-                        <div
-                            class="w-7 h-7 flex items-center justify-center rounded-full bg-white text-blue-600 shadow">
+                        <div class="w-7 h-7 flex items-center justify-center rounded-full bg-white text-blue-600 shadow">
                             <i class="bi bi-plus"></i>
                         </div>Ajouter une Région
                     </span>
@@ -115,7 +111,7 @@
                 <form wire:submit.prevent="create">
                     <div class="mb-4">
                         <label for="nom" class="block text-sm font-medium text-blue-900">Nom de la Région</label>
-                        <input type="text" id="nom" wire:model.live="nom"
+                        <input type="text" id="nom" wire:model.defer="nom"
                             class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
                             required>
                         @error('nom')
