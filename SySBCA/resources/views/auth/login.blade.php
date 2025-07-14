@@ -18,7 +18,7 @@
                 <img src="{{ asset('images/pnlp3.jpg') }}" alt="Logo" class="h-20 font-size-2xl">
             </div>
 
-            <h1 class="text-2xl font-bold text-center text-teal-600 mb-2">Connexion</h1>
+            <h1 class="text-2xl font-bold text-center text-white mb-2">Connexion</h1>
             <p class="text-center text-gray-700 font-semibold mb-4">
                 Entrez vos identifiants pour vous connecter !
             </p>
@@ -27,19 +27,19 @@
             <form class="space-y-5" method="POST" action="{{ route('login') }}">
                 @csrf
                 <div>
-                    <label for="email" class="block text-teal-600 font-semibold mb-1">Nom d'utilisateur</label>
+                    <label for="email" class="block text-teal-700 font-semibold mb-1">Nom d'utilisateur</label>
                     <input type="text" id="username" name="username" :value="old('username')" required autofocus
                         placeholder="Nom d'utilisateur"
-                        class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600">
+                        class="w-full border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600">
                     <x-input-error :messages="$errors->get('username')"
-                        class="mt-2 text-sm text-red-600 bg-transparent bg-white" />
+                        class="mt-2 text-bold text-red-500 bg-white rounded-full text-center" />
                 </div>
 
                 <div class="mt-4">
-                    <label for="password" class="block text-teal-600 font-semibold mb-1">Mot de passe</label>
+                    <label for="password" class="block text-teal-700 font-semibold mb-1">Mot de passe</label>
                     <input type="password" id="password" name="password" required placeholder="Mot de passe"
-                        class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600">
-                    <x-input-error :messages="$errors->get('password')" class="mt-2 text-sm text-red-600" />
+                        class="w-full border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600">
+                    <x-input-error :messages="$errors->get('password')" class="mt-2 text-sm text-red-500" />
                 </div>
 
                 <div class="flex items-center">
@@ -65,7 +65,7 @@
                 </div>
             </form>
 
-            <div class="text-3xl font-semibold text-center text-teal-600 mt-12">PNLP Togo</div>
+            <div class="text-3xl font-semibold text-center text-white mt-12">PNLP Togo</div>
         </div>
     </div>
 </x-guest-layout>

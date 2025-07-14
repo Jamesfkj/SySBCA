@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
             [
                 'is_autenticated' => App\Http\Middleware\is_autenticated::class,
                 'is_suspended' => App\Http\Middleware\is_suspended::class,
+                'is_fs' => App\Http\Middleware\is_fs::class,
+                'is_district' => App\Http\Middleware\is_district::class,
             ]);
         
     })
