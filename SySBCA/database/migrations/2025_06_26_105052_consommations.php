@@ -22,13 +22,14 @@ return new class extends Migration
             $table->foreignId('perioede_id')
                 ->constrained('periodes')
                 ->onDelete('cascade');
-            $table->integer('qte_dispo_def_periode');
-            $table->integer('qte_recu');
+            $table->enum('acteur', ['FS','ASC']);
+            $table->integer('qte_dispo_deb_periode')->nullable();
+            $table->integer('qte_recu')->nullable();
             $table->integer('qte_utilisee')->nullable();
             $table->integer('nb_beneficiaire')->nullable();
             $table->integer('perimee')->nullable();
             $table->integer('perte_avaree')->nullable();
-            $table->integer('qte_retournee_cameg')->nullable();
+            $table->integer('qte_retour_cameg')->nullable();
             $table->integer('nb_jour_rupture')->nullable();
             $table->integer('qte_restante')->nullable();
             $table->timestamps();

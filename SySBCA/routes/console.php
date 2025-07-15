@@ -2,7 +2,47 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
+use Illuminate\Support\Facades\DB;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+Schedule::call(function () {
+    $date = now();
+    $year = $date->year;
+
+    $nextYear = $year + 1;
+
+    DB::table('periodes')->insert([
+        [
+            'nom' => 'T1 ' . $nextYear,
+            'mois_debut' => 'Janvier',
+            'mois_fin' => 'Mars',
+            'annee' => $nextYear,
+            'actif' => false,
+        ],
+        [
+            'nom' => 'T2 ' . $nextYear,
+            'mois_debut' => 'Avril',
+            'mois_fin' => 'Juin',
+            'annee' => $nextYear,
+            'actif' => false,
+        ],
+        [
+            'nom' => 'T3 ' . $nextYear,
+            'mois_debut' => 'Juillet',
+            'mois_fin' => 'Septembre',
+            'annee' => $nextYear,
+            'actif' => false,
+        ],
+        [
+            'nom' => 'T4 ' . $nextYear,
+            'mois_debut' => 'Octobre',
+            'mois_fin' => 'Décembre',
+            'annee' => $nextYear,
+            'actif' => false,
+        ],
+    ]);
+})->yearlyOn(10, 1, '00:00');

@@ -5,13 +5,14 @@ namespace App\Livewire;
 use App\Models\Medicament;
 use App\Models\Consommation;
 use Livewire\Component;
+use Carbon\Carbon;
 
 class Consommations extends Component
 {
     public $tableauVisible = true;
     public $formulaireVisible = false;
-
-    public $periode = '';
+    public $type_structure;
+    public $periode;
     public $produit_id;
     public $quantite;
     public $date;
@@ -26,13 +27,32 @@ class Consommations extends Component
 
     public function mount()
     {
+        $mois = now()->month;
+        $periode = ceil($mois / 3);
+        switch ($periode) {
+            case 1:
+                $this->periode = 'T1 : Janvier - Mars';
+                break;
+            case 2:
+                $this->periode = 'T2 : Avril - Juin';
+                break;
+            case 3:
+                $this->periode = 'T3 : Juillet - Septembre';
+                break;
+            case 4:
+                $this->periode = 'T4 : Octobre - Décembre';
+                break;
+            default:
+                $this->periode = 'Non définie';
+        }
         $this->chargerConsommations();
     }
 
     public function render()
     {
         $medicaments = Medicament::all();
-        return view('livewire.consommations',
+        return view(
+            'livewire.consommations',
             [
                 'medicaments' => $medicaments,
             ]
@@ -54,7 +74,7 @@ class Consommations extends Component
         $this->chargerConsommations();
     }
 
-   
+
     public function ajouterConsommation()
     {
         $this->validate();
@@ -71,7 +91,7 @@ class Consommations extends Component
 
     public function filtrerParPériode()
     {
-        
+
     }
 
     private function chargerConsommations()
