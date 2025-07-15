@@ -10,39 +10,45 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::call(function () {
-    $date = now();
-    $year = $date->year;
+    try {
+        $date = now();
+        $year = $date->year;
+        $nextYear = $year + 1;
 
-    $nextYear = $year + 1;
+        DB::table('periodes')->insert([
+            [
+                'nom' => 'T1 ' . $nextYear,
+                'mois_debut' => 'Janvier',
+                'mois_fin' => 'Mars',
+                'annee' => $nextYear,
+                'etat' => 'inactif',
+            ],
+            [
+                'nom' => 'T2 ' . $nextYear,
+                'mois_debut' => 'Avril',
+                'mois_fin' => 'Juin',
+                'annee' => $nextYear,
+                'etat' => 'inactif',
+            ],
+            [
+                'nom' => 'T3 ' . $nextYear,
+                'mois_debut' => 'Juillet',
+                'mois_fin' => 'Septembre',
+                'annee' => $nextYear,
+                'etat' => 'inactif',
+            ],
+            [
+                'nom' => 'T4 ' . $nextYear,
+                'mois_debut' => 'Octobre',
+                'mois_fin' => 'Décembre',
+                'annee' => $nextYear,
+                'etat' => 'inactif',
+            ],
+        ]);
 
-    DB::table('periodes')->insert([
-        [
-            'nom' => 'T1 ' . $nextYear,
-            'mois_debut' => 'Janvier',
-            'mois_fin' => 'Mars',
-            'annee' => $nextYear,
-            'actif' => false,
-        ],
-        [
-            'nom' => 'T2 ' . $nextYear,
-            'mois_debut' => 'Avril',
-            'mois_fin' => 'Juin',
-            'annee' => $nextYear,
-            'actif' => false,
-        ],
-        [
-            'nom' => 'T3 ' . $nextYear,
-            'mois_debut' => 'Juillet',
-            'mois_fin' => 'Septembre',
-            'annee' => $nextYear,
-            'actif' => false,
-        ],
-        [
-            'nom' => 'T4 ' . $nextYear,
-            'mois_debut' => 'Octobre',
-            'mois_fin' => 'Décembre',
-            'annee' => $nextYear,
-            'actif' => false,
-        ],
-    ]);
-})->yearlyOn(10, 1, '00:00');
+        Log::info("Insertion réussie des périodes pour $nextYear.");
+
+    } catch (\Exception $e) {
+        Log::error('Erreur insertion périodes: ' . $e->getMessage());
+    }
+})->yearlyOn(7, 15, '12:08');

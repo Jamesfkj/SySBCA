@@ -4,8 +4,10 @@ namespace App\Livewire;
 
 use App\Models\Medicament;
 use App\Models\Consommation;
+use App\Models\Periode;
 use Livewire\Component;
 use Carbon\Carbon;
+use function Laravel\Prompts\select;
 
 class Consommations extends Component
 {
@@ -13,10 +15,16 @@ class Consommations extends Component
     public $formulaireVisible = false;
     public $type_structure;
     public $periode;
+    public $periode_choisi;
     public $produit_id;
+    public $qte_en_stock;
+    public $stock_de_securite;
+    public $cmma;
+    public $qte_cmd_trim_svt;
+    public $periodes_disponibles = [];
     public $quantite;
     public $date;
-
+    public $medicaments;
     public $consommations = [];
 
     protected $rules = [
@@ -27,45 +35,76 @@ class Consommations extends Component
 
     public function mount()
     {
+        $this->medicaments = Medicament::all();
         $mois = now()->month;
+        $year = now()->year;
         $periode = ceil($mois / 3);
         switch ($periode) {
             case 1:
-                $this->periode = 'T1 : Janvier - Mars';
+                $this->periode = 'T1 ' . $year;
                 break;
             case 2:
-                $this->periode = 'T2 : Avril - Juin';
+                $this->periode = 'T2 ' . $year;
                 break;
             case 3:
-                $this->periode = 'T3 : Juillet - Septembre';
+                $this->periode = 'T3 ' . $year;
                 break;
             case 4:
-                $this->periode = 'T4 : Octobre - Décembre';
+                $this->periode = 'T4 ' . $year;
                 break;
             default:
                 $this->periode = 'Non définie';
         }
-        $this->chargerConsommations();
+
+    }
+    public function chargerMedicaments()
+    {
+        if (!$this->type_structure || $this->type_structure === 'FS') {
+            $this->medicaments = Medicament::all();
+        } elseif ($this->type_structure === 'ASC') {
+            $medicaments_fs_only = Medicament::where('fs_only', true)->pluck('id');
+            $this->medicaments = Medicament::whereNotIn('id', $medicaments_fs_only)->get();
+        }
     }
 
     public function render()
     {
-        $medicaments = Medicament::all();
         return view(
             'livewire.consommations',
-            [
-                'medicaments' => $medicaments,
-            ]
+
         );
     }
 
-    public function afficherFormulaire()
+    public function afficherFormulaire($id)
     {
         $this->resetValidation();
         $this->reset(['produit_id', 'quantite', 'date']);
         $this->formulaireVisible = true;
         $this->tableauVisible = false;
+        $periode_ids_utilisees = Consommation::where('formation_sanitaire_id', $id)
+            ->where('acteur', $this->type_structure)
+            ->pluck('periode_id')
+            ->toArray();
+
+        // On récupère toutes les périodes non utilisées, triées par ordre chronologique
+        $periodes = Periode::whereNotIn('id', $periode_ids_utilisees)
+            ->orderBy('annee')
+            ->orderByRaw("CAST(SUBSTRING(nom, 2, 1) AS UNSIGNED)")
+            ->get();
+
+        // On trouve l’index de la période actuelle dans la liste des périodes
+        $index = $periodes->search(function ($periode) {
+            return $periode->nom === $this->periode;
+        });
+
+        // On garde seulement les périodes jusqu’à l'index inclus
+        $this->periodes_disponibles = $index !== false
+            ? $periodes->slice(max(0, $index - 2), 3)->sortByDesc('id')->values()
+            : $periodes->sortByDesc('id')->take(3)->values();
+
+
     }
+
     public function afficherTableau()
     {
         $this->resetValidation();
@@ -73,8 +112,6 @@ class Consommations extends Component
         $this->tableauVisible = true;
         $this->chargerConsommations();
     }
-
-
     public function ajouterConsommation()
     {
         $this->validate();
@@ -93,9 +130,26 @@ class Consommations extends Component
     {
 
     }
-
-    private function chargerConsommations()
+    public function calculerStock()
     {
-        $this->consommations = Consommation::latest()->get();
+        foreach ($this->consommations as $index => $consommation) {
+            $stk = $consommation['stk_dsp_deb_trim'] ?? 0;
+            $qte = $consommation['qte_get_in_trim'] ?? 0;
+            if ($stk && $qte) {
+                $this->qte_en_stock[$index] = $stk + $qte;
+            } elseif ($stk && !$qte) {
+                $this->qte_en_stock[$index] = $stk;
+            }
+            elseif (!$stk && $qte) {
+                $this->qte_en_stock[$index] = '--';
+            } 
+        }
     }
+
+
+    public function chargerConsommations()
+    {
+        $this->consommations = Consommation::all();
+    }
+
 }

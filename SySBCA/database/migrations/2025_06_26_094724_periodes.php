@@ -17,8 +17,7 @@ return new class extends Migration
             $table->string('mois_debut');
             $table->string('mois_fin');
             $table->string('annee');
-            $table->string('designation')->nullable();
-            $table->boolean('actif')->default(false);
+            $table->enum('etat', ['actif', 'cloturée' ,'inactif'])->default('inactif'); 
             $table->timestamps();
         });
     }

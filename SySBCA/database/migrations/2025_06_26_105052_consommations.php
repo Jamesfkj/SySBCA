@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('formation_sanitaire_id')
                 ->constrained('formations_sanitaires')
                 ->onDelete('cascade');
-            $table->foreignId('perioede_id')
+            $table->foreignId('periode_id')
                 ->constrained('periodes')
                 ->onDelete('cascade');
             $table->enum('acteur', ['FS','ASC']);
