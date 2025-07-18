@@ -130,20 +130,21 @@ class Consommations extends Component
     {
 
     }
-    public function calculerStock()
+    public function calculerStock($index)
     {
-        foreach ($this->consommations as $index => $consommation) {
-            $stk = $consommation['stk_dsp_deb_trim'] ?? 0;
-            $qte = $consommation['qte_get_in_trim'] ?? 0;
+        
+            $stk = $this->consommations[$index]['stk_dsp_deb_trim'] ?? 0;
+            $qte = $this->consommations[$index]['qte_get_in_trim'] ?? 0;
+            dd($stk, $qte);
             if ($stk && $qte) {
-                $this->qte_en_stock[$index] = $stk + $qte;
+                $this->consommations[$index]['qte_en_stock'] = $stk + $qte;
             } elseif ($stk && !$qte) {
-                $this->qte_en_stock[$index] = $stk;
+                $this->consommations[$index]['qte_en_stock'] = $stk;
             }
             elseif (!$stk && $qte) {
-                $this->qte_en_stock[$index] = '--';
+                $this->consommations[$index]['qte_en_stock'] = '--';
             } 
-        }
+        
     }
 
 

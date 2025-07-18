@@ -223,21 +223,24 @@
                                 </td>
                                 <td class="p-0 m-0 border border-gray-200">
                                     <input type="number"
-                                        wire:model.live="consommations.{{ $index }}.stk_dsp_deb_trim" wire:change="calculerStock"
+                                        wire:model.live="consommations.{{ $index }}.stk_dsp_deb_trim" wire:blur="calculerStock({{ $index }})"
                                         class="w-full h-full border-0 bg-transparent text-sm text-blue-900
                                            focus:outline-none focus:ring-0 focus:border-b-2 focus:border-teal-600"
                                         placeholder="Saisir..." min="0" />
                                 </td>
                                 <td class="p-0 m-0 border border-gray-200">
                                     <input type="number"
-                                        wire:model.live="consommations.{{ $index }}.qte_get_in_trim" wire:change="calculerStock"
+                                        wire:model.live="consommations.{{ $index }}.qte_get_in_trim" wire:change="calculerStock({{ $index }})"
                                         class="w-full h-full border-0 bg-transparent text-sm text-blue-900
                                            focus:outline-none focus:ring-0 focus:border-b-2 focus:border-teal-600"
                                         placeholder="Saisir..." min="0" />
                                 </td>
                                 <!-- Champ inactif -->
                                 <td class="border border-gray-200 p-2 text-center text-sm text-gray-400 bg-gray-100">
-                                    {{ $qte_en_stock[$index] ?? '--' }}</td>
+                                    <input type="number" readonly
+                                        wire:model.live="consommations.{{ $index }}.qte_en_stock"
+                                        class="w-full h-full border-0 bg-transparent text-sm text-blue-900"
+                                 /></td>
                                 <!-- Autres champs éditables -->
                                 <td class="p-0 m-0 border border-gray-200">
                                     <input type="number"
