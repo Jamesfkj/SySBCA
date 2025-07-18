@@ -71,11 +71,12 @@
 
         <!-- TABLEAU -->
         @if (!$afficherFormulaireCreation && !$afficherFormulaireEdition)
-            <div class="text-[15px] text text-gray-500">Pour effectuer une recherche selon la date, entrez au format :
-                aaaa-mm-jj</div>
-            <div class="bg-white shadow-lg rounded-lg overflow-auto max-h-[400px]">
+            <div class="text-[15px] text text-gray-500 mb-2">
+                Pour effectuer une recherche selon la date, entrez au format : aaaa-mm-jj
+            </div>
+            <div class="bg-white shadow-lg rounded-lg overflow-auto max-h-[650px]">
                 <table class="min-w-full border-collapse">
-                    <thead>
+                    <thead class="sticky top-0 bg-white z-10">
                         <tr class="bg-gray-100">
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Nom d'utilisateur
                             </th>
@@ -106,7 +107,6 @@
                                     {{ $utilisateur->updated_at?->format('d/m/Y H:i') }}
                                 </td>
                                 <td class="px-6 py-4 flex gap-4">
-                                    <!-- Bouton de suspension ou réactivation -->
                                     @if ($utilisateur->etat === 'suspendu')
                                         <button wire:click="reactiver({{ $utilisateur->id }})"
                                             class="text-green-600 hover:text-green-700 flex items-center justify-center w-9 h-9 rounded-full bg-green-100 shadow-md"
@@ -120,12 +120,11 @@
                                             <i class="bi bi-trash3-fill"></i>
                                         </button>
                                     @else
-                                    <!-- Bouton d'édition -->
-                                    <button wire:click="afficherEdition({{ $utilisateur->id }})"
-                                        class="text-blue-600 hover:text-blue-700 flex items-center justify-center w-9 h-9 rounded-full bg-blue-100 shadow-md"
-                                        title="Modifier cet utilisateur">
-                                        <i class="bi bi-pen-fill"></i>
-                                    </button>
+                                        <button wire:click="afficherEdition({{ $utilisateur->id }})"
+                                            class="text-blue-600 hover:text-blue-700 flex items-center justify-center w-9 h-9 rounded-full bg-blue-100 shadow-md"
+                                            title="Modifier cet utilisateur">
+                                            <i class="bi bi-pen-fill"></i>
+                                        </button>
                                         <button wire:click="suspendre({{ $utilisateur->id }})"
                                             wire:confirm="Êtes-vous sûr de vouloir suspendre cet utilisateur ?"
                                             class="text-red-600 hover:text-red-700 flex items-center justify-center w-9 h-9 rounded-full bg-red-100 shadow-md"
@@ -143,11 +142,8 @@
                     </tbody>
                 </table>
             </div>
-
         @endif
-
-
-        <!-- FORMULAIRE DE CRÉATION -->
+       <!-- FORMULAIRE DE CRÉATION -->
         @if ($afficherFormulaireCreation)
             <div class="bg-white shadow-lg rounded-lg p-6">
                 <form wire:submit.prevent="create">

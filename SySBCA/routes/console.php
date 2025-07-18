@@ -51,4 +51,4 @@ Schedule::call(function () {
     } catch (\Exception $e) {
         Log::error('Erreur insertion périodes: ' . $e->getMessage());
     }
-})->yearlyOn(7, 15, '12:08');
+})->yearlyOn(7, 16, '10:34');

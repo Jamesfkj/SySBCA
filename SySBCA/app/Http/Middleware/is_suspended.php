@@ -16,6 +16,7 @@ class is_suspended
     public function handle(Request $request, Closure $next): Response
     {
         if (auth()->check() && auth()->user()->etat != 'actif') {
+            auth()->logout();
             return redirect('/login')->withErrors([
                 'error' => 'Impossible de se connecter. Compte suspendu',
             ]);
