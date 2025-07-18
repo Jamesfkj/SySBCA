@@ -17,7 +17,7 @@ class Consommations extends Component
     public $periode;
     public $periode_choisi;
     public $produit_id;
-    public $qte_en_stock;
+    public $qte_en_stock = [];
     public $stock_de_securite;
     public $cmma;
     public $qte_cmd_trim_svt;
@@ -27,11 +27,12 @@ class Consommations extends Component
     public $medicaments;
     public $consommations = [];
 
-    protected $rules = [
-        'produit_id' => 'required|exists:produits,id',
-        'quantite' => 'required|numeric|min:0.1',
-        'date' => 'required|date',
-    ];
+    protected $listeners = ['mettreAJourQte'];
+
+    public function mettreAJourQte($index, $valeur)
+    {
+        $this->consommations[$index]['qte_en_stock'] = $valeur;
+    }
 
     public function mount()
     {
@@ -55,6 +56,7 @@ class Consommations extends Component
             default:
                 $this->periode = 'Non définie';
         }
+
 
     }
     public function chargerMedicaments()
@@ -112,41 +114,76 @@ class Consommations extends Component
         $this->tableauVisible = true;
         $this->chargerConsommations();
     }
+    public function validateInputs()
+    {
+        $this->validate([
+            'consommations.*.stk_dsp_deb_trim' => 'nullable|integer|min:0',
+            'consommations.*.qte_get_in_trim' => 'nullable|integer|min:0',
+            'consommations.*.qte_en_stock' => 'nullable|integer|min:0',
+            'consommations.*.qte_used' => 'nullable|integer|min:0|lte:consommations.*.qte_en_stock',
+            'consommations.*.nb_beneficiaire' => 'nullable|integer|min:0',
+            'consommations.*.perimee' => 'nullable|integer|min:0',
+            'consommations.*.perte_avarie' => 'nullable|integer|min:0',
+            'consommations.*.qte_ret_cameg' => 'nullable|integer|min:0',
+            'consommations.*.nb_jour_rupture' => 'nullable|integer|between:0,89',
+            'consommations.*.qte_stock_fin_trim' => 'nullable|integer|min:0',
+            'consommations.*.stk_de_securite' => 'nullable|integer|min:0',
+            'consommations.*.ccma' => 'nullable|integer|min:0',
+            'consommations.*.cmd_trim_svt' => 'nullable|integer|min:0',
+        ], [
+            'consommations.*.stk_dsp_deb_trim.integer' => 'Le stock de début doit être un nombre entier.',
+            'consommations.*.stk_dsp_deb_trim.min' => 'Le stock de début ne peut pas être négatif.',
+
+            'consommations.*.qte_get_in_trim.integer' => 'La quantité reçue doit être un nombre entier.',
+            'consommations.*.qte_get_in_trim.min' => 'La quantité reçue ne peut pas être négative.',
+
+            'consommations.*.qte_used.integer' => 'La quantité utilisée doit être un nombre entier.',
+            'consommations.*.qte_used.min' => 'La quantité utilisée ne peut pas être négative.',
+            'consommations.*.qte_used.lte' => 'La quantité utilisée ne peut pas dépasser la quantité en stock.',
+
+            'consommations.*.nb_beneficiaire.integer' => 'Le nombre de bénéficiaires doit être un nombre entier.',
+            'consommations.*.nb_beneficiaire.min' => 'Le nombre de bénéficiaires ne peut pas être négatif.',
+
+            'consommations.*.perimee.integer' => 'La quantité périmée doit être un nombre entier.',
+            'consommations.*.perimee.min' => 'La quantité périmée ne peut pas être négative.',
+
+            'consommations.*.perte_avarie.integer' => 'La quantité perdue/avariée doit être un nombre entier.',
+            'consommations.*.perte_avarie.min' => 'La quantité perdue/avariée ne peut pas être négative.',
+
+            'consommations.*.qte_ret_cameg.integer' => 'La quantité retournée à la CAMEG doit être un nombre entier.',
+            'consommations.*.qte_ret_cameg.min' => 'La quantité retournée ne peut pas être négative.',
+
+            'consommations.*.nb_jour_rupture.integer' => 'Le nombre de jours de rupture doit être un nombre entier.',
+            'consommations.*.nb_jour_rupture.between' => 'Le nombre de jours de rupture doit être entre 0 et 89.',
+
+            'consommations.*.qte_stock_fin_trim.integer' => 'Le stock de fin de trimestre doit être un nombre entier.',
+            'consommations.*.qte_stock_fin_trim.min' => 'Le stock de fin ne peut pas être négatif.',
+
+            'consommations.*.stk_de_securite.integer' => 'Le stock de sécurité doit être un nombre entier.',
+            'consommations.*.stk_de_securite.min' => 'Le stock de sécurité ne peut pas être négatif.',
+
+            'consommations.*.ccma.integer' => 'Le CCMA doit être un nombre entier.',
+            'consommations.*.ccma.min' => 'Le CCMA ne peut pas être négatif.',
+
+            'consommations.*.cmd_trim_svt.integer' => 'La commande du trimestre suivant doit être un nombre entier.',
+            'consommations.*.cmd_trim_svt.min' => 'La commande ne peut pas être négative.',
+        ]);
+    }
+
     public function ajouterConsommation()
     {
-        $this->validate();
+        dd($this->consommations);
+        /*$this->validateInputs();
+        if ($this->type_structure && $this->periode_choisi) {
+           foreach ($this->consommations as $index => $conso){
+            $consommation = new Consommation();
+            $consommation->medicament_id = $conso['medicament_id'];
 
-        Consommation::create([
-            'produit_id' => $this->produit_id,
-            'quantite' => $this->quantite,
-            'date' => $this->date,
-        ]);
-
-        session()->flash('message', 'Consommation ajoutée avec succès.');
-        $this->afficherTableau();
+           }
+        } else {
+            session()->flash('error', 'Veuillez sélectionner une structure et une période valides.');
+        }*/
     }
-
-    public function filtrerParPériode()
-    {
-
-    }
-    public function calculerStock()
-    {
-        foreach ($this->consommations as $index => $consommation) {
-            $stk = $consommation['stk_dsp_deb_trim'] ?? 0;
-            $qte = $consommation['qte_get_in_trim'] ?? 0;
-            if ($stk && $qte) {
-                $this->qte_en_stock[$index] = $stk + $qte;
-            } elseif ($stk && !$qte) {
-                $this->qte_en_stock[$index] = $stk;
-            }
-            elseif (!$stk && $qte) {
-                $this->qte_en_stock[$index] = '--';
-            } 
-        }
-    }
-
-
     public function chargerConsommations()
     {
         $this->consommations = Consommation::all();
