@@ -6,6 +6,8 @@ use App\Models\Medicament;
 use App\Models\Consommation;
 use App\Models\Periode;
 use Livewire\Component;
+use Illuminate\Validation\ValidationException;
+
 use Carbon\Carbon;
 use function Laravel\Prompts\select;
 use function Pest\Laravel\withMiddleware;
@@ -16,7 +18,7 @@ class Consommations extends Component
     public $formulaireVisible = false;
     public $type_structure;
     public $periode;
-    public $periode_choisi;
+    public $periode_choisie;
     public $produit_id;
     public $qte_en_stock = [];
     public $stock_de_securite;
@@ -26,6 +28,7 @@ class Consommations extends Component
     public $quantite;
     public $date;
     public $medicaments;
+    public $consommations_all = [];
     public $consommations = [];
 
     protected $listeners = ['mettreAJourQte'];
@@ -57,16 +60,60 @@ class Consommations extends Component
             default:
                 $this->periode = 'Non définie';
         }
-
-
+        $this->chargerConsommations();
     }
+    public function updatedTypeStructure($value)
+    {
+        // Vider complètement quand on change de type
+        $this->reset([
+            'consommations',
+            'medicaments'
+        ]);
+        
+        // Réinitialiser les erreurs de validation
+        $this->resetValidation();
+        
+        // Recharger si une valeur est sélectionnée
+        if ($value) {
+            $this->chargerMedicaments();
+        }
+    }
+    
     public function chargerMedicaments()
     {
-        if (!$this->type_structure || $this->type_structure === 'FS') {
+        if (!$this->type_structure) {
+            $this->medicaments = collect();
+            $this->consommations = [];
+            return;
+        }
+        
+        // Charger les médicaments selon le type
+        if ($this->type_structure === 'FS') {
             $this->medicaments = Medicament::all();
         } elseif ($this->type_structure === 'ASC') {
             $medicaments_fs_only = Medicament::where('fs_only', true)->pluck('id');
             $this->medicaments = Medicament::whereNotIn('id', $medicaments_fs_only)->get();
+        }
+
+        // Initialiser des consommations vides
+        $this->consommations = [];
+        foreach ($this->medicaments as $index => $medicament) {
+            $this->consommations[$index] = [
+                'medicament_id' => $medicament->id,
+                'stk_dsp_deb_trim' => null,
+                'qte_get_in_trim' => null,
+                'qte_en_stock' => null,
+                'qte_used' => null,
+                'nb_beneficiaire' => null,
+                'perimee' => null,
+                'perte_avarie' => null,
+                'qte_ret_cameg' => null,
+                'nb_jour_rupture' => null,
+                'qte_stock_fin_trim' => null,
+                'stk_de_securite' => null,
+                'ccma' => null,
+                'cmd_trim_svt' => null,
+            ];
         }
     }
 
@@ -80,7 +127,9 @@ class Consommations extends Component
 
     public function afficherFormulaire($id)
     {
+        $this->type_structure = null;
         $this->resetValidation();
+        $this->chargerMedicaments();
         $this->reset(['produit_id', 'quantite', 'date']);
         $this->formulaireVisible = true;
         $this->tableauVisible = false;
@@ -104,7 +153,7 @@ class Consommations extends Component
         $this->periodes_disponibles = $index !== false
             ? $periodes->slice(max(0, $index - 2), 3)->sortByDesc('id')->values()
             : $periodes->sortByDesc('id')->take(3)->values();
-
+        $this->periode_choisie = $this->periodes_disponibles[0]['id'];
 
     }
 
@@ -113,7 +162,6 @@ class Consommations extends Component
         $this->resetValidation();
         $this->formulaireVisible = false;
         $this->tableauVisible = true;
-        $this->chargerConsommations();
     }
     public function validateInputs()
     {
@@ -121,7 +169,7 @@ class Consommations extends Component
             'consommations.*.stk_dsp_deb_trim' => 'nullable|integer|min:0',
             'consommations.*.qte_get_in_trim' => 'nullable|integer|min:0',
             'consommations.*.qte_en_stock' => 'nullable|integer|min:0',
-            'consommations.*.qte_used' => 'nullable|integer|min:0|lte:consommations.*.qte_en_stock',
+            'consommations.*.qte_used' => 'nullable|integer|min:0',
             'consommations.*.nb_beneficiaire' => 'nullable|integer|min:0',
             'consommations.*.perimee' => 'nullable|integer|min:0',
             'consommations.*.perte_avarie' => 'nullable|integer|min:0',
@@ -140,7 +188,7 @@ class Consommations extends Component
 
             'consommations.*.qte_used.integer' => 'La quantité utilisée doit être un nombre entier.',
             'consommations.*.qte_used.min' => 'La quantité utilisée ne peut pas être négative.',
-            'consommations.*.qte_used.lte' => 'La quantité utilisée ne peut pas dépasser la quantité en stock.',
+
 
             'consommations.*.nb_beneficiaire.integer' => 'Le nombre de bénéficiaires doit être un nombre entier.',
             'consommations.*.nb_beneficiaire.min' => 'Le nombre de bénéficiaires ne peut pas être négatif.',
@@ -172,31 +220,96 @@ class Consommations extends Component
     }
     public function ajouterConsommation()
     {
-        $this->calculValeur();
-        dd($this->consommations);
-    }
+        if ($this->periode_choisie && $this->type_structure && !is_null($this->consommations)) {
+            $user = auth()->user();
+            $entity = $user->entity;
 
+            // Vérification de doublon
+            $existe = Consommation::where('formation_sanitaire_id', $entity['id'])
+                ->where('periode_id', $this->periode_choisie)
+                ->where('acteur', $this->type_structure)
+                ->exists();
+
+            if ($existe) {
+                throw ValidationException::withMessages([
+                    'consommation_existe' => 'Une consommation pour cette période et ce type de structure (' . $this->type_structure . ') existe déjà.',
+                ]);
+            }
+
+
+            // Logique normale si pas de doublon...
+            $this->validateInputs();
+            $this->calculValeur();
+            foreach ($this->consommations as $conso) {
+                $consommation = new Consommation();
+                $consommation->medicament_id = $conso['medicament_id'];
+                $consommation->formation_sanitaire_id = $entity['id'];
+                $consommation->periode_id = $this->periode_choisie;
+                $consommation->acteur = $this->type_structure;
+                $consommation->qte_dispo_deb_periode = $conso['stk_dsp_deb_trim'];
+                $consommation->qte_recu = $conso['qte_get_in_trim'];
+                $consommation->qte_en_stock = $conso['qte_en_stock'];
+                $consommation->qte_utilisee = $conso['qte_used'];
+                $consommation->nb_beneficiaire = $conso['nb_beneficiaire'];
+                $consommation->perimee = $conso['perimee'];
+                $consommation->perte_avarie = $conso['perte_avarie'];
+                $consommation->qte_retour_cameg = $conso['qte_ret_cameg'];
+                $consommation->nb_jour_rupture = $conso['nb_jour_rupture'];
+                $consommation->qte_restante = $conso['qte_stock_fin_trim'];
+                $consommation->stock_securite = $conso['stk_de_securite'];
+                $consommation->cmma = $conso['ccma'];
+                $consommation->cmd_trim_svt = $conso['cmd_trim_svt'];
+                $consommation->save();
+            }
+        }
+    }
     public function calculValeur()
     {
         foreach ($this->consommations as $index => $conso) {
-            $stk_dispo = isset($conso['stk_dsp_deb_trim']) ? intval($conso['stk_dsp_deb_trim']) : null;
-            $qte_get = isset($conso['qte_get_in_trim']) ? intval($conso['qte_get_in_trim']) : null;
+            $check = array_key_exists('stk_dsp_deb_trim', $conso) && $conso['stk_dsp_deb_trim'] !== null;
+            $stk_dispo = $check ? intval($conso['stk_dsp_deb_trim']) : 0;
+            $qte_get = isset($conso['qte_get_in_trim']) ? intval($conso['qte_get_in_trim']) : 0;
+            $nb_jour_rupture = isset($conso['nb_jour_rupture']) ? intval($conso['nb_jour_rupture']) : 0;
+            $qte_used = isset($conso['qte_used']) ? intval($conso['qte_used']) : 0;
+            $qte_stock_fin_trim = isset($conso['qte_stock_fin_trim']) ? intval($conso['qte_stock_fin_trim']) : 0;
 
-            if (!is_null($stk_dispo) && !is_null($qte_get)) {
+            if ($check == true) {
                 $this->consommations[$index]['qte_en_stock'] = $stk_dispo + $qte_get;
-            } elseif (is_null($stk_dispo) && !is_null($qte_get)) {
-                $this->consommations[$index]['qte_en_stock'] = '';
-            } elseif (!is_null($stk_dispo) && is_null($qte_get)) {
-                $this->consommations[$index]['qte_en_stock'] = $stk_dispo;
             } else {
-                $this->consommations[$index]['qte_en_stock'] = '';
+                $this->consommations[$index]['qte_en_stock'] = null;
+            }
+
+            if ($stk_dispo > 0 && $qte_used > 0) {
+                if ($nb_jour_rupture > 0 && $nb_jour_rupture < 90) {
+                    $denom = 90 - $nb_jour_rupture;
+                    $cmma = ceil(($qte_used / $denom) * 30);
+                    $stk_securite = ($qte_used * 90) / $denom;
+                    $cmd_trim_svt = ceil(($cmma * 6) - $qte_stock_fin_trim);
+                } else {
+                    $cmma = ceil(($qte_used / 90) * 30);
+                    $stk_securite = $qte_used;
+                    $cmd_trim_svt = ($qte_used * 2) - $qte_stock_fin_trim; //qte_used = stk_secu
+                }
+
+                $this->consommations[$index]['stk_de_securite'] = $stk_securite;
+                $this->consommations[$index]['ccma'] = $cmma;
+                $this->consommations[$index]['cmd_trim_svt'] = $cmd_trim_svt;
+            } else {
+                $this->consommations[$index]['stk_de_securite'] = null;
+                $this->consommations[$index]['ccma'] = null;
+                $this->consommations[$index]['cmd_trim_svt'] = null;
             }
         }
     }
 
     public function chargerConsommations()
     {
-        $this->consommations = Consommation::all();
+        $periode = Periode::where('nom', $this->periode)->first();
+        $user = auth()->user();
+        $this->consommations_all = Consommation::where('formation_sanitaire_id', $user->entity_id)
+                                                    ->where('periode_id', $periode->id)
+                                                    ->where('acteur', 'FS')
+                                                    ->get();
     }
 
 }

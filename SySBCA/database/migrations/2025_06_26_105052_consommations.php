@@ -25,13 +25,18 @@ return new class extends Migration
             $table->enum('acteur', ['FS','ASC']);
             $table->integer('qte_dispo_deb_periode')->nullable();
             $table->integer('qte_recu')->nullable();
+            $table->integer('qte_en_stock')->nullable();
             $table->integer('qte_utilisee')->nullable();
             $table->integer('nb_beneficiaire')->nullable();
             $table->integer('perimee')->nullable();
-            $table->integer('perte_avaree')->nullable();
+            $table->integer('perte_avarie')->nullable();
             $table->integer('qte_retour_cameg')->nullable();
             $table->integer('nb_jour_rupture')->nullable();
             $table->integer('qte_restante')->nullable();
+            $table->integer('stock_securite')->nullable();
+            $table->integer('cmma')->nullable();
+            $table->integer('cmd_trim_svt')->nullable();
+            $table->integer('qte_accordee')->nullable();
             $table->timestamps();
         });
     }

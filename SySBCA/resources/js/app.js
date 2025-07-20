@@ -52,7 +52,7 @@ function calculerStockSecurite(index) {
   const ccmaInput = document.getElementById(`ccma_${index}`);
   const cmdTrimSvtInput = document.getElementById(`cmd_trim_svt_${index}`);
   const qteStockFinTrimInput = document.getElementById(`qte_stock_fin_trim_${index}`);
-  console.log('valeur = ' + qteUsedInput.value)
+
 
   if (
     !stockDebutInput || !qteUsedInput || !nbJourRuptureInput ||
@@ -79,7 +79,7 @@ function calculerStockSecurite(index) {
     stkSecuriteInput.value = Math.ceil(qteUsed); // sécurité = conso brute
     const cmma = (qteUsed / 90) * 30;
     ccmaInput.value = Math.ceil(cmma);
-    cmdTrimSvtInput.value = Math.ceil((qteUsed + Math.ceil(qteUsed)) - qteStockFinTrim);
+    cmdTrimSvtInput.value = Math.ceil((qteUsed + Math.ceil(qteUsed)) - qteStockFinTrim); //Dans ce cas qteUsed est ég&ale à stkSecurite
   } else if (nbJourRupture > 0 && nbJourRupture < 90) {
     const denom = 90 - nbJourRupture;
     const stkSecurite = (qteUsed * 90) / denom;
@@ -144,13 +144,14 @@ function checkInput(index) {
     alert("Le nombre de jours de rupture doit être compris entre 0 et 89.");
     inputs.nbJourRupture.value = '';
     calculerStockSecurite(index);
-    console.log('valeur cmma = '+ inputs.ccma.value)
+    console.log('valeur cmma = ' + inputs.ccma.value)
     inputs.nbJourRupture.focus();
     return false;
   }
 
   return true;
 }
+
 
 document.addEventListener('input', function (e) {
   const targetId = e.target.id;
@@ -170,6 +171,8 @@ document.addEventListener('input', function (e) {
     calculerStockSecurite(index);
   }
 });
+
+
 
 
 

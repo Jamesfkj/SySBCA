@@ -12,4 +12,8 @@ class Consommation extends Model
     {
         return $this->belongsTo(Periode::class);
     }
+
+    public function medicament(){
+        return $this->belongsTo(Medicament::class);
+    }
 }
