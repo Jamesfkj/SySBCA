@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\ConsommationMedicament;
 use App\Models\Medicament;
 use App\Models\Consommation;
 use App\Models\Periode;
@@ -69,16 +70,16 @@ class Consommations extends Component
             'consommations',
             'medicaments'
         ]);
-        
+
         // Réinitialiser les erreurs de validation
         $this->resetValidation();
-        
+
         // Recharger si une valeur est sélectionnée
         if ($value) {
             $this->chargerMedicaments();
         }
     }
-    
+
     public function chargerMedicaments()
     {
         if (!$this->type_structure) {
@@ -86,7 +87,7 @@ class Consommations extends Component
             $this->consommations = [];
             return;
         }
-        
+
         // Charger les médicaments selon le type
         if ($this->type_structure === 'FS') {
             $this->medicaments = Medicament::all();
@@ -223,43 +224,41 @@ class Consommations extends Component
         if ($this->periode_choisie && $this->type_structure && !is_null($this->consommations)) {
             $user = auth()->user();
             $entity = $user->entity;
-
             // Vérification de doublon
             $existe = Consommation::where('formation_sanitaire_id', $entity['id'])
                 ->where('periode_id', $this->periode_choisie)
                 ->where('acteur', $this->type_structure)
                 ->exists();
-
             if ($existe) {
                 throw ValidationException::withMessages([
                     'consommation_existe' => 'Une consommation pour cette période et ce type de structure (' . $this->type_structure . ') existe déjà.',
                 ]);
             }
-
-
-            // Logique normale si pas de doublon...
+            $consommation = new Consommation();
+            $consommation->periode_id = $this->periode_choisie;
+            $consommation->acteur = $this->type_structure;
+            $consommation->formation_sanitaire_id = $entity['id'];
+            $consommation->save();
             $this->validateInputs();
             $this->calculValeur();
             foreach ($this->consommations as $conso) {
-                $consommation = new Consommation();
-                $consommation->medicament_id = $conso['medicament_id'];
-                $consommation->formation_sanitaire_id = $entity['id'];
-                $consommation->periode_id = $this->periode_choisie;
-                $consommation->acteur = $this->type_structure;
-                $consommation->qte_dispo_deb_periode = $conso['stk_dsp_deb_trim'];
-                $consommation->qte_recu = $conso['qte_get_in_trim'];
-                $consommation->qte_en_stock = $conso['qte_en_stock'];
-                $consommation->qte_utilisee = $conso['qte_used'];
-                $consommation->nb_beneficiaire = $conso['nb_beneficiaire'];
-                $consommation->perimee = $conso['perimee'];
-                $consommation->perte_avarie = $conso['perte_avarie'];
-                $consommation->qte_retour_cameg = $conso['qte_ret_cameg'];
-                $consommation->nb_jour_rupture = $conso['nb_jour_rupture'];
-                $consommation->qte_restante = $conso['qte_stock_fin_trim'];
-                $consommation->stock_securite = $conso['stk_de_securite'];
-                $consommation->cmma = $conso['ccma'];
-                $consommation->cmd_trim_svt = $conso['cmd_trim_svt'];
-                $consommation->save();
+                $consommation_medicament = new ConsommationMedicament();
+                $consommation_medicament->consommation_id = $consommation->id;
+                $consommation_medicament->medicament_id = $conso['medicament_id'];
+                $consommation_medicament->qte_dispo_deb_periode = $conso['stk_dsp_deb_trim'];
+                $consommation_medicament->qte_recu = $conso['qte_get_in_trim'];
+                $consommation_medicament->qte_en_stock = $conso['qte_en_stock'];
+                $consommation_medicament->qte_utilisee = $conso['qte_used'];
+                $consommation_medicament->nb_beneficiaire = $conso['nb_beneficiaire'];
+                $consommation_medicament->perimee = $conso['perimee'];
+                $consommation_medicament->perte_avarie = $conso['perte_avarie'];
+                $consommation_medicament->qte_retour_cameg = $conso['qte_ret_cameg'];
+                $consommation_medicament->nb_jour_rupture = $conso['nb_jour_rupture'];
+                $consommation_medicament->qte_restante = $conso['qte_stock_fin_trim'];
+                $consommation_medicament->stock_securite = $conso['stk_de_securite'];
+                $consommation_medicament->cmma = $conso['ccma'];
+                $consommation_medicament->cmd_trim_svt = $conso['cmd_trim_svt'];
+                $consommation_medicament->save();
             }
         }
     }
@@ -306,10 +305,17 @@ class Consommations extends Component
     {
         $periode = Periode::where('nom', $this->periode)->first();
         $user = auth()->user();
-        $this->consommations_all = Consommation::where('formation_sanitaire_id', $user->entity_id)
-                                                    ->where('periode_id', $periode->id)
-                                                    ->where('acteur', 'FS')
-                                                    ->get();
+        $conso = Consommation::where('formation_sanitaire_id', $user->entity_id)
+            ->where('periode_id', $periode->id)
+            ->where('acteur', 'FS')
+            ->first();
+
+        if ($conso) {
+            $this->consommations_all = ConsommationMedicament::where('consommation_id', $conso->id)->get();
+        } else {
+            $this->consommations_all = collect(); // vide si pas trouvé
+        }
+
     }
 
 }
