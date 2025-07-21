@@ -15,15 +15,15 @@ use function Pest\Laravel\withMiddleware;
 
 class Consommations extends Component
 {
+    //les défaut font réferences aux attributs utilisés sur le tableau d'affichage
     public $tableauVisible = true;
     public $formulaireVisible = false;
     public $type_structure;
+    public $periodes_all = [];
     public $periode;
     public $periode_choisie;
-    public $produit_id;
-    public $qte_en_stock = [];
-    public $stock_de_securite;
-    public $cmma;
+    public $periode_actuelle;
+    public $structure_defaut = 'FS';
     public $qte_cmd_trim_svt;
     public $periodes_disponibles = [];
     public $quantite;
@@ -61,24 +61,60 @@ class Consommations extends Component
             default:
                 $this->periode = 'Non définie';
         }
-        $this->chargerConsommations();
+        $periodes = Periode::orderByDesc('id')->get();
+        $index = $periodes->search(function ($periode) {
+            return $periode->nom === $this->periode;
+        });
+        if ($index !== false) {
+            $this->periodes_all = $periodes->slice($index)->values();
+        } else {
+            $this->periodes_all = Periode::all();
+        }
+
+        $this->periode_actuelle = Periode::where('nom', $this->periode)->first();
+        $this->chargerConsommations($this->periode_actuelle->id, $this->structure_defaut);
     }
     public function updatedTypeStructure($value)
     {
-        // Vider complètement quand on change de type
         $this->reset([
             'consommations',
             'medicaments'
         ]);
-
-        // Réinitialiser les erreurs de validation
         $this->resetValidation();
-
-        // Recharger si une valeur est sélectionnée
         if ($value) {
             $this->chargerMedicaments();
         }
     }
+    public function chargerPeriodeActeur()
+{
+    $entity = auth()->user()->entity;
+    $entity_id = $entity['id'];
+
+    $periode_actuelle = Periode::where('nom', $this->periode)->first();
+
+    if (!$periode_actuelle) {
+        $this->periodes_disponibles = collect(); 
+        $this->periode_choisie = null;
+        return;
+    }
+
+    $id_max = $periode_actuelle->id;
+    $periodes = Periode::where('id', '<=', $id_max)->orderByDesc('id')->get();
+
+    $consommations_existantes = Consommation::where('formation_sanitaire_id', $entity_id)
+        ->where('acteur', $this->type_structure)
+        ->whereIn('periode_id', $periodes->pluck('id'))
+        ->pluck('periode_id')
+        ->toArray();
+
+    $this->periodes_disponibles = $periodes->filter(function ($periode) use ($consommations_existantes) {
+        return !in_array($periode->id, $consommations_existantes);
+    })->values(); 
+
+    $this->periode_choisie = $this->periodes_disponibles->isNotEmpty()
+        ? $this->periodes_disponibles->first()->id
+        : null;
+}
 
     public function chargerMedicaments()
     {
@@ -87,7 +123,6 @@ class Consommations extends Component
             $this->consommations = [];
             return;
         }
-
         // Charger les médicaments selon le type
         if ($this->type_structure === 'FS') {
             $this->medicaments = Medicament::all();
@@ -95,7 +130,6 @@ class Consommations extends Component
             $medicaments_fs_only = Medicament::where('fs_only', true)->pluck('id');
             $this->medicaments = Medicament::whereNotIn('id', $medicaments_fs_only)->get();
         }
-
         // Initialiser des consommations vides
         $this->consommations = [];
         foreach ($this->medicaments as $index => $medicament) {
@@ -116,6 +150,7 @@ class Consommations extends Component
                 'cmd_trim_svt' => null,
             ];
         }
+        $this->chargerPeriodeActeur();
     }
 
     public function render()
@@ -126,36 +161,14 @@ class Consommations extends Component
         );
     }
 
-    public function afficherFormulaire($id)
+    public function afficherFormulaire()
     {
         $this->type_structure = null;
         $this->resetValidation();
         $this->chargerMedicaments();
-        $this->reset(['produit_id', 'quantite', 'date']);
         $this->formulaireVisible = true;
         $this->tableauVisible = false;
-        $periode_ids_utilisees = Consommation::where('formation_sanitaire_id', $id)
-            ->where('acteur', $this->type_structure)
-            ->pluck('periode_id')
-            ->toArray();
-
-        // On récupère toutes les périodes non utilisées, triées par ordre chronologique
-        $periodes = Periode::whereNotIn('id', $periode_ids_utilisees)
-            ->orderBy('annee')
-            ->orderByRaw("CAST(SUBSTRING(nom, 2, 1) AS UNSIGNED)")
-            ->get();
-
-        // On trouve l’index de la période actuelle dans la liste des périodes
-        $index = $periodes->search(function ($periode) {
-            return $periode->nom === $this->periode;
-        });
-
-        // On garde seulement les périodes jusqu’à l'index inclus
-        $this->periodes_disponibles = $index !== false
-            ? $periodes->slice(max(0, $index - 2), 3)->sortByDesc('id')->values()
-            : $periodes->sortByDesc('id')->take(3)->values();
-        $this->periode_choisie = $this->periodes_disponibles[0]['id'];
-
+        
     }
 
     public function afficherTableau()
@@ -221,6 +234,13 @@ class Consommations extends Component
     }
     public function ajouterConsommation()
     {
+        foreach ($this->consommations as $index => $conso) {
+            foreach ($conso as $key => $value) {
+                if ($value === '') {
+                    $this->consommations[$index][$key] = null;
+                }
+            }
+        }
         if ($this->periode_choisie && $this->type_structure && !is_null($this->consommations)) {
             $user = auth()->user();
             $entity = $user->entity;
@@ -260,6 +280,10 @@ class Consommations extends Component
                 $consommation_medicament->cmd_trim_svt = $conso['cmd_trim_svt'];
                 $consommation_medicament->save();
             }
+            $this->structure_defaut = $this->type_structure;
+            $this->periode_actuelle = Periode::where('id', $this->periode_choisie)->first();
+            $this->chargerConsommations($this->periode_choisie, $this->type_structure);
+            $this->afficherTableau();
         }
     }
     public function calculValeur()
@@ -301,19 +325,19 @@ class Consommations extends Component
         }
     }
 
-    public function chargerConsommations()
+    public function chargerConsommations($periode_id, $acteur)
     {
-        $periode = Periode::where('nom', $this->periode)->first();
+
         $user = auth()->user();
         $conso = Consommation::where('formation_sanitaire_id', $user->entity_id)
-            ->where('periode_id', $periode->id)
-            ->where('acteur', 'FS')
+            ->where('periode_id', $periode_id)
+            ->where('acteur', $acteur)
             ->first();
 
         if ($conso) {
             $this->consommations_all = ConsommationMedicament::where('consommation_id', $conso->id)->get();
         } else {
-            $this->consommations_all = collect(); // vide si pas trouvé
+            $this->consommations_all = collect();
         }
 
     }
