@@ -9,7 +9,7 @@
     @endif
     <!-- Barre de chargement -->
     <div wire:loading
-        wire:target="afficherFormulaire,afficherTableau,filtrerParPériode,ajouterConsommation,chargerMedicaments"
+        wire:target="afficherFormulaire,afficherTableau,filtrerParPériode,ajouterConsommation,chargerMedicaments,chercherConsommations"
         class="absolute top-0 left-0 w-full h-1 bg-teal-600 animate-progress-bar z-20">
     </div>
 
@@ -38,8 +38,8 @@
         </h2>
         <div>
             <!-- Boutons de navigation -->
-            @if ($tableauVisible)
-                <button wire:click="afficherFormulaire()">
+            @if ($tableauVisible && auth()->check() && auth()->user()->role->nom_role == 'Formation sanitaire')
+                <button wire:click="afficherFormulaire()"
                     class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
                     <span class="flex items-center gap-2">
                         <div
@@ -102,12 +102,12 @@
                             class='text-blue-900 font-semibold'>{{ $structure_defaut }}</span> </p>
                 </div>
                 <div class="flex justify-between gap-2">
-                    <select wire:model.live="structure_defaut"
+                    <select wire:model.live="structure_defaut" wire:change="chercherConsommations"
                         class="w-25 bg-blue-100 rounded-full border font-bold border-gray-400 text-blue-900 focus:outline-none focus:ring-teal-600">
                         <option value="FS">FS</option>
                         <option value="ASC">ASC</option>
                     </select>
-                    <select wire:model.live="periode_actuelle"
+                    <select wire:model.live="periode_search" wire:change="chercherConsommations"
                         class="w-72 bg-blue-100 rounded-full border font-bold border-gray-400 text-blue-900 focus:outline-none focus:ring-teal-600">
                         @foreach ($periodes_all as $periode)
                             <option value="{{ $periode->id }}">{{ $periode->nom }} :

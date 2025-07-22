@@ -23,6 +23,7 @@ class Consommations extends Component
     public $periode;
     public $periode_choisie;
     public $periode_actuelle;
+    public $periode_search;
     public $structure_defaut = 'FS';
     public $qte_cmd_trim_svt;
     public $periodes_disponibles = [];
@@ -72,6 +73,7 @@ class Consommations extends Component
         }
 
         $this->periode_actuelle = Periode::where('nom', $this->periode)->first();
+        $this->periode_search = $this->periode_actuelle->id;
         $this->chargerConsommations($this->periode_actuelle->id, $this->structure_defaut);
     }
     public function updatedTypeStructure($value)
@@ -285,6 +287,9 @@ class Consommations extends Component
             $this->chargerConsommations($this->periode_choisie, $this->type_structure);
             $this->afficherTableau();
         }
+    }
+    public function chercherConsommations(){
+        $this->chargerConsommations($this->periode_search, $this->structure_defaut);
     }
     public function calculValeur()
     {

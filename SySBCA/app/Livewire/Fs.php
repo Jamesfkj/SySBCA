@@ -21,7 +21,7 @@ class Fs extends Component
     public $confirmation_mot_de_passe = '';
     public $nom = '';
     public $district_id = '';
-    public $nb_asc; 
+    public $nb_asc;
     public $idEdition;
     public $nomEdition;
     public $districtIdEdition;
@@ -160,6 +160,7 @@ class Fs extends Component
 
     public function render()
     {
+        $user = auth()->user();
         $query = FormationSanitaire::with('district')
             ->when($this->recherche, function ($query) {
                 $query->where(function ($q) {
@@ -170,9 +171,11 @@ class Fs extends Component
                 });
             })
             ->orderBy('nom', 'asc');
-
+        if ($user->role->nom_role == 'District') {
+            $district_id = $user->entity_id;
+            $query = $query->where('district_id', $district_id);
+        }
         $this->formations = $query->get();
-
         $this->districts = District::orderBy('nom')->get();
 
         return view('livewire.fs', [

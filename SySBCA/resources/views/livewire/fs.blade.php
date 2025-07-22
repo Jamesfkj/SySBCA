@@ -17,21 +17,24 @@
             <h2 class="text-2xl font-semibold text-teal-600">
                 @if (!$afficherFormulaireCreation && !$afficherFormulaireEdition)
                     <span class="flex items-center gap-2">
-                        <div class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
+                        <div
+                            class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
                             <i class="bi bi-hospital-fill"></i>
                         </div>
                         <p>Liste des formations sanitaires</p>
                     </span>
                 @elseif ($afficherFormulaireCreation)
                     <span class="flex items-center gap-2">
-                        <div class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
+                        <div
+                            class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
                             <i class="bi bi-plus"></i>
                         </div>
                         <p>Ajouter une formation sanitaire</p>
                     </span>
                 @elseif ($afficherFormulaireEdition)
                     <span class="flex items-center gap-2">
-                        <div class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
+                        <div
+                            class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
                             <i class="bi bi-pen-fill"></i>
                         </div>
                         <p>Modifier une formation sanitaire</p>
@@ -57,7 +60,7 @@
                 </button>
             @endif
 
-            @if (!$afficherFormulaireCreation && !$afficherFormulaireEdition)
+            @if (!$afficherFormulaireCreation && !$afficherFormulaireEdition && auth()->check() && auth()->user()->role->nom_role == 'Administrateur')
                 <button wire:click="afficherFormulaire"
                     class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
                     <span class="flex items-center gap-2">
@@ -75,10 +78,13 @@
                 <table class="min-w-full border-collapse">
                     <thead>
                         <tr class="bg-gray-100">
-                            <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Formation sanitaire</th>
+                            <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Formation sanitaire
+                            </th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Nombre d'ASC</th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">District</th>
-                            <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Actions</th>
+                            @if (auth()->check() && auth()->user()->role->nom_role == 'Administrateur')
+                                <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Actions</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -87,17 +93,19 @@
                                 <td class="px-6 py-4 text-blue-900">{{ $fs->nom }}</td>
                                 <td class="px-6 py-4 text-blue-900">{{ $fs->nb_asc }}</td>
                                 <td class="px-6 py-4 text-blue-900">{{ $fs->district->nom }}</td>
-                                <td class="px-6 py-4 flex gap-4">
-                                    <button wire:click="afficherEdition({{ $fs->id }})"
-                                        class="text-blue-600 hover:text-blue-700 flex items-center justify-center w-9 h-9 rounded-full bg-blue-100 shadow-md">
-                                        <i class="bi bi-pen-fill"></i>
-                                    </button>
-                                    <button wire:click="delete({{ $fs->id }})"
-                                        wire:confirm="Êtes-vous sûr de vouloir supprimer cette formation sanitaire ?"
-                                        class="text-red-600 hover:text-red-700 flex items-center justify-center w-9 h-9 rounded-full bg-red-100 shadow-md">
-                                        <i class="bi bi-trash3-fill"></i>
-                                    </button>
-                                </td>
+                                @if (auth()->check() && auth()->user()->role->nom_role == 'Administrateur')
+                                    <td class="px-6 py-4 flex gap-4">
+                                        <button wire:click="afficherEdition({{ $fs->id }})"
+                                            class="text-blue-600 hover:text-blue-700 flex items-center justify-center w-9 h-9 rounded-full bg-blue-100 shadow-md">
+                                            <i class="bi bi-pen-fill"></i>
+                                        </button>
+                                        <button wire:click="delete({{ $fs->id }})"
+                                            wire:confirm="Êtes-vous sûr de vouloir supprimer cette formation sanitaire ?"
+                                            class="text-red-600 hover:text-red-700 flex items-center justify-center w-9 h-9 rounded-full bg-red-100 shadow-md">
+                                            <i class="bi bi-trash3-fill"></i>
+                                        </button>
+                                    </td>
+                                @endif
                             </tr>
                         @empty
                             <tr>
@@ -115,17 +123,23 @@
                 <form wire:submit.prevent="create">
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-blue-900">Nom de la formation sanitaire</label>
-                        <input type="text" wire:model="nom" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900" required>
+                        <input type="text" wire:model="nom"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
+                            required>
                         @error('nom') <span class="text-red-600">{{ $message }}</span> @enderror
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-blue-900">Nombre d'ASC</label>
-                        <input type="number" min="0" wire:model="nb_asc" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900" required>
+                        <input type="number" min="0" wire:model="nb_asc"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
+                            required>
                         @error('nb_asc') <span class="text-red-600">{{ $message }}</span> @enderror
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-blue-900">District</label>
-                        <select wire:model="district_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900" required>
+                        <select wire:model="district_id"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
+                            required>
                             <option value="">-- Sélectionnez un district --</option>
                             @foreach ($districts as $district)
                                 <option value="{{ $district->id }}">{{ $district->nom }}</option>
@@ -133,27 +147,32 @@
                         </select>
                     </div>
 
-                    <div class="text-gray-500 text-[15px] mb-4 italic">Créer l'utilisateur associé à la Formation sanitaire (Optionnel, peut être crée à partir du menu utilisateur).</div>
+                    <div class="text-gray-500 text-[15px] mb-4 italic">Créer l'utilisateur associé à la Formation sanitaire
+                        (Optionnel, peut être crée à partir du menu utilisateur).</div>
 
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-blue-900">Nom d'utilisateur</label>
-                        <input type="text" wire:model="username" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900">
+                        <input type="text" wire:model="username"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900">
                         @error('username') <span class="text-red-600">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-blue-900">Mot de passe</label>
-                        <input type="password" wire:model="mot_de_passe" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900">
+                        <input type="password" wire:model="mot_de_passe"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900">
                         @error('mot_de_passe') <span class="text-red-600">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-blue-900">Confirmer le mot de passe</label>
-                        <input type="password" wire:model="confirmation_mot_de_passe" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900">
+                        <input type="password" wire:model="confirmation_mot_de_passe"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900">
                         @error('confirmation_mot_de_passe') <span class="text-red-600">{{ $message }}</span> @enderror
                     </div>
 
-                    <button type="submit" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200">Enregistrer</button>
+                    <button type="submit"
+                        class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200">Enregistrer</button>
                 </form>
             </div>
         @endif
@@ -164,17 +183,23 @@
                 <form wire:submit.prevent="update">
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-blue-900">Nom de la formation sanitaire</label>
-                        <input type="text" wire:model="nomEdition" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900" required>
+                        <input type="text" wire:model="nomEdition"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
+                            required>
                         @error('nomEdition') <span class="text-red-600">{{ $message }}</span> @enderror
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-blue-900">Nombre d'ASC</label>
-                        <input type="number" min="0" wire:model="nb_ascEdition" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900" required>
+                        <input type="number" min="0" wire:model="nb_ascEdition"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
+                            required>
                         @error('nb_ascEdition') <span class="text-red-600">{{ $message }}</span> @enderror
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-blue-900">District</label>
-                        <select wire:model="districtIdEdition" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900" required>
+                        <select wire:model="districtIdEdition"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
+                            required>
                             <option value="">-- Sélectionnez un district --</option>
                             @foreach ($districts as $district)
                                 <option value="{{ $district->id }}">{{ $district->nom }}</option>
@@ -183,7 +208,9 @@
                         @error('districtIdEdition') <span class="text-red-600">{{ $message }}</span> @enderror
                     </div>
 
-                    <button type="submit" class="w-full bg-yellow-600 text-white py-2 px-4 rounded-lg hover:bg-yellow-700 transition duration-200">Mettre à jour</button>
+                    <button type="submit"
+                        class="w-full bg-yellow-600 text-white py-2 px-4 rounded-lg hover:bg-yellow-700 transition duration-200">Mettre
+                        à jour</button>
                 </form>
             </div>
         @endif
