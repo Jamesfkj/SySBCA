@@ -32,7 +32,7 @@ class Consommations extends Component
     public $structure_defaut = 'FS';
     public $qte_cmd_trim_svt;
     public $periodes_disponibles = [];
-    public $quantite;
+    public $quantites_accordees = [];
     public $date;
     public $medicaments;
     public $consommations_all = [];
@@ -51,7 +51,7 @@ class Consommations extends Component
         if ($user->role->nom_role === 'District') {
             $this->formation_sanitaire = FormationSanitaire::where('district_id', $user->entity_id)->get();
             $this->fs = $this->formation_sanitaire->first()?->id;
-            $this->fs_choisie = FormationSanitaire::where('id',  $this->fs)->first();
+            $this->fs_choisie = FormationSanitaire::where('id', $this->fs)->first();
         }
         $this->medicaments = Medicament::all();
         $mois = now()->month;
@@ -245,17 +245,10 @@ class Consommations extends Component
     }
     public function ajouterConsommation()
     {
-        foreach ($this->consommations as $index => $conso) {
-            foreach ($conso as $key => $value) {
-                if ($value === '') {
-                    $this->consommations[$index][$key] = null;
-                }
-            }
-        }
+        $this->nettoyerValeursNul();
         if ($this->periode_choisie && $this->type_structure && !is_null($this->consommations)) {
             $user = auth()->user();
             $entity = $user->entity;
-            // Vérification de doublon
             $existe = Consommation::where('formation_sanitaire_id', $entity['id'])
                 ->where('periode_id', $this->periode_choisie)
                 ->where('acteur', $this->type_structure)
@@ -265,13 +258,13 @@ class Consommations extends Component
                     'consommation_existe' => 'Une consommation pour cette période et ce type de structure (' . $this->type_structure . ') existe déjà.',
                 ]);
             }
+            $this->validateInputs();
+            $this->calculValeur();
             $consommation = new Consommation();
             $consommation->periode_id = $this->periode_choisie;
             $consommation->acteur = $this->type_structure;
             $consommation->formation_sanitaire_id = $entity['id'];
             $consommation->save();
-            $this->validateInputs();
-            $this->calculValeur();
             foreach ($this->consommations as $conso) {
                 $consommation_medicament = new ConsommationMedicament();
                 $consommation_medicament->consommation_id = $consommation->id;
@@ -293,15 +286,27 @@ class Consommations extends Component
             }
             $this->structure_defaut = $this->type_structure;
             $this->periode_actuelle = Periode::where('id', $this->periode_choisie)->first();
+            $this->supprimerDonneesTemporaires();
             $this->chargerConsommations($this->periode_choisie, $this->type_structure);
             $this->afficherTableau();
         }
     }
+    private function nettoyerValeursNul()
+    {
+        foreach ($this->consommations as $index => $conso) {
+            foreach ($conso as $key => $value) {
+                if ($value === '' || is_null($value)) {
+                    $this->consommations[$index][$key] = 0;
+                }
+            }
+        }
+    }
+
     public function chercherConsommations()
     {
         $this->chargerConsommations($this->periode_search, $this->structure_defaut);
         $this->periode_actuelle = Periode::where('id', $this->periode_search)->first();
-        $this->fs_choisie = FormationSanitaire::where('id',  $this->fs)->first();
+        $this->fs_choisie = FormationSanitaire::where('id', $this->fs)->first();
     }
     public function calculValeur()
     {
@@ -316,28 +321,28 @@ class Consommations extends Component
             if ($check == true) {
                 $this->consommations[$index]['qte_en_stock'] = $stk_dispo + $qte_get;
             } else {
-                $this->consommations[$index]['qte_en_stock'] = null;
+                $this->consommations[$index]['qte_en_stock'] = 0;
             }
 
             if ($stk_dispo > 0 && $qte_used > 0) {
                 if ($nb_jour_rupture > 0 && $nb_jour_rupture < 90) {
                     $denom = 90 - $nb_jour_rupture;
                     $cmma = ceil(($qte_used / $denom) * 30);
-                    $stk_securite = ($qte_used * 90) / $denom;
+                    $stk_securite = ceil(($qte_used * 90) / $denom);
                     $cmd_trim_svt = ceil(($cmma * 6) - $qte_stock_fin_trim);
                 } else {
                     $cmma = ceil(($qte_used / 90) * 30);
                     $stk_securite = $qte_used;
-                    $cmd_trim_svt = ($qte_used * 2) - $qte_stock_fin_trim; //qte_used = stk_secu
+                    $cmd_trim_svt = ($qte_used * 2) - $qte_stock_fin_trim; 
                 }
 
                 $this->consommations[$index]['stk_de_securite'] = $stk_securite;
                 $this->consommations[$index]['ccma'] = $cmma;
                 $this->consommations[$index]['cmd_trim_svt'] = $cmd_trim_svt;
             } else {
-                $this->consommations[$index]['stk_de_securite'] = null;
-                $this->consommations[$index]['ccma'] = null;
-                $this->consommations[$index]['cmd_trim_svt'] = null;
+                $this->consommations[$index]['stk_de_securite'] = 0;
+                $this->consommations[$index]['ccma'] = 0;
+                $this->consommations[$index]['cmd_trim_svt'] = 0;
             }
         }
     }
@@ -367,9 +372,30 @@ class Consommations extends Component
             $this->consommations_all = collect();
         }
     }
+    public function enregistrerQteAccorde($consommation_id, $medicament_id)
+    {
+        $this->validate([
+            "quantites_accordees.$consommation_id" => 'required|integer|min:0',
+        ], [
+            "quantites_accordees.$consommation_id.required" => 'Champ requis.',
+            "quantites_accordees.$consommation_id.integer" => 'Doit être un entier.',
+            "quantites_accordees.$consommation_id.min" => 'Minimum 0.',
+        ]);
+        $quantite = $this->quantites_accordees[$consommation_id];
+        $conso = ConsommationMedicament::where('consommation_id', $consommation_id)
+            ->where('medicament_id', $medicament_id)
+            ->first();
 
-
-
+        if ($conso) {
+            $conso->qte_accordee = $quantite;
+            $conso->save();
+            unset($this->quantites_accordees[$consommation_id]);
+            session()->flash('message', 'Quantité enregistrée avec succès.');
+        } else {
+            session()->flash('message', 'Erreur : données non trouvées.');
+        }
+        $this->chercherConsommations();
+    }
     public function enregistrerTemporairement($index)
     {
         if (empty($this->type_structure) || empty($this->periode_choisie)) {

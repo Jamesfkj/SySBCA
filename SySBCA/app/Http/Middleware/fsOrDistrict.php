@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class is_suspended
+class fsOrDistrict
 {
     /**
      * Handle an incoming request.
@@ -15,10 +15,13 @@ class is_suspended
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (auth()->check() && auth()->user()->etat != 'actif') {
-            auth()->logout();
-            return abort(403, 'Compte suspendu.');
-        }
+        $user = auth()->user();
+        if (auth()->check() && !in_array($user->role->nom_role, ['Formation sanitaire', 'District'])) {
+        auth()->logout();
+        return redirect('/login')->withErrors([
+            'error' => 'Connectez vous pour accéder à cette page!'
+        ]);
+    }
         return $next($request);
     }
 }

@@ -37,5 +37,8 @@ class Vues extends Controller
     {
         return view('user.dashboard');
     }
+    public function synthese_district(){
+        return view('user.synthese-district');
+    }
 
 }
