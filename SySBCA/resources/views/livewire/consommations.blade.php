@@ -141,13 +141,13 @@
 
                         <!-- Header produit -->
                         <div
-                            class="bg-gradient-to-r from-teal-700 to-teal-600 px-4 py-3 rounded-t-3xl flex justify-between items-center">
+                            class="bg-gradient-to-r from-teal-700 to-teal-600 px-4 py-2 rounded-t-3xl flex justify-between items-center">
                             <h2 class="text-lg font-semibold text-white tracking-wide truncate">
                                 {{ $consommation->medicament->nom }}
                             </h2>
                             <button @click="open = !open"
                                 class="text-xs text-teal-100 hover:text-white hover:bg-teal-600 px-2 py-1 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 flex-shrink-0">
-                                <span x-show="!open" class="flex items-center gap-1">
+                                <span x-show="!open" class="flex items-center gap-1 border-1 border-white ">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -162,7 +162,6 @@
                                 </span>
                             </button>
                         </div>
-
                         <!-- Corps de la carte -->
                         <div class="px-4 py-4 text-sm">
                             <!-- Informations principales (en 2 colonnes) -->
@@ -202,42 +201,39 @@
                                 <!-- Quantité accordée ou formulaire -->
                                 <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 col-span-2">
                                     <span class="font-semibold text-blue-700">Qté accordée par le district</span>
+                                    
 
                                     @php
                                         $user = auth()->user();
                                         $role = $user?->role->nom_role;
                                         $accordee = $consommation->qte_accordee;
                                     @endphp
-
                                     @if ($role === 'Formation sanitaire' || ($role === 'District' && $accordee))
                                         <div class="text-blue-800 font-bold">
                                             {{ $accordee ?? '--'}}
                                         </div>
-
                                     @elseif ($role === 'District' && is_null($accordee))
-                                        <form class="mt-2"
-                                            wire:submit.prevent="enregistrerQteAccorde({{ $consommation->consommation_id }}, {{ $consommation->medicament_id }})">
-                                            <div class="flex flex-col gap-1">
-                                                <div class="flex gap-2 items-center">
-                                                    <input type="number"
-                                                        wire:model="quantites_accordees.{{ $consommation->consommation_id }}"
-                                                        placeholder="Saisir quantité"
-                                                        class="flex-1 text-xs px-2 py-1 border border-blue-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                        min="0" step="1" required>
-                                                    <button type="submit"
-                                                        class="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs font-medium">
-                                                        OK
-                                                    </button>
+                                        <div x-ignore>
+                                            <form class="mt-2"
+                                                wire:submit.prevent="enregistrerQteAccorde({{ $consommation->consommation_id }}, {{ $consommation->medicament_id }})">
+                                                <div class="flex flex-col gap-1">
+                                                    <div class="flex gap-2 items-center">
+                                                        <input type="number"
+                                                            wire:model="quantites_accordees.{{ $consommation->consommation_id }}"
+                                                            placeholder="Saisir quantité"
+                                                            class="flex-1 text-xs px-2 py-1 border border-blue-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                            min="0" step="1" required>
+                                                        <button type="submit"
+                                                            class="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs font-medium">
+                                                            OK
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </form>
-
+                                            </form>
+                                        </div>
                                     @endif
                                 </div>
-
                             </div>
-
-                            <!-- Détails étendus -->
                             <div x-show="open" x-transition:enter="transition ease-out duration-300"
                                 x-transition:enter-start="opacity-0 transform -translate-y-2"
                                 x-transition:enter-end="opacity-100 transform translate-y-0" class="mt-4">
@@ -248,40 +244,40 @@
                                         Informations détaillées (Du trimestre)
                                     </h3>
                                     <div class="grid grid-cols-2 gap-3">
-                                        <div class="flex justify-between">
+                                        <div class="flex justify-between border border-gray-300 bg bg-white p-1 rounded">
                                             <span class="text-gray-600">Stock en début :</span>
-                                            <span
-                                                class="font-semibold">{{ $consommation->qte_dispo_deb_periode }}</span>
+                                            <span class="font-semibold">{{ $consommation->qte_dispo_deb_periode }}</span>
                                         </div>
-                                        <div class="flex justify-between">
+                                        <div class="flex justify-between border border-gray-300 bg bg-white p-1 rounded">
                                             <span class="text-gray-600">Qté reçue :</span>
                                             <span class="font-semibold">{{ $consommation->qte_recu }}</span>
                                         </div>
-                                        <div class="flex justify-between">
+                                        <div class="flex justify-between border border-gray-300 bg bg-white p-1 rounded">
                                             <span class="text-gray-600">Qté utilisée :</span>
                                             <span class="font-semibold">{{ $consommation->qte_utilisee }}</span>
                                         </div>
-                                        <div class="flex justify-between">
+                                        <div class="flex justify-between border border-gray-300 bg bg-white p-1 rounded">
                                             <span class="text-gray-600">Bénéficiaires :</span>
                                             <span class="font-semibold">{{ $consommation->nb_beneficiaire }}</span>
                                         </div>
-                                        <div class="flex justify-between">
+                                        <div class="flex justify-between border border-gray-300 bg bg-white p-1 rounded">
                                             <span class="text-gray-600">Périmé :</span>
                                             <span class="font-semibold">{{ $consommation->perimee }}</span>
                                         </div>
-                                        <div class="flex justify-between">
+                                        <div class="flex justify-between border border-gray-300 bg bg-white p-1 rounded">
                                             <span class="text-gray-600">Pertes & avariées :</span>
                                             <span class="font-semibold">{{ $consommation->perte_avarie}}</span>
                                         </div>
-                                        <div class="flex justify-between">
+                                        <div class="flex justify-between border border-gray-300 bg bg-white p-1 rounded">
                                             <span class="text-gray-600">Retour CAMEG :</span>
                                             <span class="font-semibold">{{ $consommation->qte_retour_cameg }}</span>
                                         </div>
-                                        <div class="flex justify-between">
+                                        <div class="flex justify-between border border-gray-300 bg bg-white p-1 rounded">
                                             <span class="text-gray-600">Jours rupture :</span>
                                             <span class="font-semibold">{{ $consommation->nb_jour_rupture}}</span>
                                         </div>
-                                        <div class="flex justify-between col-span-2">
+                                        <div
+                                            class="flex justify-between col-span-2 border border-gray-300 bg bg-white p-1 rounded">
                                             <span class="text-gray-600">Stock en fin :</span>
                                             <span class="font-semibold">{{ $consommation->qte_restante }}</span>
                                         </div>
@@ -414,7 +410,7 @@
                                                 oninput="calculerStock({{ $index }}), calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
                                                 wire:model.debounce.500ms="consommations.{{ $index }}.stk_dsp_deb_trim"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                      @error('consommations.' . $index . '.stk_dsp_deb_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                                                                                                                                                                  @error('consommations.' . $index . '.stk_dsp_deb_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
                                                 placeholder="Saisir..." min="0" step="1" />
                                         </div>
 
@@ -427,7 +423,7 @@
                                                 oninput="calculerStock({{ $index }}), checkInput({{ $index }})"
                                                 wire:model.debounce.500ms="consommations.{{ $index }}.qte_get_in_trim"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                      @error('consommations.' . $index . '.qte_get_in_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                                                                                                                                                                  @error('consommations.' . $index . '.qte_get_in_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
                                                 placeholder="Saisir..." min="0" step="1" />
                                         </div>
 
@@ -450,7 +446,7 @@
                                                 oninput="calculerStockSecurite({{ $index }}), calculerStock({{ $index }}), checkInput({{ $index }})"
                                                 wire:model.debounce.500ms="consommations.{{ $index }}.qte_used"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                      @error('consommations.' . $index . '.qte_used') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                                                                                                                                                                  @error('consommations.' . $index . '.qte_used') !bg-red-100 !border-red-500 !border-2 @enderror"
                                                 placeholder="Saisir..." min="0" step="1" />
                                         </div>
 
@@ -463,7 +459,7 @@
                                                 oninput="checkInput({{ $index }})"
                                                 wire:model.debounce.500ms="consommations.{{ $index }}.nb_beneficiaire"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                      @error('consommations.' . $index . '.nb_beneficiaire') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                                                                                                                                                                  @error('consommations.' . $index . '.nb_beneficiaire') !bg-red-100 !border-red-500 !border-2 @enderror"
                                                 placeholder="Saisir..." min="0" step="1" />
                                         </div>
 
@@ -475,7 +471,7 @@
                                             <input type="number" id="perimee_{{ $index }}" oninput="checkInput({{ $index }})"
                                                 wire:model.debounce.500ms="consommations.{{ $index }}.perimee"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                      @error('consommations.' . $index . '.perimee') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                                                                                                                                                                  @error('consommations.' . $index . '.perimee') !bg-red-100 !border-red-500 !border-2 @enderror"
                                                 placeholder="Saisir..." min="0" step="1" />
                                         </div>
 
@@ -487,7 +483,7 @@
                                             <input type="number" id="perte_avarie_{{ $index }}" oninput="checkInput({{ $index }})"
                                                 wire:model.debounce.500ms="consommations.{{ $index }}.perte_avarie"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                      @error('consommations.' . $index . '.perte_avarie') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                                                                                                                                                                  @error('consommations.' . $index . '.perte_avarie') !bg-red-100 !border-red-500 !border-2 @enderror"
                                                 placeholder="Saisir..." min="0" step="1" />
                                         </div>
 
@@ -499,7 +495,7 @@
                                             <input type="number" id="qte_ret_cameg_{{ $index }}" oninput="checkInput({{ $index }})"
                                                 wire:model.debounce.500ms="consommations.{{ $index }}.qte_ret_cameg"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                      @error('consommations.' . $index . '.qte_ret_cameg') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                                                                                                                                                                  @error('consommations.' . $index . '.qte_ret_cameg') !bg-red-100 !border-red-500 !border-2 @enderror"
                                                 placeholder="Saisir..." min="0" step="1" />
                                         </div>
 
@@ -512,7 +508,7 @@
                                                 oninput="calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
                                                 wire:model.debounce.500ms="consommations.{{ $index }}.nb_jour_rupture"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                      @error('consommations.' . $index . '.nb_jour_rupture') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                                                                                                                                                                  @error('consommations.' . $index . '.nb_jour_rupture') !bg-red-100 !border-red-500 !border-2 @enderror"
                                                 placeholder="Saisir..." min="0" step="1" />
                                         </div>
 
@@ -525,7 +521,7 @@
                                                 oninput="calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
                                                 wire:model.debounce.500ms="consommations.{{ $index }}.qte_stock_fin_trim"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                      @error('consommations.' . $index . '.qte_stock_fin_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                                                                                                                                                                  @error('consommations.' . $index . '.qte_stock_fin_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
                                                 placeholder="Saisir..." min="0" step="1" />
                                         </div>
 
