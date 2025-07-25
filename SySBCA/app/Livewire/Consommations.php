@@ -23,6 +23,8 @@ class Consommations extends Component
     public $periodes_all = [];
     public $periode;
     public $fs;
+    public $edit = [];
+    public $not_edit = [];
     public $fs_choisie;
     public $formation_sanitaire = [];
     public $confirm_chargement = false;
@@ -333,7 +335,7 @@ class Consommations extends Component
                 } else {
                     $cmma = ceil(($qte_used / 90) * 30);
                     $stk_securite = $qte_used;
-                    $cmd_trim_svt = ($qte_used * 2) - $qte_stock_fin_trim; 
+                    $cmd_trim_svt = ($qte_used * 2) - $qte_stock_fin_trim;
                 }
 
                 $this->consommations[$index]['stk_de_securite'] = $stk_securite;
@@ -371,17 +373,32 @@ class Consommations extends Component
         } else {
             $this->consommations_all = collect();
         }
+        foreach ($this->consommations_all as $consommation) {
+            $id = $consommation->medicament_id;
+            $this->edit[$id] = false;
+            $this->not_edit[$id] = true;
+        }
+    }
+    public function showEditInput($medicament_id, $consommation_id)
+    {
+        $this->not_edit[$medicament_id] = false;
+        $this->edit[$medicament_id] = true;
+        $conso = ConsommationMedicament::where('consommation_id', $consommation_id)
+            ->where('medicament_id', $medicament_id)
+            ->first();
+        $this->quantites_accordees[$medicament_id] = $conso?->qte_accordee ?? null;
+
     }
     public function enregistrerQteAccorde($consommation_id, $medicament_id)
     {
         $this->validate([
-            "quantites_accordees.$consommation_id" => 'required|integer|min:0',
+            "quantites_accordees.$medicament_id" => 'required|integer|min:0',
         ], [
-            "quantites_accordees.$consommation_id.required" => 'Champ requis.',
-            "quantites_accordees.$consommation_id.integer" => 'Doit être un entier.',
-            "quantites_accordees.$consommation_id.min" => 'Minimum 0.',
+            "quantites_accordees.$medicament_id.required" => 'Champ requis.',
+            "quantites_accordees.$medicament_id.integer" => 'Doit être un entier.',
+            "quantites_accordees.$medicament_id.min" => 'Minimum 0.',
         ]);
-        $quantite = $this->quantites_accordees[$consommation_id];
+        $quantite = $this->quantites_accordees[$medicament_id];
         $conso = ConsommationMedicament::where('consommation_id', $consommation_id)
             ->where('medicament_id', $medicament_id)
             ->first();
@@ -389,7 +406,7 @@ class Consommations extends Component
         if ($conso) {
             $conso->qte_accordee = $quantite;
             $conso->save();
-            unset($this->quantites_accordees[$consommation_id]);
+            unset($this->quantites_accordees[$medicament_id]);
             session()->flash('message', 'Quantité enregistrée avec succès.');
         } else {
             session()->flash('message', 'Erreur : données non trouvées.');

@@ -13,7 +13,8 @@ class Regions extends Component
     public $show = '';
     public $regions = []; 
     public $nom = ''; 
-    public $editId;     public $editName; 
+    public $editId;     
+    public $editName; 
 
     public function afficherFormulaire()
     {
