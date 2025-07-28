@@ -152,7 +152,19 @@ function checkInput(index) {
   return true;
 }
 
+document.getElementById('search-medicament').addEventListener('input', function () {
+        const search = this.value.toLowerCase();
+        const cards = document.querySelectorAll('.card-wrapper');
 
+        cards.forEach(card => {
+            const medName = card.querySelector('h2').textContent.toLowerCase();
+            if (medName.includes(search)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
 document.addEventListener('input', function (e) {
   const targetId = e.target.id;
   const index = targetId.split('_').pop();

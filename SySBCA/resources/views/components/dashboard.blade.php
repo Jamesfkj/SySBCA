@@ -11,6 +11,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net" />
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
@@ -38,14 +40,31 @@
                     </button>
                 </div>
                 <div>
-                    <div class="flex justify-between justify-between px-4 py-3">
+                    <div class="flex justify-between justify-between ">
                         <div>
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-teal-700 rounded-full">
-                            <i class="bi bi-person-circle text-xl text-white"></i>
-                            <span class="text-white">Bonjour {{ Auth::user()->username }}, vous êtes connectés entant que
-                                {{ Auth::user()->role->nom_role }}</span>
+                        <div x-data="{
+                                    fullName: 'Bienvenue sur votre tableau de bord, {{ Auth::user()->username }}',
+                                    displayedName: '',
+                                    index: 0,
+                                    typeWriter() {
+                                        if(this.index < this.fullName.length) {
+                                            this.displayedName += this.fullName[this.index];
+                                            this.index++;
+                                            setTimeout(() => this.typeWriter(), 100);
+                                        }
+                                    }
+                                }" x-init="typeWriter()"
+                            class="relative flex items-center gap-4 p-2 bg-gradient-to-r from-teal-600 to-teal-800 rounded-full shadow-lg max-w-xl mx-auto">
+                            <div
+                                class="absolute -left-6 top-1/2 transform -translate-y-1/2 w-16 h-16 rounded-full bg-teal-600 bg-opacity-30 backdrop-blur-sm flex items-center justify-center shadow-lg z-20">
+                                <i class="bi bi-person-circle text-white text-4xl"></i>
+                            </div>
+                            <div class="pl-14 text-white text-lg font-semibold tracking-wide select-none">
+                                <span x-text="displayedName"></span>
+                            </div>
                         </div>
+
                     </div>
                 </div>
 

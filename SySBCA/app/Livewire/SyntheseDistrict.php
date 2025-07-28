@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Consommation;
 use App\Models\ConsommationMedicament;
+use App\Models\District;
 use App\Models\FormationSanitaire;
 use Livewire\Component;
 use App\Models\Periode;
@@ -19,6 +20,10 @@ class SyntheseDistrict extends Component
     public $type_synthese = 'FS';
     public $user;
     public $fs = [];
+    public $districts = [];
+    public $district_actuelle;
+    public $districts_search;
+    public $district_info;
     public $periode_actuelle;
     public $periode_search;
     public $periode_info;
@@ -31,6 +36,7 @@ class SyntheseDistrict extends Component
     public function mount()
     {
         $this->user = auth()->user();
+        $this->chargerDistricts();
         $this->chargerFs();
         $this->determinerPeriodeActuelle();
         $this->rechercherSynthese();
@@ -70,10 +76,21 @@ class SyntheseDistrict extends Component
     }
     public function chargerFs()
     {
-        $this->fs = FormationSanitaire::where('district_id', $this->user->entity_id)->get();
+        if ($this->user->role->nom_role == 'District') {
+            $this->fs = FormationSanitaire::where('district_id', $this->user->entity_id)->get();
+        } elseif ($this->user->role->nom_role == 'Administrateur') {
+            $this->fs = FormationSanitaire::where('district_id', $this->districts_search)->get();
+        }
+    }
+    public function chargerDistricts(): void
+    {
+        $this->districts = District::all();
+        $this->district_actuelle = $this->districts->first();
+        $this->districts_search = $this->district_actuelle->id;
     }
     public function chargerSyntheseConsommationFsOuAsc()
     {
+        $this->chargerFs();
         $fs_ids = $this->fs->pluck('id')->toArray();
         if (in_array($this->type_synthese, ['FS', 'ASC'])) {
             $this->conso_ids = Consommation::whereIn('formation_sanitaire_id', $fs_ids)
@@ -106,6 +123,7 @@ class SyntheseDistrict extends Component
     public function rechercherSynthese()
     {
         $this->periode_info = Periode::where('id', $this->periode_search)->first();
+        $this->district_info = District::where('id', $this->districts_search)->first();
         $this->chargerSyntheseConsommationFsOuAsc();
     }
 }

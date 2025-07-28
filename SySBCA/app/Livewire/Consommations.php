@@ -54,6 +54,10 @@ class Consommations extends Component
             $this->formation_sanitaire = FormationSanitaire::where('district_id', $user->entity_id)->get();
             $this->fs = $this->formation_sanitaire->first()?->id;
             $this->fs_choisie = FormationSanitaire::where('id', $this->fs)->first();
+        } elseif ($user->role->nom_role === 'Administrateur') {
+            $this->formation_sanitaire = FormationSanitaire::all();
+            $this->fs = $this->formation_sanitaire->first()?->id;
+            $this->fs_choisie = FormationSanitaire::where('id', $this->fs)->first();
         }
         $this->medicaments = Medicament::all();
         $mois = now()->month;
@@ -353,7 +357,7 @@ class Consommations extends Component
     {
         $user = auth()->user();
 
-        if ($user->role->nom_role === 'District' && $this->fs) {
+        if (in_array($user->role->nom_role, ['District', 'Administrateur'])  && $this->fs) {
             // Charger la consommation de la FS sélectionnée
             $conso = Consommation::where('formation_sanitaire_id', $this->fs)
                 ->where('periode_id', $periode_id)

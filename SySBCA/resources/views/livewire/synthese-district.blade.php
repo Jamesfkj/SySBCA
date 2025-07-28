@@ -1,5 +1,6 @@
 <div>
-    <div wire:loading wire:target="rechercherSynthese" class="absolute top-0 left-0 w-full h-1 bg-teal-600 animate-progress-bar z-20">
+    <div wire:loading wire:target="rechercherSynthese"
+        class="absolute top-0 left-0 w-full h-1 bg-teal-600 animate-progress-bar z-20">
     </div>
     <div class="flex justify-between items-center relative mb-4">
         <h2 class="text-2xl font-semibold text-teal-600">
@@ -7,8 +8,12 @@
                 <div class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
                     <i class="bi bi-file-earmark-text"></i>
                 </div>
-                <p>Synthèse des commandes du district <span class="font-semibold text-[18px] text-gray-500"> |
-                        {{ Auth::user()->entity['nom'] }}</span></p>
+                <p>Synthèse des commandes du district
+                    @if (in_array(auth()->user()->role->nom_role, ['Formation saniraire', 'District']))
+                            <span class="font-semibold text-[18px] text-gray-500"> |
+                                {{ Auth::user()->entity['nom'] }}</span>
+                        </p>
+                    @endif
             </span>
         </h2>
     </div>
@@ -27,35 +32,54 @@
                 <div class="gap-2 items-center bg-gray-50 border border-gray-200 px-4 py-3 rounded-lg shadow-sm">
                     <p class="text-sm text-gray-700">
                         * Filtrer les données de la table en changeant la période et le type de structure entre FS, ASC
-                        ou FS + ASC
+                        ou FS + ASC, ou la période @if (auth()->check() && auth()->user()->role->nom_role == 'Administrateur')ou le nom du district @endif
                     </p>
                 </div>
             </div>
             <div class="mb-1 flex justify-between">
                 <div class="flex items-center gap-2 text-[15px] text-gray-600">
+                     @if (auth()->check() && auth()->user()->role->nom_role == 'Administrateur')
                     <p>
-                        Type de synthèse : 
+                        <span class="text-blue-900 font-semibold">{{ $district_info->nom}}</span>
+                    </p>
+                    <span>|</span>
+                    @endif
+                    <p>
+                        Type de synthèse :
                         <span class="text-blue-900 font-semibold">{{ $type_synthese }}</span>
                     </p>
                     <span>|</span>
                     <p>
-                        Consommation de la période :
+                        Période :
                         <span class="text-blue-900 font-semibold">{{ $periode_info->nom }}</span>
                     </p>
                 </div>
+                <div>
+                    <input type="text" id="search-medicament" 
+                        placeholder="Rechercher un médicament..."
+                        class="w-96 rounded-full border border-gray-400 focus:ring-2 focus:ring-teal-600 focus:border-transparent">
+                </div>
                 <div class="flex items-center gap-2">
+                    @if (auth()->check() && auth()->user()->role->nom_role == 'Administrateur')
+                        <select wire:model.live="districts_search" wire:change="rechercherSynthese"
+                            class="w-64 bg-blue-100 rounded-full border font-bold border-gray-400 text-blue-900 focus:outline-none focus:ring-teal-600">
+                                @foreach ( $districts as $district )
+                                    <option value="{{ $district->id }}">{{ $district->nom }}</option>
+                                @endforeach
+                        </select>
+                    @endif
                     <select wire:model.live="type_synthese" wire:change="rechercherSynthese"
                         class="w-32 bg-blue-100 rounded-full border font-bold border-gray-400 text-blue-900 focus:outline-none focus:ring-teal-600">
                         <option value="FS">FS</option>
                         <option value="ASC">ASC</option>
                         <option value="FS+ASC">FS + ASC</option>
                     </select>
-
                     <select wire:model.live="periode_search" wire:change="rechercherSynthese"
                         class="w-72 bg-blue-100 rounded-full border font-bold border-gray-400 text-blue-900 focus:outline-none focus:ring-teal-600">
                         @foreach ($periodes_all as $periode)
                             <option value="{{ $periode->id }}">{{ $periode->nom }} :
-                                {{ $periode->mois_debut }}-{{ $periode->mois_fin }}</option>
+                                {{ $periode->mois_debut }}-{{ $periode->mois_fin }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -65,7 +89,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         @forelse ($synthese_district as $synthese)
             <div x-data="{ open: false }"
-                class="bg-white shadow-lg rounded-3xl border border-gray-100 hover:shadow-xl transition-all duration-300 hover:border-teal-200">
+                class="bg-white shadow-lg rounded-3xl border border-gray-100 hover:shadow-xl transition-all duration-300 hover:border-teal-200 card-wrapper">
 
                 <!-- Header produit -->
                 <div
@@ -131,9 +155,9 @@
                         <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 col-span-2">
                             <span class="font-semibold text-blue-700">Qté accordée par le district</span>
 
-                                <div class="text-blue-800 font-bold">
-                                    {{$synthese->qte_accordee ?? '--'}}
-                                </div>
+                            <div class="text-blue-800 font-bold">
+                                {{$synthese->qte_accordee ?? '--'}}
+                            </div>
                         </div>
                     </div>
                     <!-- Détails étendus -->

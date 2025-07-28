@@ -1,0 +1,468 @@
+<div>
+    @if (auth()->check() && auth()->user()->role->nom_role == 'Formation sanitaire')
+        <div class="flex justify-between items-center relative mb-4">
+            <h2 class="text-2xl font-semibold text-teal-600">
+                <span class="flex items-center gap-2">
+                    <div class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
+                        <i class="bi bi-speedometer2"></i>
+                    </div>
+                    <p>Tableau de bord
+                        @if (in_array(auth()->user()->role->nom_role, ['Formation sanitaire', 'District']))
+                                <span class="font-semibold text-[18px] text-gray-500"> |
+                                    {{ Auth::user()->entity['nom'] }}</span>
+                            </p>
+                        @endif
+                </span>
+            </h2>
+            <div>
+                <div class="flex bg-gray-100 border border-gray-300 gap-2 p-4 items-center rounded-md shadow-sm">
+                    <i class="bi bi-calendar-week text-blue-800 text-2xl"></i>
+                    <span class="text-xl text-gray-600 font-semibold">Période actuelle :</span>
+                    <span class="text-blue-900 text-2xl font-bold">{{ $periode_actuelle->nom }}</span>
+                </div>
+            </div>
+        </div>
+        <!-- Div du haut avec couleurs sobres -->
+        <div class="bg-gradient-to-br from-white to-slate-100 rounded-2xl shadow-xl overflow-hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 bg-gradient-to-r from-slate-700 to-gray-900 text-white">
+
+                <!-- Bloc gauche : Enregistrement -->
+                <div class="bg-slate-800">
+                    <div class="text-center px-6 py-4 border-b border-slate-700">
+                        <h2 class="text-lg font-semibold tracking-wide text-slate-100">
+                            Consommation de
+                            <span class="text-blue-400 font-bold">{{ $periode_actuelle->nom }}</span>
+                        </h2>
+                    </div>
+
+                    <div class="flex divide-x divide-slate-700">
+                        <!-- Section FS -->
+                        <div class="w-1/2 text-center p-6 hover:bg-slate-700 transition duration-200">
+                            <div class="text-3xl font-bold text-blue-300 mb-3">FS</div>
+                            @if ($fs_submit)
+                                <div class="flex flex-col items-center justify-center gap-3 text-green-400">
+                                    <div class="flex justify-center items-center gap-2">
+                                        <i class="bi bi-check-circle-fill text-4xl"></i>
+                                        <p class="text-lg font-semibold">Soumis</p>
+                                    </div>
+                                    <p class="text-xs text-gray-300 mt-1">Consommation soumise pour cette période</p>
+                                </div>
+                            @else
+                                <div class="flex flex-col items-center justify-center gap-3 text-red-400">
+                                    <div class="flex justify-center items-center gap-2">
+                                        <i class="bi bi-x-circle-fill text-4xl"></i>
+                                        <p class="text-lg font-semibold">Non soumis</p>
+                                    </div>
+                                    <p class="text-xs text-gray-300 mt-1">Consommation non soumise pour cette période</p>
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Section ASC -->
+                        <div class="w-1/2 text-center p-6 hover:bg-slate-700 transition duration-200">
+                            <div class="text-3xl font-bold text-teal-300 mb-3">ASC</div>
+                            @if ($asc_submit)
+                                <div class="flex flex-col items-center justify-center gap-3 text-green-400">
+                                    <div class="flex justify-center items-center gap-2">
+                                        <i class="bi bi-check-circle-fill text-4xl"></i>
+                                        <p class="text-lg font-semibold">Soumis</p>
+                                    </div>
+                                    <p class="text-xs text-gray-300 mt-1">Consommation soumise pour cette période</p>
+                                </div>
+                            @else
+                                <div class="flex flex-col items-center justify-center gap-3 text-red-400">
+                                    <div class="flex justify-center items-center gap-2">
+                                        <i class="bi bi-x-circle-fill text-4xl"></i>
+                                        <p class="text-lg font-semibold">Non soumis</p>
+                                    </div>
+                                    <p class="text-xs text-gray-300 mt-1">Consommation non soumise pour cette période</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bloc droit : Résumé -->
+                <div class="bg-slate-900">
+                    <div class="text-center px-6 py-4 border-b border-slate-800">
+                        <h2 class="text-lg font-semibold tracking-wide text-slate-100">
+                            Toutes les consommations
+                        </h2>
+                    </div>
+
+                    <div class="flex divide-x divide-slate-800">
+                        <div class="w-1/2 text-center p-6 hover:bg-slate-800 transition">
+                            <div class="text-3xl font-bold text-blue-300">FS</div>
+                            <div class="text-4xl font-extrabold text-white">{{ $consommations_fs_total }}</div>
+                            <p class="text-xs text-gray-400 mt-1">Total enregistrées</p>
+                        </div>
+                        <div class="w-1/2 text-center p-6 hover:bg-slate-800 transition">
+                            <div class="text-3xl font-bold text-teal-300">ASC</div>
+                            <div class="text-4xl font-extrabold text-white">{{ $consommations_asc_total }}</div>
+                            <p class="text-xs text-gray-400 mt-1">Total enregistrées</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- Séparateur avec titre -->
+        <div class="text-2xl text-teal-600 mt-8 mb-6 font-bold flex items-center justify-center gap-4">
+            <hr class="flex-1 border-gray-300">
+            <p class="whitespace-nowrap px-4">Date de soumission des consommations</p>
+            <hr class="flex-1 border-gray-300">
+        </div>
+        <!-- Tables plus larges -->
+        <div class="mt-6 flex justify-between gap-6">
+            <!-- Table 1 - Plus large -->
+            <div class="bg-white shadow-lg rounded-lg overflow-auto max-h-[400px] flex-1">
+                <div class="text-xl font-semibold text-blue-900 mb-4">Formation sanitaire (FS)</div>
+                <table class="w-full border-collapse">
+                    <thead class="sticky top-0 bg-white z-10">
+                        <tr class="bg-gray-100">
+                            <th class="px-8 py-4 text-left text-sm font-medium text-blue-900 border-b w-1/2">Période de la
+                                consommation</th>
+                            <th class="px-8 py-4 text-left text-sm font-medium text-blue-900 border-b w-1/2">Date de
+                                soummission</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($consommations_fs as $conso)
+                            <tr class="border-b hover:bg-gray-50 transition-colors duration-150">
+                                <td class="px-8 py-5 text-blue-900 font-medium">{{ $conso->periode->nom }}</td>
+                                <td class="px-8 py-5 text-blue-900">{{ $conso->created_at?->format('d/m/Y H:i') }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="2" class="px-8 py-8 text-center text-gray-500 italic">
+                                    Aucune consommation trouvée.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Table 2 - Plus large -->
+            <div class="bg-white shadow-lg rounded-lg overflow-auto max-h-[400px] flex-1">
+                <table class="w-full border-collapse">
+                    <div class="text-xl font-semibold mb-4 text-blue-900 ">Agent Santé Communautaire (ASC)</div>
+                    <thead class="sticky top-0 bg-white z-10">
+                        <tr class="bg-gray-100">
+                            <th class="px-8 py-4 text-left text-sm font-medium text-blue-900 border-b w-1/2">Période de la
+                                consommation</th>
+                            <th class="px-8 py-4 text-left text-sm font-medium text-blue-900 border-b w-1/2">Date de
+                                soummission</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($consommations_asc as $conso)
+                            <tr class="border-b hover:bg-gray-50 transition-colors duration-150">
+                                <td class="px-8 py-5 text-blue-900 font-medium">{{ $conso->periode->nom }}</td>
+                                <td class="px-8 py-5 text-blue-900">{{ $conso->created_at?->format('d/m/Y H:i') }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="2" class="px-8 py-8 text-center text-gray-500 italic">
+                                    Aucune consommation trouvée.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @elseif(auth()->check() && auth()->user()->role->nom_role == 'District')
+            <div class="flex justify-between items-center relative mb-4">
+                <h2 class="text-2xl font-semibold text-teal-600">
+                    <span class="flex items-center gap-2">
+                        <div class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
+                            <i class="bi bi-speedometer2"></i>
+                        </div>
+                        <p>Tableau de bord
+                            @if (in_array(auth()->user()->role->nom_role, ['Formation sanitaire', 'District']))
+                                    <span class="font-semibold text-[18px] text-gray-500"> |
+                                        {{ Auth::user()->entity['nom'] }}</span>
+                                </p>
+                            @endif
+                    </span>
+                </h2>
+                <div>
+                    <div class="flex bg-gray-100 border border-gray-300 gap-2 p-4 items-center rounded-md shadow-sm">
+                        <i class="bi bi-calendar-week text-blue-800 text-2xl"></i>
+                        <span class="text-xl text-gray-600 font-semibold">Période actuelle :</span>
+                        <span class="text-blue-900 text-2xl font-bold">{{ $periode_actuelle->nom }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6 bg-opacity-10">
+                <!-- Statistiques générales -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 mb-4 gap-6">
+                    <!-- Nombre total de FS -->
+                    <div class="bg-slate-100 rounded-lg shadow-lg p-6 border-l-4 border-blue-500">
+                        <div class="flex items-center">
+                            <div class="bg-blue-100 p-3 rounded-full aspect-square w-12 h-12 flex items-center justify-center">
+                                <i class="bi bi-hospital text-blue-600 text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-semibold text-gray-700">Formations Sanitaires</h3>
+                                <p class="text-3xl font-bold text-blue-600">45</p>
+                                <p class="text-sm text-gray-500">Total dans le district</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nombre total d'ASC -->
+                    <div class="bg-slate-100 rounded-lg shadow-lg p-6 border-l-4 border-green-500">
+                        <div class="flex items-center">
+                            <div class="bg-green-100 p-3 rounded-full aspect-square w-12 h-12 flex items-center justify-center">
+                                <i class="bi bi-people text-green-600 text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-semibold text-gray-700">Agents de Santé</h3>
+                                <p class="text-3xl font-bold text-green-600">46</p>
+                                <p class="text-sm text-gray-500">ASC actifs</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FS ayant soumis -->
+                    <div class="bg-slate-100 rounded-lg shadow-lg p-6 border-l-4 border-orange-500">
+                        <div class="flex items-center">
+                            <div
+                                class="bg-orange-100 p-3 rounded-full aspect-square w-12 h-12 flex items-center justify-center">
+                                <i class="bi bi-check-circle text-orange-600 text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-semibold text-gray-700">FS Soumissions</h3>
+                                <p class="text-3xl font-bold text-orange-600">45</p>
+                                <p class="text-sm text-gray-500">sur 55 FS</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ASC ayant soumis -->
+                    <div class="bg-slate-100 rounded-lg shadow-lg p-6 border-l-4 border-purple-500">
+                        <div class="flex items-center">
+                            <div
+                                class="bg-purple-100 p-3 rounded-full aspect-square w-12 h-12 flex items-center justify-center">
+                                <i class="bi bi-person-check text-purple-600 text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-semibold text-gray-700">ASC Soumissions</h3>
+                                <p class="text-3xl font-bold text-purple-600">57</p>
+                                <p class="text-sm text-gray-500">sur 23 ASC</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ✅ Consommation FS validée -->
+                    <div class="bg-slate-100 rounded-lg shadow-lg p-6 border-l-4 border-cyan-500">
+                        <div class="flex items-center">
+                            <div class="bg-cyan-100 p-3 rounded-full aspect-square w-12 h-12 flex items-center justify-center">
+                                <i class="bi bi-patch-check text-cyan-600 text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-semibold text-gray-700">FS Validés</h3>
+                                <p class="text-3xl font-bold text-cyan-600">42</p>
+                                <p class="text-sm text-gray-500">Consommations validées</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ✅ Consommation ASC validée -->
+                    <div class="bg-slate-100 rounded-lg shadow-lg p-6 border-l-4 border-indigo-500">
+                        <div class="flex items-center">
+                            <div
+                                class="bg-indigo-100 p-3 rounded-full aspect-square w-12 h-12 flex items-center justify-center">
+                                <i class="bi bi-patch-check-fill text-indigo-600 text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-semibold text-gray-700">ASC Validés</h3>
+                                <p class="text-3xl font-bold text-indigo-600">35</p>
+                                <p class="text-sm text-gray-500">Consommations validées</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div
+                class="mt-6 ml-12 bg-white/60 backdrop-blur-sm px-6 py-4 rounded-xl shadow-md w-fit border border-gray-200 flex items-center gap-4">
+                <p class="text-sm text-gray-800 font-medium whitespace-nowrap">
+                    Filtrez les données ci-dessous en choisissant la période :
+                </p>
+                <select
+                    class="border border-gray-300 rounded-full px-4 py-2 w-64 text-sm text-gray-700 bg-white/80 shadow-inner focus:outline-none focus:ring-2 focus:ring-purple-500 transition">
+                    <option disabled selected>Période</option>
+                    <option>Juillet 2025</option>
+                    <option>Juin 2025</option>
+                    <option>Mai 2025</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                <div class="bg-slate-100 p-6 rounded-xl shadow-md">
+                    <div class="flex items-center mb-4">
+                        <i class="bi bi-check2-square text-indigo-600 text-xl mr-2"></i>
+                        <h3 class="text-xl font-semibold text-gray-800">Complétude des Rapports</h3>
+                    </div>
+                    <div class="space-y-6">
+                        <div x-data="{ loaded: false }" x-init="setTimeout(() => loaded = true, 1000)" class="space-y-6">
+
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium text-gray-700">Formation Sanitaire (FS)</span>
+                                    <span class="text-sm font-semibold text-indigo-600">92%</span>
+                                </div>
+                                <div class="w-full bg-gray-300 rounded-full h-4">
+                                    <div class="bg-indigo-600 h-4 rounded-full transition-all duration-1000 ease-in-out"
+                                        :style="loaded ? 'width: 92%' : 'width: 0%'"></div>
+                                </div>
+                            </div>
+                            <!-- Complétude ASC -->
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium text-gray-700">Agents Santé Communautaire (ASC)</span>
+                                    <span class="text-sm font-semibold text-teal-600">78%</span>
+                                </div>
+                                <div class="w-full bg-gray-300 rounded-full h-4">
+                                    <div class="bg-teal-500 h-4 rounded-full transition-all duration-1000 ease-in-out"
+                                        :style="loaded ? 'width: 78%' : 'width: 0%'"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-slate-100 p-6 rounded-xl shadow-md">
+                    <div class="flex items-center mb-4">
+                        <i class="bi bi-clock-history text-orange-500 text-xl mr-2"></i>
+                        <h3 class="text-xl font-semibold text-gray-800">Promptitude des Soumissions</h3>
+                    </div>
+
+                    <div class="space-y-6">
+
+                        <!-- Promptitude FS -->
+                        <div x-data="{ loaded: false }" x-init="setTimeout(() => loaded = true, 1000)" class="space-y-6">
+
+                            <!-- Barre de complétude FS -->
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium text-gray-700">Formation Sanitaire (FS)</span>
+                                    <span class="text-sm font-semibold text-orange-600">60%</span>
+                                </div>
+                                <div class="w-full bg-gray-300 rounded-full h-4">
+                                    <div class="bg-orange-500 h-4 rounded-full transition-all duration-1000 ease-in-out"
+                                        :style="loaded ? 'width: 60%' : 'width: 0%'"></div>
+                                </div>
+                            </div>
+
+                            <!-- Barre de complétude ASC -->
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium text-gray-700">Agents Santé Communautaire (ASC)</span>
+                                    <span class="text-sm font-semibold text-yellow-600">72%</span>
+                                </div>
+                                <div class="w-full bg-gray-300 rounded-full h-4">
+                                    <div class="bg-yellow-400 h-4 rounded-full transition-all duration-1000 ease-in-out"
+                                        :style="loaded ? 'width: 72%' : 'width: 0%'"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <!-- Graphiques et tableaux -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                <div class="backdrop-blur-sm bg-slate-100 rounded-xl shadow-md p-6">
+                    <!-- Titre + Filtres -->
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center">
+                            <i class="bi bi-clock-history text-purple-600 text-xl mr-2"></i>
+                            <h3 class="text-xl font-semibold text-gray-800">Historique des soumissions</h3>
+                        </div>
+                        <div class="flex gap-2">
+                            <select
+                                class="border border-gray-300 rounded-full w-48 px-3 py-1 text-sm text-gray-700 bg-white/80 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                <option>Formation Sanitaire</option>
+                                <option>CS de Yoff</option>
+                                <option>Poste Médical Pikine</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Tableau -->
+                    <div class="overflow-x-auto rounded-lg shadow-inner">
+                        <table class="min-w-full divide-y divide-gray-200 bg-gray-50/80 text-sm text-gray-800 rounded-lg">
+                            <thead class="bg-gray-200 text-gray-700">
+                                <tr>
+                                    <th class="px-4 py-3 text-left font-medium">Formation Sanitaire</th>
+                                    <th class="px-4 py-3 text-left font-medium">Type de structure</th>
+                                    <th class="px-4 py-3 text-left font-medium">Période</th>
+                                    <th class="px-4 py-3 text-left font-medium">Date de soumission</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <tr class="hover:bg-gray-100/70 transition">
+                                    <td class="px-4 py-2">CS de Yoff</td>
+                                    <td class="px-4 py-2">FS</td>
+                                    <td class="px-4 py-2">Juillet 2025</td>
+                                    <td class="px-4 py-2">25 Juillet 2025 à 10:32</td>
+                                </tr>
+                                <tr class="hover:bg-gray-100/70 transition">
+                                    <td class="px-4 py-2">Poste Médical Pikine</td>
+                                    <td class="px-4 py-2">ASC</td>
+                                    <td class="px-4 py-2">Juin 2025</td>
+                                    <td class="px-4 py-2">28 Juin 2025 à 16:18</td>
+                                </tr>
+                                <!-- Boucle dynamique ici -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Produits les plus demandés -->
+                <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6">
+                    <!-- Titre -->
+                    <div class="flex items-center mb-6">
+                        <i class="bi bi-graph-up-arrow text-teal-600 text-xl mr-2"></i>
+                        <h3 class="text-xl font-semibold text-gray-800">Produits les plus demandés</h3>
+                    </div>
+
+                    <!-- Tableau -->
+                    <div class="overflow-x-auto rounded-lg shadow-inner">
+                        <table class="min-w-full text-sm text-gray-800 bg-gray-50/90 divide-y divide-gray-200">
+                            <thead class="bg-gray-200 text-gray-700">
+                                <tr>
+                                    <th class="text-left px-4 py-3 font-medium">Produit</th>
+                                    <th class="text-left px-4 py-3 font-medium">Unité</th>
+                                    <th class="text-right px-4 py-3 font-medium">Quantité Totale</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <!-- Exemple statique / à remplacer par boucle dynamique -->
+                                <tr class="hover:bg-gray-100/80 transition">
+                                    <td class="px-4 py-3">Paracétamol 500mg</td>
+                                    <td class="px-4 py-3">Comprimés</td>
+                                    <td class="px-4 py-3 text-right font-bold text-teal-600">3 240</td>
+                                </tr>
+                                <tr class="hover:bg-gray-100/80 transition">
+                                    <td class="px-4 py-3">Amoxicilline 250mg</td>
+                                    <td class="px-4 py-3">Gélules</td>
+                                    <td class="px-4 py-3 text-right font-bold text-teal-600">2 180</td>
+                                </tr>
+                                <tr class="hover:bg-gray-100/80 transition">
+                                    <td class="px-4 py-3">Cotrimoxazole</td>
+                                    <td class="px-4 py-3">Comprimés</td>
+                                    <td class="px-4 py-3 text-right font-bold text-teal-600">1 630</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+</div>
