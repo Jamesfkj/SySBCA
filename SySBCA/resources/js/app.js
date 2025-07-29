@@ -41,7 +41,6 @@ function calculerStock(index) {
   }
 }
 
-
 function calculerStockSecurite(index) {
 
   const stockDebutInput = document.getElementById(`stock_debut_${index}`);
@@ -153,18 +152,27 @@ function checkInput(index) {
 }
 
 document.getElementById('search-medicament').addEventListener('input', function () {
-        const search = this.value.toLowerCase();
-        const cards = document.querySelectorAll('.card-wrapper');
+    const search = this.value.toLowerCase();
+    const cards = document.querySelectorAll('.card-wrapper');
 
-        cards.forEach(card => {
-            const medName = card.querySelector('h2').textContent.toLowerCase();
-            if (medName.includes(search)) {
-                card.style.display = 'block';
-            } else {
-                card.style.display = 'none';
-            }
-        });
+    cards.forEach(card => {
+        const medName = card.querySelector('h2').textContent.toLowerCase();
+
+        if (medName.includes(search)) {
+            card.classList.remove('hidden');
+        } else {
+            card.classList.add('hidden');
+        }
     });
+
+    // Si recherche vide → recacher les cartes des médicaments non commandés
+    if (search.trim() === '') {
+        document.querySelectorAll('.hidden-card').forEach(card => {
+            card.classList.add('hidden');
+        });
+    }
+});
+
 document.addEventListener('input', function (e) {
   const targetId = e.target.id;
   const index = targetId.split('_').pop();

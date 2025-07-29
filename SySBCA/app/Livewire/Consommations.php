@@ -20,6 +20,11 @@ class Consommations extends Component
     public $tableauVisible = true;
     public $formulaireVisible = false;
     public $type_structure;
+    public $medicament_choisi;
+    public $medicaments_affiches = [];
+    //--------------------
+    public $showHiddenCards = false;
+    //----------------
     public $periodes_all = [];
     public $periode;
     public $fs;
@@ -170,6 +175,14 @@ class Consommations extends Component
         $this->chargerPeriodeActeur();
     }
 
+    public function renitialiserMedicament()
+    {
+        $this->medicaments_affiches = [];
+        $this->medicament_choisi = '';
+        $this->chargerPeriodeActeur();
+    }
+
+    
     public function render()
     {
         return view(
@@ -271,6 +284,7 @@ class Consommations extends Component
             $consommation->acteur = $this->type_structure;
             $consommation->formation_sanitaire_id = $entity['id'];
             $consommation->save();
+            
             foreach ($this->consommations as $conso) {
                 $consommation_medicament = new ConsommationMedicament();
                 $consommation_medicament->consommation_id = $consommation->id;
@@ -351,13 +365,27 @@ class Consommations extends Component
                 $this->consommations[$index]['cmd_trim_svt'] = 0;
             }
         }
+        $this->showHiddenCards = false;
     }
 
+    public function toggleHiddenCards()
+    {
+        $this->showHiddenCards = !$this->showHiddenCards;
+    }
+
+    public function getHiddenCardsCountProperty()
+    {
+        return collect($this->consommations_all)->filter(function ($consommation) {
+            return $consommation->cmma == 0 &&
+                $consommation->stock_securite == 0 &&
+                $consommation->cmd_trim_svt == 0;
+        })->count();
+    }
     public function chargerConsommations($periode_id, $acteur)
     {
         $user = auth()->user();
 
-        if (in_array($user->role->nom_role, ['District', 'Administrateur'])  && $this->fs) {
+        if (in_array($user->role->nom_role, ['District', 'Administrateur']) && $this->fs) {
             // Charger la consommation de la FS sélectionnée
             $conso = Consommation::where('formation_sanitaire_id', $this->fs)
                 ->where('periode_id', $periode_id)
@@ -443,7 +471,6 @@ class Consommations extends Component
             $this->calculValeur();
 
             $donnees_session['metadata']['updated_at'] = now()->toDateTimeString();
-
             $donnees_session['consommations'][$index] = [
                 'medicament_id' => $this->medicaments[$index]->id ?? null,
                 'medicament_nom' => $this->medicaments[$index]->nom ?? null,
@@ -490,7 +517,6 @@ class Consommations extends Component
         if (empty($this->type_structure) || empty($this->periode_choisie)) {
             return false;
         }
-
         $entity_id = auth()->user()->entity_id;
         $cle_session = "consommations_{$this->type_structure}_{$this->periode_choisie}_{$entity_id}";
 
@@ -505,30 +531,31 @@ class Consommations extends Component
 
         $entity_id = auth()->user()->entity_id;
         $cle_session = "consommations_{$this->type_structure}_{$this->periode_choisie}_{$entity_id}";
-
         $donnees_session = session()->get($cle_session);
 
         if (!$donnees_session || !isset($donnees_session['consommations'])) {
             return;
         }
-        foreach ($donnees_session['consommations'] as $index => $donnees) {
-            if (isset($this->consommations[$index])) {
-                $this->consommations[$index]['stk_dsp_deb_trim'] = $donnees['stk_dsp_deb_trim'] ?? null;
-                $this->consommations[$index]['qte_get_in_trim'] = $donnees['qte_get_in_trim'] ?? null;
-                $this->consommations[$index]['qte_en_stock'] = $donnees['qte_en_stock'] ?? null;
-                $this->consommations[$index]['qte_used'] = $donnees['qte_used'] ?? null;
-                $this->consommations[$index]['nb_beneficiaire'] = $donnees['nb_beneficiaire'] ?? null;
-                $this->consommations[$index]['perimee'] = $donnees['perimee'] ?? null;
-                $this->consommations[$index]['perte_avarie'] = $donnees['perte_avarie'] ?? null;
-                $this->consommations[$index]['qte_ret_cameg'] = $donnees['qte_ret_cameg'] ?? null;
-                $this->consommations[$index]['nb_jour_rupture'] = $donnees['nb_jour_rupture'] ?? null;
-                $this->consommations[$index]['qte_stock_fin_trim'] = $donnees['qte_stock_fin_trim'] ?? null;
-                $this->consommations[$index]['stk_de_securite'] = $donnees['stk_de_securite'] ?? null;
-                $this->consommations[$index]['ccma'] = $donnees['ccma'] ?? null;
-                $this->consommations[$index]['cmd_trim_svt'] = $donnees['cmd_trim_svt'] ?? null;
+
+        foreach ($donnees_session['consommations'] as $donnees) {
+            $medicament_id = $donnees['medicament_id'] ?? null;
+
+            if (!$medicament_id) {
+                continue;
+            }
+            $index = collect($this->medicaments_affiches)->search(function ($med) use ($medicament_id) {
+                return $med->id == $medicament_id;
+            });
+
+            if ($index === false || !isset($this->consommations[$index])) {
+                continue;
+            }
+            foreach ($donnees as $cle => $valeur) {
+                if (array_key_exists($cle, $this->consommations[$index]) && $cle !== 'medicament_id') {
+                    $this->consommations[$index][$cle] = $valeur;
+                }
             }
         }
-
     }
 
     public function supprimerDonneesTemporaires()
