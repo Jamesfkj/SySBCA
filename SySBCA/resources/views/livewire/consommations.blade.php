@@ -9,7 +9,7 @@
     @endif
     <!-- Barre de chargement -->
     <div wire:loading
-        wire:target="afficherFormulaire,afficherTableau,filtrerParPériode,ajouterConsommation,renitialiserMedicament,toggleHiddenCards,ajouterMedicament,showEditInput,supprimerDonneesTemporaires,choix,chargerDepuisSession,chargerMedicaments,chercherConsommations,enregistrerTemporairement,enregistrerQteAccorde"
+        wire:target="afficherFormulaire,afficherTableau,filtrerParPériode,ajouterConsommation,renitialiserMedicament,toggleHiddenCards,ajouterMedicament,showEditInput,activerEdition,choix,chargerDepuisSession,chargerMedicaments,chercherConsommations,soumettreConsommation,enregistrerQteAccorde"
         class="absolute top-0 left-0 w-full h-1 bg-teal-600 animate-progress-bar z-20">
     </div>
     <!-- En-tête -->
@@ -44,7 +44,7 @@
         <div>
             <!-- Boutons de navigation -->
             @if ($tableauVisible && auth()->check() && auth()->user()->role->nom_role == 'Formation sanitaire')
-                <button wire:click="afficherFormulaire()"
+                <button wire:click="afficherFormulaire"
                     class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
                     <span class="flex items-center gap-2">
                         <div class="w-7 h-7 flex items-center justify-center rounded-full bg-white text-blue-600 shadow">
@@ -77,7 +77,6 @@
             </ul>
         </div>
     @endif
-
     <div class="bg-white">
         @if ($tableauVisible)
             <button id="toggleButton" onclick="toggleInstructions()"
@@ -132,21 +131,20 @@
                 </div>
                 <div class="flex items-center gap-2">
                     @if (auth()->check() && in_array(auth()->user()->role->nom_role, ['District', 'Administrateur']))
-                        <select wire:model.live="fs" wire:change="chercherConsommations"
+                        <select wire:model="fs" wire:change="chercherConsommations"
                             class="w-44 bg-blue-100 rounded-full border font-bold border-gray-400 text-blue-900 focus:outline-none focus:ring-teal-600">
                             @foreach ($formation_sanitaire as $fs)
                                 <option value="{{ $fs->id }}">{{ $fs->nom }}</option>
                             @endforeach
                         </select>
                     @endif
-
-                    <select wire:model.live="structure_defaut" wire:change="chercherConsommations"
+                    <select wire:model="structure_defaut" wire:change="chercherConsommations"
                         class="w-28 bg-blue-100 rounded-full border font-bold border-gray-400 text-blue-900 focus:outline-none focus:ring-blue-600">
                         <option value="FS">FS</option>
                         <option value="ASC">ASC</option>
                     </select>
 
-                    <select wire:model.live="periode_search" wire:change="chercherConsommations"
+                    <select wire:model="periode_search" wire:change="chercherConsommations"
                         class="w-72 bg-blue-100 rounded-full border font-bold border-gray-400 text-blue-900 focus:outline-none focus:ring-blue-600">
                         @foreach ($periodes_all as $periode)
                             <option value="{{ $periode->id }}">
@@ -156,15 +154,39 @@
                     </select>
                 </div>
             </div>
+            @if ($conso)
+                <div class="flex justify-between items-center mb-4">
+                    @php
+                        $etat = $conso->etat;
+                    @endphp
+                    <div>
+                        <p class="text-gray-700 font-semibold">État de la consommation : {{ $etat }}</p>
+                    </div>
+
+                    <div class="flex gap-2"><button wire:click="exporterConsommation"
+                            class="bg-blue-100 hover:bg-blue-200 text-blue-800 font-normal py-1.5 px-4 rounded-full shadow flex items-center gap-1">
+                            <i class="bi bi-download"></i> Exporter
+                        </button>
+                        @if ($etat == 'en_cours')<button wire:click="activerEdition( {{  $conso->id }} )"
+                                class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-normal py-1.5 px-4 rounded-full shadow flex items-center gap-1">
+                                <i class="bi bi-pencil-square"></i> Modifier
+                            </button><button wire:click="soumettreConsommation(  {{  $conso->id }} )"
+                                class="bg-teal-700 hover:bg-teal-800 text-white font-normal py-1.5 px-4 rounded-full shadow flex items-center gap-1">
+                                <i class="bi bi-send-fill"></i> Soumettre
+                            </button>
+                        @endif
+                    </div>
+                </div>
+            @endif
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
-                @forelse ($consommations_all as $consommation)
+                @forelse ($consommations_all as $index => $consommation)
                     @php
                         $estCachee = $consommation->cmma == 0 && $consommation->stock_securite == 0 && $consommation->cmd_trim_svt == 0;
                     @endphp
                     @if (!$estCachee || $showHiddenCards)
                         <div wire:key="consommation-{{ $consommation->consommation_id }}"
                             class="bg-white shadow-lg rounded-3xl border border-gray-100 hover:shadow-xl transition-all duration-300 hover:border-teal-200 
-                                                                                                    {{ $estCachee ? 'border-white' : '' }}">
+                                                                                                                                                                                                                            {{ $estCachee ? 'border-white' : '' }}">
                             <div
                                 class="bg-gradient-to-r {{ $estCachee ? 'from-teal-700 to-teal-600' : 'from-teal-700 to-teal-600' }} px-4 py-2 rounded-t-3xl flex justify-between items-center">
                                 <h2 class="text-lg font-semibold text-white tracking-wide truncate">
@@ -337,7 +359,8 @@
                     @endif
                 </div>
             </div>
-        @elseif ($formulaireVisible)
+        @endif
+        @if($formulaireVisible)
                 <!-- Bouton Toggle -->
                 <button id="toggleButton" onclick="toggleInstructions()"
                     class="flex items-center gap-2 text-teal-600 text-decoration-underline">
@@ -371,7 +394,8 @@
                     <div class="flex items-center gap-2">
                         <p class="text-blue-900">Choisir entre FS et ASC pour continuer :</p>
                         <div>
-                            <select wire:model.live="type_structure" wire:change="chargerMedicaments" onchange="viderInput()" id="structure"
+                            <select wire:model.live="type_structure" wire:change="chargerMedicaments" onchange="viderInput()"
+                                id="structure"
                                 class="w-48 bg-blue-100 rounded-full p-1 border font-bold border-gray-400 text-blue-900 focus:outline-none focus:ring-teal-700">
                                 <option value="">-- Sélectionner --</option>
                                 <option value="FS">FS</option>
@@ -379,12 +403,12 @@
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="flex items-center gap-2">
                         <p class="text-blue-900">Choisir la période ou laisser par défaut :</p>
                         <div>
-                            <select wire:model.live="periode_choisie" wire:change="chargerMedicaments" 
-                                class="w-72 bg-blue-100 rounded-full p-1 border font-bold border-gray-400 text-blue-900 focus:outline-none focus:ring-teal-700">
+                            <select wire:model.live="periode_choisie" id="periode_search"
+                                class="w-72 bg-blue-100 rounded-full p-1 border font-bold border-gray-400 text-blue-900 focus:outline-none focus:ring-teal-700 {{ empty($type_structure) ? 'bg-blue-300 opacity-50 pointer-events-none select-none' : '' }}">
                                 @foreach ($periodes_disponibles as $periode)
                                     <option value="{{ $periode->id }}">
                                         {{ $periode->nom }} : {{ $periode->mois_debut }}-{{ $periode->mois_fin }}
@@ -396,11 +420,12 @@
                 </div>
                 <div
                     class="bg-white transition-opacity duration-200 overflow-auto max-h-[650px] {{ empty($type_structure) ? 'bg-gray-500 opacity-50 pointer-events-none select-none' : '' }}">
-                    <form wire:submit.prevent="ajouterConsommation"
-                        wire:key="formulaire-{{ $type_structure }}-{{ $periode_choisie }}">
+                    <form wire:submit.prevent="ajouterConsommation">
                         <div class="space-y-6 ">
                             @foreach ($medicaments as $index => $medicament)
-                                <div class="bg-white rounded-lg shadow-md border border-gray-200 p-6 " wire:key="medicament-{{ $medicament->id }}">
+                                <div wire:key="consommation-{{ $type_structure }}-{{ $periode_choisie }}-{{ $index }}"
+                                    class="bg-white rounded-lg shadow-md border border-gray-200 p-6 "
+                                    wire:key="medicament-{{ $medicament->id }}">
                                     <div class="flex items-center justify-between mb-4">
                                         <div>
                                             <button type="button" onclick="toggleForm({{ $index }})"
@@ -444,7 +469,7 @@
                                                 oninput="calculerStock({{ $index }}), calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
                                                 wire:model.debounce.500ms="consommations.{{ $index }}.stk_dsp_deb_trim"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @error('consommations.' . $index . '.stk_dsp_deb_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.stk_dsp_deb_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
                                                 placeholder="Saisir..." min="0" step="1" />
                                         </div>
                                         <div class="form-group">
@@ -455,7 +480,7 @@
                                                 oninput="calculerStock({{ $index }}), checkInput({{ $index }})"
                                                 wire:model.debounce.500ms="consommations.{{ $index }}.qte_get_in_trim"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @error('consommations.' . $index . '.qte_get_in_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.qte_get_in_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
                                                 placeholder="Saisir..." min="0" step="1" />
                                         </div>
                                         <div class="form-group">
@@ -474,7 +499,7 @@
                                                 oninput="calculerStockSecurite({{ $index }}), calculerStock({{ $index }}), checkInput({{ $index }})"
                                                 wire:model.debounce.500ms="consommations.{{ $index }}.qte_used"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @error('consommations.' . $index . '.qte_used') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.qte_used') !bg-red-100 !border-red-500 !border-2 @enderror"
                                                 placeholder="Saisir..." min="0" step="1" />
                                         </div>
                                         <div class="form-group">
@@ -485,7 +510,7 @@
                                                 oninput="checkInput({{ $index }})"
                                                 wire:model.debounce.500ms="consommations.{{ $index }}.nb_beneficiaire"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @error('consommations.' . $index . '.nb_beneficiaire') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.nb_beneficiaire') !bg-red-100 !border-red-500 !border-2 @enderror"
                                                 placeholder="Saisir..." min="0" step="1" />
                                         </div>
                                         <div class="form-group">
@@ -495,7 +520,7 @@
                                             <input type="number" id="perimee_{{ $index }}" oninput="checkInput({{ $index }})"
                                                 wire:model.debounce.500ms="consommations.{{ $index }}.perimee"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @error('consommations.' . $index . '.perimee') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.perimee') !bg-red-100 !border-red-500 !border-2 @enderror"
                                                 placeholder="Saisir..." min="0" step="1" />
                                         </div>
                                         <div class="form-group">
@@ -505,7 +530,7 @@
                                             <input type="number" id="perte_avarie_{{ $index }}" oninput="checkInput({{ $index }})"
                                                 wire:model.debounce.500ms="consommations.{{ $index }}.perte_avarie"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @error('consommations.' . $index . '.perte_avarie') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.perte_avarie') !bg-red-100 !border-red-500 !border-2 @enderror"
                                                 placeholder="Saisir..." min="0" step="1" />
                                         </div>
                                         <div class="form-group">
@@ -515,7 +540,7 @@
                                             <input type="number" id="qte_ret_cameg_{{ $index }}" oninput="checkInput({{ $index }})"
                                                 wire:model.debounce.500ms="consommations.{{ $index }}.qte_ret_cameg"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @error('consommations.' . $index . '.qte_ret_cameg') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.qte_ret_cameg') !bg-red-100 !border-red-500 !border-2 @enderror"
                                                 placeholder="Saisir..." min="0" step="1" />
                                         </div>
                                         <div class="form-group">
@@ -526,7 +551,7 @@
                                                 oninput="calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
                                                 wire:model.debounce.500ms="consommations.{{ $index }}.nb_jour_rupture"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @error('consommations.' . $index . '.nb_jour_rupture') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.nb_jour_rupture') !bg-red-100 !border-red-500 !border-2 @enderror"
                                                 placeholder="Saisir..." min="0" step="1" />
                                         </div>
                                         <div class="form-group">
@@ -537,7 +562,7 @@
                                                 oninput="calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
                                                 wire:model.debounce.500ms="consommations.{{ $index }}.qte_stock_fin_trim"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @error('consommations.' . $index . '.qte_stock_fin_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.qte_stock_fin_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
                                                 placeholder="Saisir..." min="0" step="1" />
                                         </div>
                                         <div class="form-group">
@@ -564,29 +589,30 @@
                                                 wire:model.debounce.500ms="consommations.{{ $index }}.cmd_trim_svt"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-red-500 font-bold text-center text-[17px]" />
                                         </div>
-
-                                    </div>
-                                    <div class="flex justify-center end">
-                                        <button type="button" wire:click="enregistrerTemporairement({{ $index }})"
-                                            @if(empty($type_structure) || empty($periode_choisie)) disabled @endif
-                                            class="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg text-white p-2 rounded-full transition-colors duration-200 flex items-center gap-2">
-                                            Enregistrer temporairement
-                                        </button>
                                     </div>
                                 </div>
                             @endforeach
                         </div>
                         <!-- Boutons -->
                         <div class="mt-4 flex justify-end gap-2">
-                            <button type="submit"
-                                class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors">
-                                Enregistrer
-                            </button>
+                            @if ($modifierConso)
+                                <button type="submit"
+                                    class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 transition-colors">
+                                    Modifier
+                                </button>
+                            @else
+                                <button type="submit"
+                                    class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors">
+                                    Enregistrer
+                                </button>
+                            @endif
+
                             <button type="reset"
                                 class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition-colors">
                                 Annuler
                             </button>
                         </div>
+
                     </form>
                 </div>
             </div>
@@ -637,6 +663,14 @@
                 const isHidden = formulaire.classList.contains('hidden');
                 arrowIcon.style.transform = isHidden ? 'rotate(-90deg)' : 'rotate(0deg)';
             }
+        }
+    }
+
+    function viderperiode() {
+        const select = document.getElementById('periode_search');
+        if (select) {
+            select.value = ''; // vide visuellement le champ
+            select.dispatchEvent(new Event('input')); // force Livewire à prendre en compte le changement
         }
     }
     document.addEventListener('DOMContentLoaded', function () {
@@ -718,7 +752,22 @@
 
 
 
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.toggle-button')) return;
 
+        const button = e.target.closest('.toggle-button');
+        const card = button.closest('[wire\\:key^="consommation-"]');
+        const details = card.querySelector('.details');
+        const labelOpen = button.querySelector('.label-open');
+        const labelClose = button.querySelector('.label-close');
+
+        // Toggle des détails
+        details.classList.toggle('hidden');
+
+        // Toggle des labels
+        labelOpen.classList.toggle('hidden');
+        labelClose.classList.toggle('hidden');
+    });
 
 
 

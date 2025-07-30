@@ -20,6 +20,7 @@ return new class extends Migration
                 ->constrained('periodes')
                 ->onDelete('cascade');
             $table->enum('acteur', ['FS','ASC']);
+            $table->enum('etat', ['en_cours','soumis', 'valide']);
             $table->timestamps();
         });
     }
