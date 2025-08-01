@@ -1,4 +1,7 @@
 <div>
+    <div wire:loading wire:target="chercherStatistiques"
+        class="absolute top-0 left-0 w-full h-1 bg-teal-600 animate-progress-bar z-20">
+    </div>
     @if (auth()->check() && auth()->user()->role->nom_role == 'Formation sanitaire')
         <div class="flex justify-between items-center relative mb-4">
             <h2 class="text-2xl font-semibold text-teal-600">
@@ -189,19 +192,19 @@
                             @endif
                     </span>
                 </h2>
-                <div
-                class="bg-white/60 rounded-xl w-fit flex items-center gap-4">
-                <p class="text-sm text-gray-800 font-medium whitespace-nowrap">
-                    Filtrez les données ci-dessous en choisissant la période :
-                </p>
-                <select
-                    class="border border-gray-300 rounded-full px-4 py-2 w-64 text-sm text-gray-700 bg-white/80 shadow-inner focus:outline-none focus:ring-2 focus:ring-purple-500 transition">
-                    <option disabled selected>Période</option>
-                    <option>Juillet 2025</option>
-                    <option>Juin 2025</option>
-                    <option>Mai 2025</option>
-                </select>
-            </div>
+                <div class="bg-white/60 rounded-xl w-fit flex items-center gap-4">
+                    <p class="text-sm text-blue-900 font-medium whitespace-nowrap">
+                        Filtrez les données de la page en choisissant la période :
+                    </p>
+                    <select wire:model="periode_search" wire:change="chercherStatistiques"
+                        class="w-72 bg-blue-100 rounded-full border font-bold border-gray-400 text-blue-900 focus:outline-none focus:ring-blue-600">
+                        @foreach ($periodes_all as $periode)
+                            <option value="{{ $periode->id }}">
+                                {{ $periode->nom }} : {{ $periode->mois_debut }}-{{ $periode->mois_fin }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
                 <div>
                     <div class="flex bg-gray-100 border border-gray-300 gap-2 p-4 items-center rounded-md shadow-sm">
                         <i class="bi bi-calendar-week text-blue-800 text-2xl"></i>
@@ -285,7 +288,8 @@
                                 <h3 class="text-lg font-semibold text-gray-700">Consommations FS Validés</h3>
                                 <p class="text-3xl font-bold text-cyan-600">{{ $nb_fs_valide }}</p>
                                 <p class="text-sm text-gray-500">Sur {{ $nb_fs_soumission }} | Reste à validé :
-                                    {{ $nb_fs_soumission - $nb_fs_valide }}</p>
+                                    {{ $nb_fs_soumission - $nb_fs_valide }}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -301,13 +305,14 @@
                                 <h3 class="text-lg font-semibold text-gray-700">Consommations ASC Validés</h3>
                                 <p class="text-3xl font-bold text-indigo-600">{{ $nb_asc_valide }}</p>
                                 <p class="text-sm text-gray-500">Sur {{ $nb_asc_soumission }} | Reste à validé :
-                                    {{ $nb_asc_soumission - $nb_asc_valide }}</p>
+                                    {{ $nb_asc_soumission - $nb_asc_valide }}
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
                 <div class="bg-slate-100 p-6 rounded-xl shadow-md">
                     <div class="flex items-center mb-4">
@@ -322,7 +327,8 @@
                         <div x-data="{ loaded: false }" x-init="setTimeout(() => loaded = true, 1000)" class="space-y-6">
                             <div>
                                 <div class="flex justify-between mb-1">
-                                    <span class="text-sm font-medium text-gray-700">Formation Sanitaire (FS)</span>
+                                    <span class="text-sm font-medium text-gray-700">Formation Sanitaire (FS) <span
+                                            class="text-blue-600"> | {{ $nb_fs_soumission }} sur {{ $nb_fs }}</span></span>
                                     <span class="text-sm font-semibold text-indigo-600">{{ $fs_pourcentage }}%</span>
                                 </div>
                                 <div class="w-full bg-gray-300 rounded-full h-4">
@@ -332,7 +338,8 @@
                             </div>
                             <div>
                                 <div class="flex justify-between mb-1">
-                                    <span class="text-sm font-medium text-gray-700">Agents Santé Communautaire (ASC)</span>
+                                    <span class="text-sm font-medium text-gray-700">Agents Santé Communautaire (ASC) <span
+                                            class="text-blue-600"> | {{ $nb_asc_soumission }} sur {{ $nb_fs }}</span></span>
                                     <span class="text-sm font-semibold text-teal-600">{{ $asc_pourcentage }}%</span>
                                 </div>
                                 <div class="w-full bg-gray-300 rounded-full h-4">
@@ -350,31 +357,36 @@
                     </div>
 
                     <div class="space-y-6">
-
+                        @php
+                            $fs_promptitude = $nb_fs > 0 ? intval(($fs_prompt / $nb_fs) * 100) : 0;
+                            $asc_promptitude = $nb_fs > 0 ? intval(($asc_prompt / $nb_fs) * 100) : 0;
+                        @endphp
                         <!-- Promptitude FS -->
                         <div x-data="{ loaded: false }" x-init="setTimeout(() => loaded = true, 1000)" class="space-y-6">
 
                             <!-- Barre de complétude FS -->
                             <div>
                                 <div class="flex justify-between mb-1">
-                                    <span class="text-sm font-medium text-gray-700">Formation Sanitaire (FS)</span>
-                                    <span class="text-sm font-semibold text-orange-600">60%</span>
+                                    <span class="text-sm font-medium text-gray-700">Formation Sanitaire (FS) <span
+                                            class="text-blue-600"> | {{ $fs_prompt }} sur {{ $nb_fs }}</span></span>
+                                    <span class="text-sm font-semibold text-orange-600">{{ $fs_promptitude }}%</span>
                                 </div>
                                 <div class="w-full bg-gray-300 rounded-full h-4">
                                     <div class="bg-orange-500 h-4 rounded-full transition-all duration-1000 ease-in-out"
-                                        :style="loaded ? 'width: 60%' : 'width: 0%'"></div>
+                                        :style="loaded ? 'width: {{ $fs_promptitude }}%' : 'width: 0%'"></div>
                                 </div>
                             </div>
 
                             <!-- Barre de complétude ASC -->
                             <div>
                                 <div class="flex justify-between mb-1">
-                                    <span class="text-sm font-medium text-gray-700">Agents Santé Communautaire (ASC)</span>
-                                    <span class="text-sm font-semibold text-yellow-600">72%</span>
+                                    <span class="text-sm font-medium text-gray-700">Agents Santé Communautaire (ASC) <span
+                                            class="text-blue-600"> | {{ $asc_prompt }} sur {{ $nb_fs }}</span></span>
+                                    <span class="text-sm font-semibold text-yellow-600">{{ $asc_promptitude }}%</span>
                                 </div>
                                 <div class="w-full bg-gray-300 rounded-full h-4">
                                     <div class="bg-yellow-400 h-4 rounded-full transition-all duration-1000 ease-in-out"
-                                        :style="loaded ? 'width: 72%' : 'width: 0%'"></div>
+                                        :style="loaded ? 'width: {{ $asc_promptitude }}%' : 'width: 0%'"></div>
                                 </div>
                             </div>
                         </div>
@@ -382,50 +394,48 @@
                     </div>
                 </div>
             </div>
-            <!-- Graphiques et tableaux -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                <div class="backdrop-blur-sm bg-slate-100 rounded-xl shadow-md p-6">
-                    <!-- Titre + Filtres -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mt-4">
+
+                <!-- Historique des soumissions -->
+                <div class="lg:col-span-2 xl:col-span-2 backdrop-blur-sm bg-slate-100 rounded-xl shadow-md p-6">
                     <div class="flex justify-between items-center mb-6">
                         <div class="flex items-center">
                             <i class="bi bi-clock-history text-purple-600 text-xl mr-2"></i>
-                            <h3 class="text-xl font-semibold text-gray-800">Historique des soumissions</h3>
+                            <h3 class="text-xl font-semibold text-gray-800">Historique des soumission des consommations</h3>
+
                         </div>
                         <div class="flex gap-2">
-                            <select
-                                class="border border-gray-300 rounded-full w-48 px-3 py-1 text-sm text-gray-700 bg-white/80 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                                <option>Formation Sanitaire</option>
-                                <option>CS de Yoff</option>
-                                <option>Poste Médical Pikine</option>
-                            </select>
+                            <button>Exporter</button>
                         </div>
                     </div>
 
-                    <!-- Tableau -->
-                    <div class="overflow-x-auto rounded-lg shadow-inner">
+                    <div class=" rounded-lg shadow-inner max-h-80 overflow-auto max-h-[250px]">
                         <table class="min-w-full divide-y divide-gray-200 bg-gray-50/80 text-sm text-gray-800 rounded-lg">
-                            <thead class="bg-gray-200 text-gray-700">
+                            <thead class="bg-gray-200 text-gray-700 sticky top-0">
                                 <tr>
                                     <th class="px-4 py-3 text-left font-medium">Formation Sanitaire</th>
-                                    <th class="px-4 py-3 text-left font-medium">Type de structure</th>
+                                    <th class="px-4 py-3 text-left font-medium">Type structure</th>
                                     <th class="px-4 py-3 text-left font-medium">Période</th>
-                                    <th class="px-4 py-3 text-left font-medium">Date de soumission</th>
+                                    <th class="px-4 py-3 text-left font-medium">Date soumission</th>
+                                    <th class="px-4 py-3 text-left font-medium">Statut</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                <tr class="hover:bg-gray-100/70 transition">
-                                    <td class="px-4 py-2">CS de Yoff</td>
-                                    <td class="px-4 py-2">FS</td>
-                                    <td class="px-4 py-2">Juillet 2025</td>
-                                    <td class="px-4 py-2">25 Juillet 2025 à 10:32</td>
-                                </tr>
-                                <tr class="hover:bg-gray-100/70 transition">
-                                    <td class="px-4 py-2">Poste Médical Pikine</td>
-                                    <td class="px-4 py-2">ASC</td>
-                                    <td class="px-4 py-2">Juin 2025</td>
-                                    <td class="px-4 py-2">28 Juin 2025 à 16:18</td>
-                                </tr>
-                                <!-- Boucle dynamique ici -->
+                                @forelse($soumissions as $soumission)
+                                    <tr class="hover:bg-gray-100/70 transition">
+                                        <td class="px-4 py-2">{{ $soumission->formationSanitaire->nom }}</td>
+                                        <td class="px-4 py-2">{{ $soumission->acteur }}</td>
+                                        <td class="px-4 py-2">{{ $soumission->periode->nom }}</td>
+                                        <td class="px-4 py-2">{{ $soumission->submitted_at }}</td>
+                                        <td class="px-4 py-2">{{ $soumission->etat }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="text-center text-gray-500 py-4">
+                                            Aucune consommation somise ou consommation déjà validée
+                                        </td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -433,39 +443,80 @@
 
                 <!-- Produits les plus demandés -->
                 <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6">
-                    <!-- Titre -->
                     <div class="flex items-center mb-6">
                         <i class="bi bi-graph-up-arrow text-teal-600 text-xl mr-2"></i>
-                        <h3 class="text-xl font-semibold text-gray-800">Produits les plus demandés</h3>
+                        <h3 class="text-xl font-semibold text-gray-800">Médicaments les plus demandés</h3>
                     </div>
 
-                    <!-- Tableau -->
-                    <div class="overflow-x-auto rounded-lg shadow-inner">
-                        <table class="min-w-full text-sm text-gray-800 bg-gray-50/90 divide-y divide-gray-200">
-                            <thead class="bg-gray-200 text-gray-700">
+                    <div class=" rounded-lg shadow-inner max-h-80 overflow-auto max-h-[250px]">
+                        <table class="min-w-full divide-y divide-gray-200 bg-gray-50/80 text-sm text-gray-800 rounded-lg">
+                            <thead class="bg-gray-200 text-gray-700 sticky top-0">
                                 <tr>
-                                    <th class="text-left px-4 py-3 font-medium">Produit</th>
-                                    <th class="text-left px-4 py-3 font-medium">Unité</th>
-                                    <th class="text-right px-4 py-3 font-medium">Quantité Totale</th>
+                                    <th class="text-left px-4 py-3 font-medium">Medicaments</th>
+                                    <th class="text-right px-4 py-3 font-medium">Quantitété Commandée</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                <!-- Exemple statique / à remplacer par boucle dynamique -->
-                                <tr class="hover:bg-gray-100/80 transition">
-                                    <td class="px-4 py-3">Paracétamol 500mg</td>
-                                    <td class="px-4 py-3">Comprimés</td>
-                                    <td class="px-4 py-3 text-right font-bold text-teal-600">3 240</td>
+                                @forelse($topCommandes as $produit)
+                                    <tr class="hover:bg-gray-100/80 transition">
+                                        <td class="px-4 py-3">{{ $produit->nom }}</td>
+                                        <td class="px-4 py-3 text-right font-bold text-teal-600">
+                                            {{ number_format($produit->total_commande, 0, ',', ' ') }}
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="text-center text-gray-500 py-4">
+                                            Aucun médicament n'a été commandé
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deuxième ligne : Médicaments en rupture -->
+            <div class=" mt-6">
+                <div class="lg:col-span-2 xl:col-span-2 backdrop-blur-sm bg-slate-100 rounded-xl shadow-md p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center">
+                            <i class="bi bi-clock-history text-purple-600 text-xl mr-2"></i>
+                            <h3 class="text-xl font-semibold text-gray-800">Historique de validation des consommation</h3>
+                        </div>
+                        <div class="flex gap-2">
+                            <button>Exporter</button>
+                        </div>
+                    </div>
+                    <div class=" rounded-lg shadow-inner max-h-80 overflow-auto max-h-[400px]">
+                        <table class="min-w-full divide-y divide-gray-200 bg-gray-50/80 text-sm text-gray-800 rounded-lg">
+                            <thead class="bg-gray-200 text-gray-700 sticky top-0">
+                                <tr>
+                                    <th class="px-4 py-3 text-left font-medium">Formation Sanitaire</th>
+                                    <th class="px-4 py-3 text-left font-medium">Type structure</th>
+                                    <th class="px-4 py-3 text-left font-medium">Période</th>
+                                    <th class="px-4 py-3 text-left font-medium">Date validation</th>
+                                    <th class="px-4 py-3 text-left font-medium">Statut</th>
                                 </tr>
-                                <tr class="hover:bg-gray-100/80 transition">
-                                    <td class="px-4 py-3">Amoxicilline 250mg</td>
-                                    <td class="px-4 py-3">Gélules</td>
-                                    <td class="px-4 py-3 text-right font-bold text-teal-600">2 180</td>
-                                </tr>
-                                <tr class="hover:bg-gray-100/80 transition">
-                                    <td class="px-4 py-3">Cotrimoxazole</td>
-                                    <td class="px-4 py-3">Comprimés</td>
-                                    <td class="px-4 py-3 text-right font-bold text-teal-600">1 630</td>
-                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @forelse($validations as $validation)
+                                    <tr class="hover:bg-gray-100/70 transition">
+                                        <td class="px-4 py-2">{{ $validation->formationSanitaire->nom }}</td>
+                                        <td class="px-4 py-2">{{ $validation->acteur }}</td>
+                                        <td class="px-4 py-2">{{ $validation->periode->nom }}</td>
+                                        <td class="px-4 py-2">{{ $validation->submitted_at }}</td>
+                                        <td class="px-4 py-2">{{ $validation->etat }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="text-center text-gray-500 py-4">
+                                            Aucune consommation déjà validée pour le moment.
+                                        </td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>

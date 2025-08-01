@@ -16,4 +16,9 @@ class Consommation extends Model
     public function medicament(){
         return $this->belongsTo(Medicament::class);
     }
+    public function formationSanitaire()
+{
+    return $this->belongsTo(FormationSanitaire::class, 'formation_sanitaire_id');
+}
+
 }

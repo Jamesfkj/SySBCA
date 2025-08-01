@@ -106,39 +106,52 @@ class Consommations extends Component
             $this->chargerMedicaments();
         }
     }
-    public function chargerPeriodeActeur()
-    {
-        $entity = auth()->user()->entity;
-        $entity_id = $entity['id'];
+   public function chargerPeriodeActeur()
+{
+    $entity = auth()->user()->entity;
+    $entity_id = $entity['id'];
 
-        $periode_actuelle = Periode::where('nom', $this->periode)->first();
+    // Récupère la période actuelle (déjà calculée dans $this->periode)
+    $periode_actuelle = Periode::where('nom', $this->periode)->first();
 
-        if (!$periode_actuelle) {
-            $this->periodes_disponibles = collect();
-            $this->periode_choisie = null;
-            return;
-        }
-        $id_max = $periode_actuelle->id;
-
-        $periodes = Periode::where('id', '<=', $id_max)
-            ->orderByDesc('id')
-            ->get();
-
-        $consommations_existantes = Consommation::where('formation_sanitaire_id', $entity_id)
-            ->where('acteur', $this->type_structure)
-            ->whereIn('periode_id', $periodes->pluck('id'))
-            ->pluck('periode_id')
-            ->toArray();
-
-        $this->periodes_disponibles = $periodes->filter(function ($periode) use ($consommations_existantes) {
-            return !in_array($periode->id, $consommations_existantes);
-        })->values();
-
-        $this->periode_choisie = $this->periodes_disponibles->isNotEmpty()
-            ? $this->periodes_disponibles->sortByDesc('id')->first()->id
-            : null;
-
+    if (!$periode_actuelle) {
+        $this->periodes_disponibles = collect();
+        $this->periode_choisie = null;
+        return;
     }
+
+    $id_max = $periode_actuelle->id;
+
+    // Récupère les deux dernières périodes à partir de la période actuelle
+    $periodes = Periode::where('id', '<=', $id_max)
+        ->orderByDesc('id')
+        ->take(2)
+        ->get();
+
+    // Cherche les périodes pour lesquelles une consommation existe déjà
+    $consommations_existantes = Consommation::where('formation_sanitaire_id', $entity_id)
+        ->where('acteur', $this->type_structure)
+        ->whereIn('periode_id', $periodes->pluck('id'))
+        ->pluck('periode_id')
+        ->toArray();
+
+    // On garde toutes les périodes Sauf celles déjà consommées, sauf pour la période actuelle (qu'on garde toujours)
+    $this->periodes_disponibles = $periodes->filter(function ($periode) use ($consommations_existantes, $periode_actuelle) {
+        // Toujours garder la période actuelle
+        if ($periode->id === $periode_actuelle->id) {
+            return true;
+        }
+
+        // Ne garder la période précédente QUE si aucune consommation n'existe pour elle
+        return !in_array($periode->id, $consommations_existantes);
+    })->values();
+
+    // Sélection automatique de la période la plus récente disponible
+    $this->periode_choisie = $this->periodes_disponibles->isNotEmpty()
+        ? $this->periodes_disponibles->first()->id
+        : null;
+}
+
     public function render()
     {
         return view(
@@ -229,6 +242,7 @@ class Consommations extends Component
         $this->consoPassee();
         $this->reset('consommations');
         foreach ($this->medicaments as $index => $medicament) {
+            $stock_debut_attendu = 0;
             if (!is_null($this->conso_passee)) {
                 $conso_prec = $this->conso_passee->firstWhere('medicament_id', $medicament->id);
                 if ($conso_prec) {

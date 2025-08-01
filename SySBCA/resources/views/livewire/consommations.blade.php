@@ -164,7 +164,7 @@
                             class="bg-blue-100 hover:bg-blue-200 text-blue-800 font-normal py-1.5 px-4 rounded-full shadow flex items-center gap-1">
                             <i class="bi bi-download"></i> Exporter
                         </button>
-                        @if ($this->etat === 'en_cours')
+                        @if ($this->etat === 'en_cours' && auth()->check() && auth()->user()->role->nom_role ==='Formation Sanitaire')
                             <button wire:click="activerEdition({{ $this->conso->id }})" onclick="console.log('on a cliqué')"
                                 class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-normal py-1.5 px-4 rounded-full shadow flex items-center gap-1">
                                 <i class="bi bi-pencil-square"></i> Modifier
@@ -424,7 +424,6 @@
                         <p class="text-blue-900">Choisir la période ou laisser par défaut :</p>
                         <div>
                             <select wire:model.live="periode_choisie" id="periode_search" onchange="viderInput()"
-                                wire:change="chargerMedicaments"
                                 class="w-72 bg-blue-100 rounded-full p-1 border font-bold border-gray-400 text-blue-900 focus:outline-none focus:ring-teal-700 {{ empty($type_structure) ? 'bg-blue-300 opacity-50 pointer-events-none select-none' : '' }}">
                                 @foreach ($periodes_disponibles as $periode)
                                     <option value="{{ $periode->id }}">
