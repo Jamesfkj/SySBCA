@@ -98,12 +98,13 @@ function checkInput(index) {
   const inputs = {
     stockDebut: document.getElementById(`stock_debut_${index}`),
     qteRecu: document.getElementById(`qte_recu_${index}`),
+    qteEnStock: document.getElementById(`qte_en_stock_${index}`),
     qteUsed: document.getElementById(`qte_used_${index}`),
     nbBeneficaire: document.getElementById(`nb_beneficiaire_${index}`),
     perimee: document.getElementById(`perimee_${index}`),
     perteAvarie: document.getElementById(`perte_avarie_${index}`),
     qteRetCameg: document.getElementById(`qte_ret_cameg_${index}`),
-    qteEnStock: document.getElementById(`qte_en_stock_${index}`),
+    qteEnStock_fin_att: document.getElementById(`qte_stock_fin_trim_attendu_${index}`),
     nbJourRupture: document.getElementById(`nb_jour_rupture_${index}`),
     stkSecurite: document.getElementById(`stk_de_securite_${index}`),
     ccma: document.getElementById(`ccma_${index}`),
@@ -138,7 +139,38 @@ function checkInput(index) {
   }
   // Vérification : nombre de jours de rupture
   const nbJourRupture = parseInt(inputs.nbJourRupture.value, 10) || 0;
+  const qteEnStock = parseInt(inputs.qteEnStock.value, 10) || 0;
+  const qteUsed = parseInt(inputs.qteUsed.value, 10) || 0;
+  const perteAvarie = parseInt(inputs.perteAvarie.value, 10) || 0;
+  const perimee = parseInt(inputs.perimee.value, 10) || 0;
+  const qteRetCameg = parseInt(inputs.qteRetCameg.value, 10) || 0;
+  const qteEnStockFinTrim = parseInt(inputs.qteStockFinTrim.value, 10) || 0;
+  const stockDebut = parseInt(inputs.stockDebut.value, 10) || 0;
+  const qteRecu = parseInt(inputs.qteRecu.value, 10) || 0;
+  const totalSorties = qteUsed + perteAvarie + perimee + qteRetCameg;
+  let total;
 
+  if (stockDebut && !qteRecu) {
+    total = stockDebut
+  } else if (!stockDebut && qteRecu) {
+    total = null;
+  } else if (stockDebut && qteRecu) {
+    total = stockDebut + qteRecu;
+  } else {
+    total = null;
+  }
+  let reste = total - totalSorties;
+  inputs.qteEnStock_fin_att.value = reste
+  if (totalSorties > qteEnStock) {
+    inputs.perteAvarie.value = null;
+    inputs.perimee.value = null;
+    inputs.qteRetCameg.value = null;
+    inputs.qteEnStock_fin_att.value = total - qteUsed;
+    alert(`Les quantités saisies dépassent le stock disponible pour ce médicament. Les champs ont été réinitialisés.`);
+  }
+  if(qteEnStockFinTrim && qteEnStockFinTrim > reste){
+    alert('Info : Votre quantité restante réelle saisie est supérieur à la quantité restante théorique. Cliquez Ok pour continuez.');
+  };
   if (nbJourRupture < 0 || nbJourRupture > 89) {
     alert("Le nombre de jours de rupture doit être compris entre 0 et 89.");
     inputs.nbJourRupture.value = '';
@@ -152,25 +184,25 @@ function checkInput(index) {
 }
 
 document.getElementById('search-medicament').addEventListener('input', function () {
-    const search = this.value.toLowerCase();
-    const cards = document.querySelectorAll('.card-wrapper');
+  const search = this.value.toLowerCase();
+  const cards = document.querySelectorAll('.card-wrapper');
 
-    cards.forEach(card => {
-        const medName = card.querySelector('h2').textContent.toLowerCase();
+  cards.forEach(card => {
+    const medName = card.querySelector('h2').textContent.toLowerCase();
 
-        if (medName.includes(search)) {
-            card.classList.remove('hidden');
-        } else {
-            card.classList.add('hidden');
-        }
-    });
-
-    // Si recherche vide → recacher les cartes des médicaments non commandés
-    if (search.trim() === '') {
-        document.querySelectorAll('.hidden-card').forEach(card => {
-            card.classList.add('hidden');
-        });
+    if (medName.includes(search)) {
+      card.classList.remove('hidden');
+    } else {
+      card.classList.add('hidden');
     }
+  });
+
+  // Si recherche vide → recacher les cartes des médicaments non commandés
+  if (search.trim() === '') {
+    document.querySelectorAll('.hidden-card').forEach(card => {
+      card.classList.add('hidden');
+    });
+  }
 });
 
 document.addEventListener('input', function (e) {
