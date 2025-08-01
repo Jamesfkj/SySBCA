@@ -73,6 +73,7 @@ function calculerStockSecurite(index) {
 
   //Verifier le nombre de jours de rupture
 
+ 
 
   if (nbJourRupture === 0) {
     stkSecuriteInput.value = Math.ceil(qteUsed); // sécurité = conso brute

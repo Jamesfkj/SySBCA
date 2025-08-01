@@ -22,6 +22,7 @@ class Consommations extends Component
     public $type_structure;
     public $medicament_choisi;
     public $medicaments_affiches = [];
+    public $currentSlide = 0;
     //--------------------
     public $showHiddenCards = false;
     //----------------
@@ -46,8 +47,28 @@ class Consommations extends Component
     public $consommations_all = [];
     public $consommations = [];
 
-    protected $listeners = ['mettreAJourQte'];
+    public function nextSlide()
+    {
+        $maxSlides = $this->consommations_all->where(function ($c) {
+            return !($c->cmma == 0 && $c->stock_securite == 0 && $c->cmd_trim_svt == 0) || $this->showHiddenCards;
+        })->count() - 1;
 
+        if ($this->currentSlide < $maxSlides) {
+            $this->currentSlide++;
+        }
+    }
+
+    public function previousSlide()
+    {
+        if ($this->currentSlide > 0) {
+            $this->currentSlide--;
+        }
+    }
+
+    public function setCurrentSlide($index)
+    {
+        $this->currentSlide = $index;
+    }
     public function mettreAJourQte($index, $valeur)
     {
         $this->consommations[$index]['qte_en_stock'] = $valeur;
@@ -106,51 +127,34 @@ class Consommations extends Component
             $this->chargerMedicaments();
         }
     }
-   public function chargerPeriodeActeur()
-{
-    $entity = auth()->user()->entity;
-    $entity_id = $entity['id'];
-
-    // Récupère la période actuelle (déjà calculée dans $this->periode)
-    $periode_actuelle = Periode::where('nom', $this->periode)->first();
-
-    if (!$periode_actuelle) {
-        $this->periodes_disponibles = collect();
-        $this->periode_choisie = null;
-        return;
-    }
-
-    $id_max = $periode_actuelle->id;
-
-    // Récupère les deux dernières périodes à partir de la période actuelle
-    $periodes = Periode::where('id', '<=', $id_max)
-        ->orderByDesc('id')
-        ->take(2)
-        ->get();
-
-    // Cherche les périodes pour lesquelles une consommation existe déjà
-    $consommations_existantes = Consommation::where('formation_sanitaire_id', $entity_id)
-        ->where('acteur', $this->type_structure)
-        ->whereIn('periode_id', $periodes->pluck('id'))
-        ->pluck('periode_id')
-        ->toArray();
-
-    // On garde toutes les périodes Sauf celles déjà consommées, sauf pour la période actuelle (qu'on garde toujours)
-    $this->periodes_disponibles = $periodes->filter(function ($periode) use ($consommations_existantes, $periode_actuelle) {
-        // Toujours garder la période actuelle
-        if ($periode->id === $periode_actuelle->id) {
-            return true;
+    public function chargerPeriodeActeur()
+    {
+        $entity = auth()->user()->entity;
+        $entity_id = $entity['id'];
+        $periode_actuelle = Periode::where('nom', $this->periode)->first();
+        if (!$periode_actuelle) {
+            $this->periodes_disponibles = collect();
+            $this->periode_choisie = null;
+            return;
         }
+        $id_max = $periode_actuelle->id;
+        $periodes = Periode::where('id', '<=', $id_max)
+            ->orderByDesc('id')
+            ->take(2)
+            ->get();
+        $consommations_existantes = Consommation::where('formation_sanitaire_id', $entity_id)
+            ->where('acteur', $this->type_structure)
+            ->whereIn('periode_id', $periodes->pluck('id'))
+            ->pluck('periode_id')
+            ->toArray();
+        $this->periodes_disponibles = $periodes->filter(function ($periode) use ($consommations_existantes) {
+            return !in_array($periode->id, $consommations_existantes);
+        })->values();
 
-        // Ne garder la période précédente QUE si aucune consommation n'existe pour elle
-        return !in_array($periode->id, $consommations_existantes);
-    })->values();
-
-    // Sélection automatique de la période la plus récente disponible
-    $this->periode_choisie = $this->periodes_disponibles->isNotEmpty()
-        ? $this->periodes_disponibles->first()->id
-        : null;
-}
+        $this->periode_choisie = $this->periodes_disponibles->isNotEmpty()
+            ? $this->periodes_disponibles->first()->id
+            : null;
+    }
 
     public function render()
     {
@@ -169,7 +173,6 @@ class Consommations extends Component
         $this->chargerMedicaments();
         $this->formulaireVisible = true;
         $this->tableauVisible = false;
-
     }
     public function afficherTableau()
     {
@@ -354,11 +357,13 @@ class Consommations extends Component
                 ->where('periode_id', $this->periode_choisie)
                 ->where('acteur', $this->type_structure)
                 ->first();
+                if ($existe) {
+                    $this->addError('periode_choisie', 'Une consommation existe déjà pour cette période et cette formation sanitaire.');
+                return;
             $this->validateInputs();
             $this->calculValeur();
             if (!is_null($existe)) {
                 foreach ($this->consommations as $conso) {
-                    // Cherche le médicament correspondant
                     $consommation_medicament = ConsommationMedicament::where('consommation_id', $existe->id)
                         ->where('medicament_id', $conso['medicament_id'])
                         ->first();
@@ -417,7 +422,7 @@ class Consommations extends Component
             $this->tableauVisible = true;
             $this->chargerConsommations($this->periode_choisie, $this->type_structure);
         }
-    }
+    }}
 
     private function nettoyerValeursNul()
     {
@@ -429,7 +434,6 @@ class Consommations extends Component
             }
         }
     }
-
     public function chercherConsommations()
     {
         $this->chargerConsommations($this->periode_search, $this->structure_defaut);
@@ -512,8 +516,6 @@ class Consommations extends Component
             $this->consommations_all = collect();
             $this->etat = null;
         }
-
-        // 🔁 RÉINITIALISATION ici
         $this->edit = [];
         $this->not_edit = [];
 
@@ -536,6 +538,21 @@ class Consommations extends Component
             session()->flash('message', 'La consommation a été soumise. Elle sera validé par le district');
         }
     }
+    public function validerConsommation($id)
+    {
+        $conso = Consommation::where('id', $id)->first();
+        if ($conso) {
+            $conso->etat = 'valide';
+            $conso->save();
+            $this->chercherConsommations();
+            $this->conso = $conso;
+            $this->periode_search = $conso->periode_id;
+            $this->structure_defaut = $conso->acteur;
+            $this->fs = $conso->formation_sanitaire_id;
+            $this->chercherConsommations();
+            session()->flash('message', 'La consommation a été soumise. Elle sera validé par le district');
+        }
+    }
     public function showEditInput($medicament_id, $consommation_id)
     {
         $this->not_edit[$medicament_id] = false;
@@ -544,7 +561,6 @@ class Consommations extends Component
             ->where('medicament_id', $medicament_id)
             ->first();
         $this->quantites_accordees[$medicament_id] = $conso?->qte_accordee ?? null;
-
     }
     public function enregistrerQteAccorde($consommation_id, $medicament_id)
     {
@@ -571,4 +587,18 @@ class Consommations extends Component
         $this->chercherConsommations();
     }
 
+    public function exporterPDF()
+{
+    $consommations = $this->consommations_all->filter(function ($c) {
+        return !($c->cmma == 0 && $c->stock_securite == 0 && $c->cmd_trim_svt == 0) || $this->showHiddenCards;
+    });
+
+    $pdf = Pdf::loadView('exports.consommations-pdf', [
+        'consommations' => $consommations,
+    ])->setPaper('a4', 'portrait');
+
+    return response()->streamDownload(function () use ($pdf) {
+        echo $pdf->stream();
+    }, 'consommations.pdf');
+}
 }

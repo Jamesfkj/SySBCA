@@ -1,6 +1,6 @@
 <aside id="sidebar" x-bind:class="sidebarOpen ? 'w-auto' : 'w-16'" class="">
 
-    <nav class="space-y-3 text-sm px-2 pt-6">
+    <nav class="space-y-3 text-sm px-2 pt-6 h-screen overflow-y-auto">
         <a href="{{ route('dashboard') }}"
             class="{{ str_starts_with(request()->path(), 'dashboard') ? 'bg-green-100 text-green-700' : '' }} flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
             <div class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
