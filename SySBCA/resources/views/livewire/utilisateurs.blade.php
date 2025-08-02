@@ -78,9 +78,11 @@
                 <table class="min-w-full border-collapse">
                     <thead class="sticky top-0 bg-white z-10">
                         <tr class="bg-gray-100">
+                            
+                            <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Email</th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Nom d'utilisateur
                             </th>
-                            <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Niveau sanitaire</th>
+                            <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Zone San.</th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Nom de zone</th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Statut</th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Créé le</th>
@@ -91,6 +93,7 @@
                     <tbody>
                         @forelse ($utilisateurs as $utilisateur)
                             <tr class="border-b hover:bg-gray-50">
+                                <td class="px-6 py-4 text-blue-900">{{ $utilisateur->email }}</td>
                                 <td class="px-6 py-4 text-blue-900">{{ $utilisateur->username }}</td>
                                 <td class="px-6 py-4 text-blue-900">{{ ucfirst($utilisateur->role->nom_role ?? 'N/A') }}</td>
                                 <td class="px-6 py-4 text-blue-900">{{ ucfirst($utilisateur->entity->nom ?? 'N/A') }}</td>
@@ -147,6 +150,14 @@
         @if ($afficherFormulaireCreation)
             <div class="bg-white shadow-lg rounded-lg p-6">
                 <form wire:submit.prevent="create">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-blue-900">Email</label>
+                        <input type="text" wire:model="email"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-blue-900">
+                        @error('email')
+                            <span class="text-red-600">{{ $message }}</span>
+                        @enderror
+                    </div>
                     <!-- Nom d'utilisateur -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-blue-900">Nom d'utilisateur</label>
@@ -170,7 +181,6 @@
                     @php
                         $role_choisi = $roles->firstWhere('id', $role_id);
                     @endphp
-
                     @if ($role_choisi && in_array($role_choisi->nom_role, ['District', 'Formation sanitaire']))
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-blue-900">{{ $role_choisi->nom_role }}</label>
@@ -216,6 +226,14 @@
         @if ($afficherFormulaireEdition)
             <div class="bg-white shadow-lg rounded-lg p-6">
                 <form wire:submit.prevent="updateUtilisateur">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-blue-900">Email</label>
+                        <input type="text" wire:model="emailEdition"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-blue-900">
+                        @error('emailEdition')
+                            <span class="text-red-600">{{ $message }}</span>
+                        @enderror
+                    </div>
                     <!-- Nom d'utilisateur -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-blue-900">Nom d'utilisateur</label>

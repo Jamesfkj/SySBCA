@@ -27,7 +27,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'username' => ['required', 'string', 'exists:utilisateurs,username'],
+            'email' => ['required', 'string', 'exists:utilisateurs,email'],
             'password' => ['required', 'string'],
         ];
     }
@@ -35,9 +35,9 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'username.required' => 'Le nom d\'utilisateur est obligatoire.',
-            'username.string' => 'Le nom d\'utilisateur doit être une chaîne de caractères.',
-            'username.exists' => 'Le nom d\'utilisateur ou le mot de passe est incorrect.',
+            'email.required' => 'L\'email est obligatoire.',
+            'email.string' => 'L\'email doit être une chaîne de caractères.',
+            'email.exists' => 'L\'email ou le mot de passe est incorrect.',
             'password.required' => 'Le mot de passe est obligatoire.',
             'password.string' => 'Le mot de passe doit être une chaîne de caractères.',
         ];
@@ -53,11 +53,11 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (!Auth::attempt($this->only('username', 'password'), $this->boolean('remember'))) {
+        if (!Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'username' => 'Le nom d\'utilisateur ou le mot de passe est incorrect.',
+                'email' => 'L\'email ou le mot de passe est incorrect.',
             ]);
         }
 

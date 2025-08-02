@@ -9,7 +9,7 @@
     @endif
     <!-- Barre de chargement -->
     <div wire:loading
-        wire:target="afficherFormulaire,previousSlide,afficherTableau,nextSlide,filtrerParPériode,ajouterConsommation,renitialiserMedicament,toggleHiddenCards,ajouterMedicament,showEditInput,activerEdition,choix,chargerDepuisSession,chargerMedicaments,chercherConsommations,soumettreConsommation,enregistrerQteAccorde"
+        wire:target="afficherFormulaire,exporterPDF,previousSlide,afficherTableau,nextSlide,filtrerParPériode,ajouterConsommation,renitialiserMedicament,toggleHiddenCards,ajouterMedicament,showEditInput,activerEdition,choix,chargerDepuisSession,chargerMedicaments,chercherConsommations,soumettreConsommation,enregistrerQteAccorde"
         class="absolute top-0 left-0 w-full h-1 bg-teal-600 animate-progress-bar z-20">
     </div>
     <!-- En-tête -->
@@ -172,7 +172,7 @@
                         <p class="text-gray-700 font-semibold">État de la consommation : {{ $this->conso->etat }}</p>
                     </div>
                     <div class="flex gap-2">
-                        <button wire:click="exporterConsommation"
+                        <button wire:click="exporterPDF({{ $this->conso->id }})"
                             class="bg-blue-100 hover:bg-blue-200 text-blue-800 font-normal py-1.5 px-4 rounded-full shadow flex items-center gap-1">
                             <i class="bi bi-download"></i> Exporter
                         </button>

@@ -8,6 +8,7 @@ use App\Models\Medicament;
 use App\Models\Consommation;
 use App\Models\Periode;
 use Livewire\Component;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\ValidationException;
 
 use Carbon\Carbon;
@@ -587,14 +588,16 @@ class Consommations extends Component
         $this->chercherConsommations();
     }
 
-    public function exporterPDF()
+    public function exporterPDF($id)
 {
+    $conso = Consommation::find($id);
     $consommations = $this->consommations_all->filter(function ($c) {
         return !($c->cmma == 0 && $c->stock_securite == 0 && $c->cmd_trim_svt == 0) || $this->showHiddenCards;
     });
 
-    $pdf = Pdf::loadView('exports.consommations-pdf', [
+    $pdf = Pdf::loadView('consommations-pdf', [
         'consommations' => $consommations,
+        'conso' => $conso,
     ])->setPaper('a4', 'portrait');
 
     return response()->streamDownload(function () use ($pdf) {

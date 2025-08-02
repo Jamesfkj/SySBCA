@@ -6,11 +6,9 @@
             <span>{{ session('message') }}</span>
         </div>
     @endif
-
     <div wire:loading wire:target="afficherFormulaire,afficherEdition,afficherTableau,create,updateDistrict,delete"
         class="absolute top-0 left-0 w-full h-1 bg-teal-600 animate-progress-bar z-20">
     </div>
-
     <div class="flex flex-col gap-6">
         <!-- En-tête -->
         <div class="flex justify-between items-center relative">
@@ -60,7 +58,6 @@
                     </span>
                 </button>
             @endif
-
             @if (!$afficherFormulaireCreation && !$afficherFormulaireEdition)
                 <button wire:click="afficherFormulaire"
                     class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
@@ -73,7 +70,6 @@
                 </button>
             @endif
         </div>
-
         <!-- Tableau -->
         @if (!$afficherFormulaireCreation && !$afficherFormulaireEdition)
             <div class="bg-white shadow-lg rounded-lg">
@@ -113,7 +109,6 @@
                 </table>
             </div>
         @endif
-
         <!-- Formulaire d’ajout -->
         @if ($afficherFormulaireCreation)
             <div class="bg-white shadow-lg rounded-lg p-6">
@@ -127,7 +122,6 @@
                             <span class="text-red-600">{{ $message }}</span>
                         @enderror
                     </div>
-
                     <div class="mb-4">
                         <label for="region_id" class="block text-sm font-medium text-blue-900">Région</label>
                         <select id="region_id" wire:model="region_id"
@@ -139,37 +133,6 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="text-gray-500 text-[15px] mb-4 italic">Créer l'utilisateur associé au district
-                        (Optionelle, possibilié de la créer après à partir du menu utilisateur).</div>
-                    <div class="mb-4">
-                        <label for="username" class="block text-sm font-medium text-blue-900">Nom d'utilisateur</label>
-                        <input type="text" id="username" wire:model="username"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900">
-                        @error('username')
-                            <span class="text-red-600">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="mot_de_passe" class="block text-sm font-medium text-blue-900">Mot de passe</label>
-                        <input type="password" id="mot_de_passe" wire:model="mot_de_passe"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900">
-                        @error('mot_de_passe')
-                            <span class="text-red-600">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="confirmation_mot_de_passe" class="block text-sm font-medium text-blue-900">Confirmer
-                            le mot de passe</label>
-                        <input type="password" id="confirmation_mot_de_passe" wire:model="confirmation_mot_de_passe"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900">
-                        @error('confirmation_mot_de_passe')
-                            <span class="text-red-600">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-
                     <button type="submit"
                         class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200">
                         Enregistrer
@@ -177,8 +140,6 @@
                 </form>
             </div>
         @endif
-
-        <!-- Formulaire de modification -->
         @if ($afficherFormulaireEdition)
             <div class="bg-white shadow-lg rounded-lg p-6">
                 <form wire:submit.prevent="updateDistrict">
@@ -204,7 +165,6 @@
                             @endforeach
                         </select>
                     </div>
-
                     <button type="submit"
                         class="w-full bg-yellow-600 text-white py-2 px-4 rounded-lg hover:bg-yellow-700 transition duration-200">
                         Mettre à jour

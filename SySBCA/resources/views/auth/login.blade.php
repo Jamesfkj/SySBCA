@@ -6,8 +6,7 @@
             class="w-full max-w-xl p-6 bg-teal-900 bg-opacity-40 shadow-lg rounded-lg m-4 backdrop-filter backdrop-blur-lg">
 
             @if ($errors->has('error'))
-                <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 3000)" x-show="show"
-                    x-transition.opacity role="alert"
+                <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 3000)" x-show="show" x-transition.opacity role="alert"
                     class="text-red-600 bg-red-100 text-center text-sm mt-2 px-4 py-2 rounded-full shadow-sm">
                     {{ $errors->first('error') }}
                 </div>
@@ -26,15 +25,23 @@
 
             <form class="space-y-5" method="POST" action="{{ route('login') }}">
                 @csrf
-                <div>
-                    <label for="email" class="block text-teal-700 font-semibold mb-1">Nom d'utilisateur</label>
+                <!--<div>
+                    <label for="username" class="block text-teal-700 font-semibold mb-1">Nom d'utilisateur</label>
                     <input type="text" id="username" name="username" :value="old('username')" required autofocus
                         placeholder="Nom d'utilisateur"
                         class="w-full border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600">
                     <x-input-error :messages="$errors->get('username')"
                         class="mt-2 text-bold text-red-500 bg-white rounded-full text-center" />
                 </div>
-
+            -->
+                <div>
+                    <label for="email" class="block text-teal-700 font-semibold mb-1">Email</label>
+                    <input type="text" id="email" name="email" :value="old('email')" required autofocus
+                        placeholder="Email"
+                        class="w-full border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600">
+                    <x-input-error :messages="$errors->get('email')"
+                        class="mt-2 text-bold text-red-500 bg-white rounded-full text-center" />
+                </div>
                 <div class="mt-4">
                     <label for="password" class="block text-teal-700 font-semibold mb-1">Mot de passe</label>
                     <input type="password" id="password" name="password" required placeholder="Mot de passe"

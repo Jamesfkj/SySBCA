@@ -15,6 +15,7 @@ class Districts extends Component
     public $recherche = '';
     public $districts = [];
     public $username = '';
+    public $email = '';
     public $mot_de_passe = '';
     public $confirmation_mot_de_passe = '';
     public $nom = '';
@@ -52,51 +53,27 @@ class Districts extends Component
         $this->validate([
             'nom' => 'required|string|max:255|unique:districts,nom',
             'region_id' => 'required|exists:regions,id',
-            'username' => 'nullable|string|max:255|unique:utilisateurs,username',
-            'mot_de_passe' => 'required_with:username|string|min:6|same:confirmation_mot_de_passe',
-            'confirmation_mot_de_passe' => 'required_with:username|string|min:6',
         ], [
             'nom.required' => 'Le nom du district est obligatoire.',
             'nom.unique' => 'Ce district existe déjà.',
             'region_id.required' => 'La région est obligatoire.',
             'region_id.exists' => 'La région sélectionnée est invalide.',
-            'username.unique' => 'Ce nom d’utilisateur est déjà utilisé.',
-            'mot_de_passe.required_with' => 'Le mot de passe est requis si vous créez un utilisateur.',
-            'mot_de_passe.same' => 'Les mots de passe ne correspondent pas.',
-            'confirmation_mot_de_passe.required_with' => 'La confirmation est requise.',
         ]);
-
         $district = new District();
         $district->nom = $this->nom;
         $district->region_id = $this->region_id;
-        $district->save(); 
-        if (!empty($this->username)) {
-            $utilisateur = new Utilisateur();
-            $utilisateur->username = $this->username;
-            $utilisateur->password = Hash::make($this->mot_de_passe);
-            $utilisateur->etat = 'actif';
-            $utilisateur->role_id = 3;
-            $utilisateur->entity_id = $district->id;
-            $utilisateur->entity_type = District::class;
-            $utilisateur->doit_renitialiser_pwd = true;
-            $utilisateur->save();
-        }
-        $this->reset(['nom', 'region_id', 'username', 'mot_de_passe', 'confirmation_mot_de_passe']);
-
+        $district->save();
+        $this->reset(['nom', 'region_id']);
         session()->flash('message', 'District ajouté avec succès !');
-
         $this->afficherTableau();
     }
-
-
     public function updateDistrict()
     {
         $this->validate([
-            'nomEdition' => 'required|string|max:255|unique:districts,nom,' . $this->idEdition,
+            'nomEdition' => 'required|string|max:255',
             'regionIdEdition' => 'required|exists:regions,id',
         ], [
             'nomEdition.required' => 'Le nom du district est obligatoire.',
-            'nomEdition.unique' => 'Ce district existe déjà.',
             'nomEdition.max' => 'Le nom du district ne peut pas dépasser 255 caractères.',
             'regionIdEdition.required' => 'La région est obligatoire.',
             'regionIdEdition.exists' => 'La région sélectionnée est invalide.',
@@ -118,7 +95,7 @@ class Districts extends Component
         $district = District::find($districtId);
         if ($district) {
             $utilisateur = Utilisateur::where('entity_id', $districtId);
-            if ($utilisateur){
+            if ($utilisateur) {
                 $utilisateur->etat = 'suspendu';
                 $utilisateur->save();
             }
@@ -126,7 +103,6 @@ class Districts extends Component
             session()->flash('message', 'District supprimé avec succès !');
         }
     }
-
     public function render()
     {
         $query = District::with('region')
@@ -139,9 +115,7 @@ class Districts extends Component
                 });
             })
             ->orderBy('nom', 'asc');
-
         $this->districts = $query->get();
-
         return view('livewire.districts', [
             'districts' => $this->districts,
             'regions' => Region::orderBy('nom')->get(),

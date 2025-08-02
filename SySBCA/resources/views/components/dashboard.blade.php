@@ -29,7 +29,7 @@
 
 <body class="bg-gray-50 text-gray-800 flex h-screen overflow-hidden font-[Rubik]">
     <nav class="h-full bg-black pt-20 bg-gradient-to-t from-teal-900 to-teal-600 text-white shadow-lg flex-shrink-0 transition-all duration-1000 overflow-hidden"
-        x-data="{ sidebarOpen: true }">
+        x-data="{ sidebarOpen: false }">
         <header class="w-full fixed top-0 left-0 z-10">
             <nav class="bg-white shadow flex items-center justify-between px-4 py-3">
                 <div class="flex items-center gap-4">
@@ -39,44 +39,34 @@
                         <i class="bi bi-list text-2xl"></i>
                     </button>
                 </div>
-                <div>
-                    <div class="flex justify-between justify-between ">
-                        <div>
-                        </div>
-                        <div x-data="{
-                                    fullName: 'Bienvenue sur votre tableau de bord, {{ Auth::user()->username }}',
-                                    displayedName: '',
-                                    index: 0,
-                                    typeWriter() {
-                                        if(this.index < this.fullName.length) {
-                                            this.displayedName += this.fullName[this.index];
-                                            this.index++;
-                                            setTimeout(() => this.typeWriter(), 100);
-                                        }
-                                    }
-                                }" x-init="typeWriter()"
-                            class="relative flex items-center gap-4 p-2 bg-gradient-to-r from-teal-600 to-teal-800 rounded-full shadow-lg max-w-xl mx-auto">
-                            <div
-                                class="absolute -left-6 top-1/2 transform -translate-y-1/2 w-16 h-16 rounded-full bg-teal-600 bg-opacity-30 backdrop-blur-sm flex items-center justify-center shadow-lg z-20">
-                                <i class="bi bi-person-circle text-white text-4xl"></i>
-                            </div>
-                            <div class="pl-14 text-white text-lg font-semibold tracking-wide select-none">
-                                <span x-text="displayedName"></span>
-                            </div>
-                        </div>
+                <div x-data="{
+                    fullName: '{{ Auth::user()->username }}',
+                    displayedName: '',
+                    index: 0,
+                    typeWriter() {
+                        if (this.index < this.fullName.length) {
+                            this.displayedName += this.fullName[this.index];
+                            this.index++;
+                            setTimeout(() => this.typeWriter(), 50);
+                        }
+                    }
+                }" x-init="typeWriter()"
+                    class="flex items-center gap-2 bg-teal-50 border border-teal-600 backdrop-blur-md rounded-full px-4 py-1 shadow ml-auto w-fit">
 
+                    <div
+                        class="w-9 h-9 rounded-full bg-white/50 flex items-center justify-center border border-white/50">
+                        <i class="bi bi-person-circle text-teal-700 text-xl"></i>
                     </div>
+                    <div class="text-teal-700 text-sm font-semibold tracking-wide whitespace-nowrap"
+                        x-text="displayedName"></div>
                 </div>
-
             </nav>
         </header>
         <div>
             <livewire:sidebar />
         </div>
     </nav>
-
-
-    <main id="main-content" class="flex-1 overflow-y-auto shadow-lg pt-20 p-4"
+    <main id="main-content" class="flex-1 overflow-y-auto shadow-lg pt-16 p-4"
         style="background-image: url('{{ asset('images/bg.png') }}'); background-repeat: no-repeat; background-size: cover; background-position: center;">
         {{ $slot }}
     </main>

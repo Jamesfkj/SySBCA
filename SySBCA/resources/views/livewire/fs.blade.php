@@ -53,18 +53,24 @@
                 <button wire:click="afficherTableau"
                     class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
                     <span class="flex items-center gap-2">
-                        <div class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 text-blue-500 shadow">
+                        <div
+                            class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 text-blue-500 shadow">
                             <i class="bi bi-eye"></i>
                         </div>Voir la liste
                     </span>
                 </button>
             @endif
 
-            @if (!$afficherFormulaireCreation && !$afficherFormulaireEdition && auth()->check() && auth()->user()->role->nom_role == 'Administrateur')
+            @if (
+                !$afficherFormulaireCreation &&
+                    !$afficherFormulaireEdition &&
+                    auth()->check() &&
+                    auth()->user()->role->nom_role == 'Administrateur')
                 <button wire:click="afficherFormulaire"
                     class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
                     <span class="flex items-center gap-2">
-                        <div class="w-7 h-7 flex items-center justify-center rounded-full bg-white text-blue-600 shadow">
+                        <div
+                            class="w-7 h-7 flex items-center justify-center rounded-full bg-white text-blue-600 shadow">
                             <i class="bi bi-plus"></i>
                         </div>Ajouter une formation
                     </span>
@@ -78,7 +84,8 @@
                 <table class="min-w-full border-collapse">
                     <thead>
                         <tr class="bg-gray-100">
-                            <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Formation sanitaire
+                            <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Formation
+                                sanitaire
                             </th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Nombre d'ASC</th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">District</th>
@@ -109,7 +116,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="px-6 py-4 text-center text-gray-500">Aucune formation trouvée.</td>
+                                <td colspan="3" class="px-6 py-4 text-center text-gray-500">Aucune formation trouvée.
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -126,14 +134,18 @@
                         <input type="text" wire:model="nom"
                             class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
                             required>
-                        @error('nom') <span class="text-red-600">{{ $message }}</span> @enderror
+                        @error('nom')
+                            <span class="text-red-600">{{ $message }}</span>
+                        @enderror
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-blue-900">Nombre d'ASC</label>
                         <input type="number" min="0" wire:model="nb_asc"
                             class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
                             required>
-                        @error('nb_asc') <span class="text-red-600">{{ $message }}</span> @enderror
+                        @error('nb_asc')
+                            <span class="text-red-600">{{ $message }}</span>
+                        @enderror
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-blue-900">District</label>
@@ -146,31 +158,6 @@
                             @endforeach
                         </select>
                     </div>
-
-                    <div class="text-gray-500 text-[15px] mb-4 italic">Créer l'utilisateur associé à la Formation sanitaire
-                        (Optionnel, peut être crée à partir du menu utilisateur).</div>
-
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-blue-900">Nom d'utilisateur</label>
-                        <input type="text" wire:model="username"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900">
-                        @error('username') <span class="text-red-600">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-blue-900">Mot de passe</label>
-                        <input type="password" wire:model="mot_de_passe"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900">
-                        @error('mot_de_passe') <span class="text-red-600">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-blue-900">Confirmer le mot de passe</label>
-                        <input type="password" wire:model="confirmation_mot_de_passe"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900">
-                        @error('confirmation_mot_de_passe') <span class="text-red-600">{{ $message }}</span> @enderror
-                    </div>
-
                     <button type="submit"
                         class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200">Enregistrer</button>
                 </form>
@@ -186,14 +173,18 @@
                         <input type="text" wire:model="nomEdition"
                             class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
                             required>
-                        @error('nomEdition') <span class="text-red-600">{{ $message }}</span> @enderror
+                        @error('nomEdition')
+                            <span class="text-red-600">{{ $message }}</span>
+                        @enderror
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-blue-900">Nombre d'ASC</label>
                         <input type="number" min="0" wire:model="nb_ascEdition"
                             class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900"
                             required>
-                        @error('nb_ascEdition') <span class="text-red-600">{{ $message }}</span> @enderror
+                        @error('nb_ascEdition')
+                            <span class="text-red-600">{{ $message }}</span>
+                        @enderror
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-blue-900">District</label>
@@ -205,7 +196,9 @@
                                 <option value="{{ $district->id }}">{{ $district->nom }}</option>
                             @endforeach
                         </select>
-                        @error('districtIdEdition') <span class="text-red-600">{{ $message }}</span> @enderror
+                        @error('districtIdEdition')
+                            <span class="text-red-600">{{ $message }}</span>
+                        @enderror
                     </div>
 
                     <button type="submit"

@@ -20,6 +20,11 @@ class Dashboard extends Component
     public $fs_submit;
     public $asc_submit;
     public $user;
+    public $periode;
+    public $consommations_fs;
+    public $consommations_fs_total;
+    public $consommations_asc_total;
+    public $consommations_asc;
     public $periode_actuelle;
     public $prompt_date;
     public $district_id;
@@ -156,7 +161,7 @@ class Dashboard extends Component
         $trimestre = ceil($mois / 3);
 
         $nomPeriode = "T{$trimestre} {$year}";
-
+        $this->periode = $nomPeriode;
         // Calculer la date limite pour la promptitude
         $dernierMoisTrimestre = $trimestre * 3;
         $dernierJourMois = Carbon::createFromDate($year, $dernierMoisTrimestre, 1)->endOfMonth()->day;
@@ -164,7 +169,7 @@ class Dashboard extends Component
 
         // Charger toutes les périodes
         $this->periodes_all = Periode::orderByDesc('id')->get();
-
+        
         // Trouver la période actuelle
         $this->periode_actuelle = $this->periodes_all->firstWhere('nom', $nomPeriode)
             ?? $this->periodes_all->first();

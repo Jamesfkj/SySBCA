@@ -15,7 +15,7 @@ class Fs extends Component
     public $recherche = '';
     public $formations = [];
     public $districts = [];
-
+    public $email;
     public $username = '';
     public $mot_de_passe = '';
     public $confirmation_mot_de_passe = '';
@@ -56,9 +56,6 @@ class Fs extends Component
             'districtIdEdition',
             'nom',
             'district_id',
-            'username',
-            'mot_de_passe',
-            'confirmation_mot_de_passe'
         ]);
     }
 
@@ -68,9 +65,6 @@ class Fs extends Component
             'nom' => 'required|string|max:255|unique:formations_sanitaires,nom',
             'nb_asc' => 'required|integer|min:0',
             'district_id' => 'required|exists:districts,id',
-            'username' => 'nullable|string|max:255|unique:utilisateurs,username',
-            'mot_de_passe' => 'required_with:username|string|min:6|same:confirmation_mot_de_passe',
-            'confirmation_mot_de_passe' => 'required_with:username|string|min:6',
         ], [
             'nom.required' => 'Le nom est obligatoire.',
             'nom.unique' => 'Cette formation sanitaire existe déjà.',
@@ -79,46 +73,24 @@ class Fs extends Component
             'nb_asc.min' => 'Le nombre d\'ASC ne peut pas être négatif.',
             'district_id.required' => 'Le district est obligatoire.',
             'district_id.exists' => 'Le district sélectionné est invalide.',
-            'username.unique' => 'Ce nom d’utilisateur est déjà utilisé.',
-            'mot_de_passe.required_with' => 'Le mot de passe est requis si vous créez un utilisateur.',
-            'mot_de_passe.same' => 'Les mots de passe ne correspondent pas.',
-            'confirmation_mot_de_passe.required_with' => 'La confirmation est requise.',
         ]);
-
         $fs = new FormationSanitaire();
         $fs->nom = $this->nom;
         $fs->nb_asc = $this->nb_asc;
         $fs->district_id = $this->district_id;
-        $fs->save();
-
-        if (!empty($this->username)) {
-            $utilisateur = new Utilisateur();
-            $utilisateur->username = $this->username;
-            $utilisateur->password = Hash::make($this->mot_de_passe);
-            $utilisateur->etat = 'actif';
-            $utilisateur->role_id = 4;
-            $utilisateur->entity_id = $fs->id;
-            $utilisateur->entity_type = FormationSanitaire::class;
-            $utilisateur->doit_renitialiser_pwd = true;
-            $utilisateur->save();
-        }
-
-        $this->reset(['nom', 'district_id', 'username', 'mot_de_passe', 'confirmation_mot_de_passe']);
-
+        $fs->save();$this->reset(['nom', 'district_id', 'nb_asc']);
         session()->flash('message', 'Formation sanitaire ajoutée avec succès !');
-
         $this->afficherTableau();
     }
 
     public function update()
     {
         $this->validate([
-            'nomEdition' => 'required|string|max:255|unique:formations_sanitaires,nom,' . $this->idEdition,
+            'nomEdition' => 'required|string|max:255',
             'nb_ascEdition' => 'required|integer|min:0',
             'districtIdEdition' => 'required|exists:districts,id',
         ], [
             'nomEdition.required' => 'Le nom est obligatoire.',
-            'nomEdition.unique' => 'Cette formation sanitaire existe déjà.',
             'nb_ascEdition.required' => 'Le nombre d\'ASC est obligatoire.',
             'nb_ascEdition.integer' => 'Le nombre d\'ASC doit être un entier.',
             'nb_ascEdition.min' => 'Le nombre d\'ASC ne peut pas être négatif.',
@@ -132,12 +104,10 @@ class Fs extends Component
             $fs->nb_asc = $this->nb_ascEdition;
             $fs->district_id = $this->districtIdEdition;
             $fs->save();
-
             session()->flash('message', 'Formation sanitaire mise à jour avec succès !');
             $this->afficherTableau();
         }
     }
-
     public function delete($id)
     {
         $fs = FormationSanitaire::find($id);
@@ -150,9 +120,7 @@ class Fs extends Component
                 $utilisateur->etat = 'suspendu';
                 $utilisateur->save();
             }
-
             $fs->delete();
-
             session()->flash('message', 'Formation sanitaire supprimée avec succès !');
         }
     }
