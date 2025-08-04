@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->string('email')->unique();
             $table->string('username');
             $table->string('password');
-            $table->enum('etat', ['actif', 'suspendu'])->default('actif');
+            $table->enum('etat', ['inactif','actif', 'suspendu'])->default('inactif');
             $table->foreignId('role_id')
                 ->constrained('roles')
                 ->default(4);

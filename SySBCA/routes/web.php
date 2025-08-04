@@ -3,7 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Vues;
 use Illuminate\Support\Facades\Route;
-
+use App\Livewire\Utilisateurs;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -23,7 +23,8 @@ Route::middleware(['is_autenticated', 'is_suspended'])->group(function () {
     });
     Route::get('/dashboard', [Vues::class, 'dashboard'])->name('dashboard');
 });
-
+Route::get('/utilisateur/verification', Utilisateurs::class)
+    ->name('activation.compte');
 
 
 

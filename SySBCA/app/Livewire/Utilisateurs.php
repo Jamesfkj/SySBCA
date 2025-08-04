@@ -6,12 +6,15 @@ use Illuminate\Validation\Rules\Exists;
 use Livewire\Component;
 use App\Models\Region;
 use App\Models\District;
+use Illuminate\Support\Facades\URL;
 use App\Models\FormationSanitaire;
 use App\Models\Role;
 use App\Models\Utilisateur;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\UserCheckMail;
 
 class Utilisateurs extends Component
 {
@@ -21,7 +24,7 @@ class Utilisateurs extends Component
     public $districts = [];
     public $formationsSanitaires = [];
     public $recherche = '';
-
+    public $mailerSendService;
     public $username;
     public $email;
     public $mot_de_passe;
@@ -117,18 +120,28 @@ class Utilisateurs extends Component
         $utilisateur->email = $this->email;
         $utilisateur->username = $this->username;
         $utilisateur->password = Hash::make($this->mot_de_passe);
-        $utilisateur->etat = 'actif';
+        $utilisateur->etat = 'inactif';
         $utilisateur->role_id = $this->role_id;
-
         $role = Role::find($this->role_id);
         $nomRole = Str::lower($role->nom_role);
-
         $this->assignEntity($utilisateur, $nomRole, $this->zone_sanitaire);
-
+        Mail::to($utilisateur->email)->send(new UserCheckMail($utilisateur));
         $utilisateur->save();
-
         session()->flash('message', 'Utilisateur créé avec succès !');
         $this->afficherTableau();
+    }
+
+
+    public function envoyerBienvenue($id)
+    {
+        $utilisateur = Utilisateur::findOrFail($id);
+        $this->mailerSendService->envoyerMail(
+            $utilisateur->email,
+            $utilisateur->username,
+            'Bienvenue sur la plateforme !',
+            $utilisateur
+        );
+        return back()->with('message', 'Email de bienvenue envoyé avec succès !');
     }
 
     public function updateUtilisateur()
@@ -165,9 +178,7 @@ class Utilisateurs extends Component
 
         $role = Role::find($this->roleIdEdition);
         $nomRole = Str::lower($role->nom_role);
-
         $this->assignEntity($utilisateur, $nomRole, $this->zone_sanitaireEdition, $this->idEdition);
-
         $utilisateur->save();
 
         session()->flash('message', 'Utilisateur modifié avec succès !');
@@ -248,11 +259,11 @@ class Utilisateurs extends Component
             ->when($this->recherche, function ($query) {
                 $query->where(function ($q) {
                     $q->where('username', 'like', "%{$this->recherche}%")
-                      ->orWhere('etat', 'like', "%{$this->recherche}%")
-                      ->orWhereDate('created_at', 'like', "%{$this->recherche}%")
-                      ->orWhereDate('updated_at', 'like', "%{$this->recherche}%")
-                      ->orWhereHas('role', fn($q) => $q->where('nom_role', 'like', "%{$this->recherche}%"))
-                      ->orWhereHas('entity', fn($q) => $q->where('nom', 'like', "%{$this->recherche}%"));
+                        ->orWhere('etat', 'like', "%{$this->recherche}%")
+                        ->orWhereDate('created_at', 'like', "%{$this->recherche}%")
+                        ->orWhereDate('updated_at', 'like', "%{$this->recherche}%")
+                        ->orWhereHas('role', fn($q) => $q->where('nom_role', 'like', "%{$this->recherche}%"))
+                        ->orWhereHas('entity', fn($q) => $q->where('nom', 'like', "%{$this->recherche}%"));
                 });
             })
             ->orderBy('etat')

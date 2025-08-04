@@ -34,5 +34,11 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'mailersend' => [
+        'token' => env('MAILERSEND_TOKEN'),
+        'from_email' => env('MAILERSEND_FROM_EMAIL'),
+        'from_name' => env('MAILERSEND_FROM_NAME'),
+    ],
+
 
 ];

@@ -50,7 +50,8 @@
                 <button wire:click="afficherTableau"
                     class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
                     <span class="flex items-center gap-2">
-                        <div class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 text-blue-500 shadow">
+                        <div
+                            class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 text-blue-500 shadow">
                             <i class="bi bi-eye"></i>
                         </div>Voir la liste
                     </span>
@@ -61,7 +62,8 @@
                 <button wire:click="afficherFormulaire"
                     class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
                     <span class="flex items-center gap-2">
-                        <div class="w-7 h-7 flex items-center justify-center rounded-full bg-white text-blue-600 shadow">
+                        <div
+                            class="w-7 h-7 flex items-center justify-center rounded-full bg-white text-blue-600 shadow">
                             <i class="bi bi-plus"></i>
                         </div>Ajouter un utilisateur
                     </span>
@@ -78,7 +80,7 @@
                 <table class="min-w-full border-collapse">
                     <thead class="sticky top-0 bg-white z-10">
                         <tr class="bg-gray-100">
-                            
+
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Email</th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Nom d'utilisateur
                             </th>
@@ -95,11 +97,19 @@
                             <tr class="border-b hover:bg-gray-50">
                                 <td class="px-6 py-4 text-blue-900">{{ $utilisateur->email }}</td>
                                 <td class="px-6 py-4 text-blue-900">{{ $utilisateur->username }}</td>
-                                <td class="px-6 py-4 text-blue-900">{{ ucfirst($utilisateur->role->nom_role ?? 'N/A') }}</td>
-                                <td class="px-6 py-4 text-blue-900">{{ ucfirst($utilisateur->entity->nom ?? 'N/A') }}</td>
+                                <td class="px-6 py-4 text-blue-900">{{ ucfirst($utilisateur->role->nom_role ?? 'N/A') }}
+                                </td>
+                                <td class="px-6 py-4 text-blue-900">{{ ucfirst($utilisateur->entity->nom ?? 'N/A') }}
+                                </td>
                                 <td class="px-6 py-4">
-                                    <span
-                                        class="px-2 py-1 text-xs font-semibold rounded-full {{ $utilisateur->etat === 'actif' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                    @php
+                                        $classe = match ($utilisateur->etat) {
+                                            'actif' => 'bg-green-100 text-green-800',
+                                            'inactif' => 'bg-yellow-100 text-yellow-800',
+                                            default => 'bg-red-100 text-red-800',
+                                        };
+                                    @endphp
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $classe }}">
                                         {{ ucfirst($utilisateur->etat) }}
                                     </span>
                                 </td>
@@ -139,14 +149,15 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-6 py-4 text-center text-gray-500">Aucun utilisateur trouvé.</td>
+                                <td colspan="7" class="px-6 py-4 text-center text-gray-500">Aucun utilisateur trouvé.
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         @endif
-       <!-- FORMULAIRE DE CRÉATION -->
+        <!-- FORMULAIRE DE CRÉATION -->
         @if ($afficherFormulaireCreation)
             <div class="bg-white shadow-lg rounded-lg p-6">
                 <form wire:submit.prevent="create">
@@ -274,7 +285,8 @@
                             }
                         @endphp
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-blue-900">{{ $role_choisiEdition->nom_role }}</label>
+                            <label
+                                class="block text-sm font-medium text-blue-900">{{ $role_choisiEdition->nom_role }}</label>
                             <select wire:model="zone_sanitaireEdition"
                                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-blue-900">
                                 <option>-- Sélectionnez {{ $role_choisiEdition->nom_role }} --</option>
