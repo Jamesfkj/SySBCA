@@ -10,11 +10,12 @@ use Illuminate\Support\Facades\URL;
 use App\Models\FormationSanitaire;
 use App\Models\Role;
 use App\Models\Utilisateur;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\UserCheckMail;
+use Illuminate\Support\Facades\Hash;
 
 class Utilisateurs extends Component
 {
@@ -91,7 +92,6 @@ class Utilisateurs extends Component
         $this->validate([
             'email' => 'required|email|unique:utilisateurs,email|max:255',
             'username' => 'required|string|max:255',
-            'mot_de_passe' => 'required|string|min:6|same:confirmation_mot_de_passe',
             'role_id' => 'required|exists:roles,id',
             'zone_sanitaire' => [
                 Rule::requiredIf(function () {
@@ -107,9 +107,6 @@ class Utilisateurs extends Component
             'email.unique' => "Cette adresse e-mail est déjà utilisée.",
             'email.max' => "L'adresse e-mail ne doit pas dépasser 255 caractères.",
             'username.required' => "Le nom d'utilisateur est obligatoire.",
-            'mot_de_passe.required' => 'Le mot de passe est obligatoire.',
-            'mot_de_passe.min' => 'Le mot de passe doit contenir au moins 6 caractères.',
-            'mot_de_passe.same' => 'La confirmation du mot de passe ne correspond pas.',
             'role_id.required' => 'Le rôle est obligatoire.',
             'role_id.exists' => 'Le rôle sélectionné est invalide.',
             'zone_sanitaire.required' => 'La zone sanitaire est obligatoire pour les rôles District ou Formation sanitaire.',
@@ -119,13 +116,15 @@ class Utilisateurs extends Component
         $utilisateur = new Utilisateur();
         $utilisateur->email = $this->email;
         $utilisateur->username = $this->username;
-        $utilisateur->password = Hash::make($this->mot_de_passe);
+        $utilisateur->password = Hash::make(Str::random(8));
         $utilisateur->etat = 'inactif';
         $utilisateur->role_id = $this->role_id;
+        $utilisateur->doit_renitialiser_pwd = true;
         $role = Role::find($this->role_id);
         $nomRole = Str::lower($role->nom_role);
         $this->assignEntity($utilisateur, $nomRole, $this->zone_sanitaire);
-        Mail::to($utilisateur->email)->send(new UserCheckMail($utilisateur));
+        $utilisateur->remember_token = Str::random(64);
+        Mail::to($utilisateur->email)->send(new UserCheckMail($utilisateur, $this->mot_de_passe));
         $utilisateur->save();
         session()->flash('message', 'Utilisateur créé avec succès !');
         $this->afficherTableau();

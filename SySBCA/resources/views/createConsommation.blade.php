@@ -84,39 +84,35 @@
 
 <body>
     <div class="email-container">
-        <h1>Bienvenue {{ $utilisateur->username }}</h1>
-
+        <h1>Bonjour {{ $utilisateur->username }} !</h1>
         <p>
-            Vous avez été enregistré sur la plateforme de collecte des données sur la consommation
-            et les besoins en médicaments antipaludiques des formations sanitaires et des agents de santé
-            communautaires.
+            Vous avez crée une nouvelle consommation sur la plateforme pour la formation sanitaire
+            <strong>{{ $conso->fs->nom }}</strong>.
+        </p>
+        <p>
+            Détails de la consommation :
+        </p>
+        <ul style="font-size:15px; line-height:1.6; margin-bottom:15px; padding-left:20px;">
+            <li><strong>Acteur concerné :</strong> {{ $conso->acteur }}</li>
+            <li><strong>Période :</strong> {{ $conso->periode->nom }}</li>
+            <li><strong>Date de création :</strong> {{ $conso->created_at->format('d/m/y H:i') }}</li>
+        </ul>
+        <p>
+            Nous vous invitons à vous connecter à la plateforme pour consulter ou et soumettre votre consommation au niveau district pour la validation.
+        </p>
+        <p>
+            Cette notification est générée automatiquement dans le cadre du suivi des consommations. 
         </p>
 
         <p>
-            Cette plateforme développée par le <strong>PNLP</strong> vise à renforcer le suivi de la disponibilité
-            des médicaments essentiels, afin d’améliorer la planification et la réponse aux besoins du terrain.
-        </p>
-
-        <h2>Activez votre compte :</h2>
-
-        <div class="btn-wrapper">
-            <a href="{{ route('activation.compte', $token) }}" class="btn" target="_blank" rel="noopener noreferrer">
-                Activer mon compte
-            </a>
-        </div>
-
-        <p>
-            En cliquant sur ce bouton, vous confirmerez votre adresse email et pourrez accéder à votre espace personnel.
-        </p>
-
-        <p>
-            Bien cordialement,<br>
-            <strong>L’équipe PNLP</strong>
+            Cordialement,<br>
+            <strong>L’équipe du PNLP</strong>
         </p>
 
         <div class="footer">
             &copy; {{ date('Y') }} PNLP - Tous droits réservés.
         </div>
+
     </div>
 </body>
 

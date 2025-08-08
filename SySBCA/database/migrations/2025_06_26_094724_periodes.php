@@ -16,8 +16,7 @@ return new class extends Migration
             $table->string('nom')->unique();
             $table->string('mois_debut');
             $table->string('mois_fin');
-            $table->string('annee');
-            $table->enum('etat', ['actif', 'cloturée' ,'inactif'])->default('inactif'); 
+            $table->string('annee'); 
             $table->timestamps();
         });
     }

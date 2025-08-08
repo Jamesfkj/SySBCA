@@ -17,7 +17,7 @@ class is_suspended
     {
         if (auth()->check() && auth()->user()->etat != 'actif') {
             auth()->logout();
-            return abort(403, 'Compte suspendu.');
+            return abort(403, 'NON AUTHORIZE.');
         }
         return $next($request);
     }

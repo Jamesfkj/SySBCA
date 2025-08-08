@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Vues;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Utilisateurs;
+use App\Http\Controllers\ActivateUser;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -23,8 +24,9 @@ Route::middleware(['is_autenticated', 'is_suspended'])->group(function () {
     });
     Route::get('/dashboard', [Vues::class, 'dashboard'])->name('dashboard');
 });
-Route::get('/utilisateur/verification', Utilisateurs::class)
+Route::get('/activation-compte/{token}', [ActivateUser::class, 'showActivate'])
     ->name('activation.compte');
+Route::post('/definir-password/{id}', [ActivateUser::class, 'defineNewPassword'])->name('definir.password');
 
 
 

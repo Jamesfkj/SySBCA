@@ -25,15 +25,6 @@
 
             <form class="space-y-5" method="POST" action="{{ route('login') }}">
                 @csrf
-                <!--<div>
-                    <label for="username" class="block text-teal-700 font-semibold mb-1">Nom d'utilisateur</label>
-                    <input type="text" id="username" name="username" :value="old('username')" required autofocus
-                        placeholder="Nom d'utilisateur"
-                        class="w-full border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600">
-                    <x-input-error :messages="$errors->get('username')"
-                        class="mt-2 text-bold text-red-500 bg-white rounded-full text-center" />
-                </div>
-            -->
                 <div>
                     <label for="email" class="block text-teal-700 font-semibold mb-1">Email</label>
                     <input type="text" id="email" name="email" :value="old('email')" required autofocus

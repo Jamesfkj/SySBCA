@@ -7,7 +7,7 @@
         </div>
     @endif
 
-    <div wire:loading wire:target="afficherFormulaire,afficherEdition,afficherTableau,create,updateUtilisateur,delete"
+    <div wire:loading wire:target="afficherFormulaire,afficherEdition,suspendre,afficherTableau,reactiver,create,updateUtilisateur,delete"
         class="absolute top-0 left-0 w-full h-1 bg-teal-600 animate-progress-bar z-20">
     </div>
 
@@ -207,25 +207,7 @@
                             @enderror
                         </div>
                     @endif
-                    <!-- Mot de passe -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-blue-900">Mot de passe</label>
-                        <input type="password" wire:model="mot_de_passe"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-blue-900">
-                        @error('mot_de_passe')
-                            <span class="text-red-600">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <!-- Confirmation mot de passe -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-blue-900">Confirmer le mot de passe</label>
-                        <input type="password" wire:model="confirmation_mot_de_passe"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-blue-900">
-                        @error('confirmation_mot_de_passe')
-                            <span class="text-red-600">{{ $message }}</span>
-                        @enderror
-                    </div>
+                   
                     <button type="submit"
                         class="w-full mt-4 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200">
                         Enregistrer

@@ -12,13 +12,14 @@ class UserCheckMail extends Mailable
     use Queueable, SerializesModels;
 
     public $utilisateur;
-    public $id;
+    public $token;
     public $lienActivation;
-    public function __construct($utilisateur)
+    public $password;
+    public function __construct($utilisateur, $password)
     {
+        $this->password = $password;
         $this->utilisateur = $utilisateur;
-        $this->id = Crypt::encrypt($utilisateur->id);
-        $this->lienActivation = url('http://127.0.0.1:8000/login/' . $this->id);
+        $this->token = $utilisateur->remember_token;
     }
 
     /**
@@ -27,10 +28,10 @@ class UserCheckMail extends Mailable
     public function build(): static
     {
         return $this->subject('Bienvenue sur notre plateforme')
-                    ->view('userCheckMail')
-                    ->with([
-                        'utilisateur' => $this->utilisateur,
-                        'lienActivation' => $this->lienActivation,
-                    ]);
+            ->view('userCheckMail')
+            ->with([
+                'utilisateur' => $this->utilisateur,
+                'token' => $this->token,
+            ]);
     }
 }
