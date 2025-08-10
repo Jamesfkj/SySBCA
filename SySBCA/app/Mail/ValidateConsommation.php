@@ -9,11 +9,13 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class CreateConsommation extends Mailable
+class ValidateConsommation extends Mailable
 {
     use Queueable, SerializesModels;
+
     public $utilisateur;
     public $conso;
+    public $destinataireType;
     public function __construct($utilisateur, $conso)
     {
         $this->utilisateur = $utilisateur;
@@ -22,12 +24,11 @@ class CreateConsommation extends Mailable
 
     public function build(): static
     {
-        return $this->subject('Création de consommation')
-                    ->view('createConsommation')
+        return $this->subject('Validation de consommation')
+                    ->view('validateConsommation')
                     ->with([
                         'utilisateur' => $this->utilisateur,
                         'conso' => $this->conso,
                     ]);
     }
-
 }

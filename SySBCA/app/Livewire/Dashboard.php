@@ -159,14 +159,11 @@ class Dashboard extends Component
         $mois = now()->month;
         $year = now()->year;
         $trimestre = ceil($mois / 3);
-
         $nomPeriode = "T{$trimestre} {$year}";
         $this->periode = $nomPeriode;
-        // Calculer la date limite pour la promptitude
         $dernierMoisTrimestre = $trimestre * 3;
         $dernierJourMois = Carbon::createFromDate($year, $dernierMoisTrimestre, 1)->endOfMonth()->day;
         $this->prompt_date = Carbon::createFromDate($year, $dernierMoisTrimestre, $dernierJourMois);
-
         // Charger toutes les périodes
         $this->periodes_all = Periode::orderByDesc('id')->get();
         
@@ -244,11 +241,9 @@ class Dashboard extends Component
             ->where('periode_id', $periodeId)
             ->where('submitted_at', '<=', $this->prompt_date);
 
-        // Appliquer le filtre formation sanitaire si sélectionné
         if ($this->fs_search) {
             $query->where('formation_sanitaire_id', $this->fs_search);
         }
-
         return $query->count();
     }
 

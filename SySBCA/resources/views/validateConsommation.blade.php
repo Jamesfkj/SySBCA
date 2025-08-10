@@ -3,8 +3,8 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Création de consommation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Validation de consommation - PNLP</title>
     <style>
         body {
             margin: 0;
@@ -29,12 +29,6 @@
             margin-bottom: 20px;
         }
 
-        h2 {
-            font-size: 18px;
-            margin: 30px 0 10px;
-            color: #222;
-        }
-
         p {
             font-size: 15px;
             line-height: 1.6;
@@ -50,22 +44,6 @@
 
         ul.details li {
             margin-bottom: 6px;
-        }
-
-        .btn-wrapper {
-            text-align: center;
-            margin: 30px 0;
-        }
-
-        .btn {
-            background-color: #0f766e;
-            color: #ffffff !important;
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            text-decoration: none;
-            display: inline-block;
         }
 
         .footer {
@@ -84,11 +62,6 @@
             h1 {
                 font-size: 20px;
             }
-
-            .btn {
-                font-size: 15px;
-                padding: 10px 20px;
-            }
         }
     </style>
 </head>
@@ -97,32 +70,42 @@
     <div class="email-container">
         <h1>Bonjour {{ $utilisateur->username }} !</h1>
 
-        <p>
-            Vous avez créé une nouvelle consommation sur notre plateforme.
-        </p>
+        @if($utilisateur->role->nom_role === 'district')
+            <p>
+                La consommation suivante a été validée et est maintenant accessible pour votre district.
+            </p>
+        @elseif($utilisateur->role->nom_role === 'formation_sanitaire')
+            <p>
+                Votre consommation a été validée par le district et est désormais prise en compte dans le suivi global.
+            </p>
+        @else
+            <p>
+                La consommation a été validée.
+            </p>
+        @endif
 
-        <p>
-            Détails de la consommation :
-        </p>
+        <p>Détails de la consommation validée :</p>
 
         <ul class="details">
             <li><strong>Formation sanitaire :</strong> {{ $conso->formationSanitaire->nom ?? 'N/A' }}</li>
             <li><strong>Acteur concerné :</strong> {{ $conso->acteur ?? 'N/A' }}</li>
             <li><strong>Période :</strong> {{ $conso->periode->nom ?? 'N/A' }}</li>
-            <li><strong>Date de création :</strong> {{ optional($conso->created_at)->format('d/m/y H:i') ?? 'N/A' }}</li>
+            <li><strong>Date de validation :</strong> {{ optional($conso->validated_at ?? $conso->updated_at)->format('d/m/Y H:i') ?? 'N/A' }}</li>
         </ul>
 
-        <p>
-            Nous vous invitons à vous connecter à la plateforme pour consulter ou soumettre votre consommation au niveau district pour la validation.
-        </p>
-
-        <p>
-            Cette notification est générée automatiquement dans le cadre du suivi des consommations.
-        </p>
+        @if($utilisateur->role->nom_role === 'district')
+            <p>
+                Vous pouvez consulter les détails de cette consommation dans votre espace district.
+            </p>
+        @elseif($utilisateur->role->nom_role === 'formation_sanitaire')
+            <p>
+                Merci de continuer à suivre les prochaines étapes de la gestion de votre consommation.
+            </p>
+        @endif
 
         <p>
             Cordialement,<br />
-            <strong>L’équipe du PNLP</strong>
+            <strong>L’équipe PNLP</strong>
         </p>
 
         <div class="footer">

@@ -9,7 +9,7 @@
     @endif
     <!-- Barre de chargement -->
     <div wire:loading
-        wire:target="afficherFormulaire,exporterPDF,previousSlide,afficherTableau,nextSlide,filtrerParPériode,ajouterConsommation,renitialiserMedicament,toggleHiddenCards,ajouterMedicament,showEditInput,activerEdition,choix,chargerDepuisSession,chargerMedicaments,chercherConsommations,soumettreConsommation,enregistrerQteAccorde"
+        wire:target="afficherFormulaire,exporterPDF,previousSlide,afficherTableau,nextSlide, validerConsommation, filtrerParPériode,ajouterConsommation,renitialiserMedicament,toggleHiddenCards,ajouterMedicament,showEditInput,activerEdition,choix,chargerDepuisSession,chargerMedicaments,chercherConsommations,soumettreConsommation,enregistrerQteAccorde"
         class="absolute top-0 left-0 w-full h-1 bg-teal-600 animate-progress-bar z-20">
     </div>
     <!-- En-tête -->
@@ -80,112 +80,542 @@
     @endif
     <div class="bg-white">
         @if ($tableauVisible)
-            <button id="toggleButton" onclick="toggleInstructions()"
-                class="flex items-center gap-2 text-teal-600 text-decoration-underline">
-                <span id="buttonText">Masquer les instructions</span>
-                <svg id="arrowIcon" class="w-4 h-4 transition-transform duration-300" fill="none"
-                    stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-            </button>
-            <div class="flex justify-between">
-                <div id="instructionsDiv" class="overflow-x-auto transition-all duration-300 ease-in-out mb-1"
-                    style="max-height: 200px; opacity: 1">
-                    <div class="gap-2 items-center bg-gray-50 border border-gray-200 px-4 py-3 rounded-lg shadow-sm">
-                        <p class="text-sm text-gray-700">
-                            * Filtrer les données de la table en changeant la période et le type de structure entre FS
-                            et
-                            ASC.
-                            </p">
-                            @if (auth()->check() && auth()->user()->role->nom_role === 'District')
-                                <p class="text-sm text-gray-700">* Cliquer sur le petit bic pour enrégistrer ou modifier
-                                    la
-                                    quantité
-                                    accordée.</p>
+            <div
+                class="relative bg-gradient-to-r from-white via-blue-50 to-indigo-50 border border-blue-100 px-6 py-4 rounded-xl shadow-lg backdrop-blur-sm">
+                <!-- Ligne décorative supérieure -->
+                <div
+                    class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 via-indigo-500 to-blue-600 rounded-t-xl">
+                </div>
+                <div class="flex justify-between">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="flex items-center gap-3 text-sm font-medium text-gray-700">
+                                @if (auth()->check() && in_array(auth()->user()->role->nom_role, ['District', 'Administrateur']))
+                                    <div
+                                        class="flex items-center gap-2 bg-white/70 px-3 py-1.5 rounded-lg border border-blue-200/50 shrink-0">
+                                        <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                                            </path>
+                                        </svg>
+
+                                        <span class="text-blue-800 font-bold truncate max-w-[150px]"
+                                            title="{{ $fs_choisie->nom }}">{{ $fs_choisie->nom }}</span>
+                                    </div>
+                                    <div
+                                        class="w-px h-6 bg-gradient-to-b from-transparent via-blue-300 to-transparent shrink-0">
+                                    </div>
+                                @endif
+
+                                <div
+                                    class="flex items-center gap-2 bg-white/70 px-3 py-1.5 rounded-lg border border-blue-200/50 shrink-0">
+                                    <svg class="w-4 h-4 text-indigo-600 shrink-0" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                                        </path>
+                                    </svg>
+                                    <span class="text-gray-600 whitespace-nowrap">Structure :</span>
+                                    <span class="text-indigo-800 font-bold">{{ $structure_defaut }}</span>
+                                </div>
+
+                                <div
+                                    class="w-px h-6 bg-gradient-to-b from-transparent via-blue-300 to-transparent shrink-0">
+                                </div>
+
+                                <div
+                                    class="flex items-center gap-2 bg-white/70 px-3 py-1.5 rounded-lg border border-blue-200/50 shrink-0">
+                                    <svg class="w-4 h-4 text-green-600 shrink-0" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                        </path>
+                                    </svg>
+                                    <span class="text-gray-600 whitespace-nowrap">Période :</span>
+                                    <span class="text-green-800 font-bold truncate max-w-[120px]"
+                                        title="{{ $periode_actuelle->nom }}">{{ $periode_actuelle->nom }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Deuxième ligne : Contrôles de filtrage -->
+                    <div class="flex items-center justify-end">
+                        <div class="flex items-center gap-1">
+
+                            @if (auth()->check() && in_array(auth()->user()->role->nom_role, ['District', 'Administrateur']))
+                                <div class="">
+                                    <select wire:model="fs" wire:change="chercherConsommations"
+                                        class="w-32 bg-white border border-blue-300 text-blue-900 text-sm rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
+                                        @foreach ($formation_sanitaire as $fs)
+                                            <option value="{{ $fs->id }}">{{ $fs->nom }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
+                                </div>
                             @endif
+
+                            <div class="">
+                                <select wire:model="structure_defaut" wire:change="chercherConsommations"
+                                    class="w-20 bg-white border border-blue-300 text-blue-900 text-sm rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer text-center">
+                                    <option value="FS">FS</option>
+                                    <option value="ASC">ASC</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <div class="">
+                                <select wire:model="periode_search" wire:change="chercherConsommations"
+                                    class="w-64 bg-white border border-blue-300 text-blue-900 text-sm rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
+                                    @foreach ($periodes_all as $periode)
+                                        <option value="{{ $periode->id }}">
+                                            {{ $periode->nom }} : {{ $periode->mois_debut }}-{{ $periode->mois_fin }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 text-[15px] text-gray-600">
-                    @if (auth()->check() && in_array(auth()->user()->role->nom_role, ['District', 'Administrateur']))
-                        <p>
-                            Formation sanitaire :
-                            <span class="text-blue-900 font-semibold">{{ $fs_choisie->nom }}</span>
-                        </p>
-                        <span>|</span>
-                    @endif
-                    <p>
-                        Structure :
-                        <span class="text-blue-900 font-semibold">{{ $structure_defaut }}</span>
-                    </p>
-                    <span>|</span>
-                    <p>
-                        Période :
-                        <span class="text-blue-900 font-semibold">{{ $periode_actuelle->nom }}</span>
-                    </p>
-                </div>
-            </div>
-            <div class="flex justify-between bg-gray-50  px-4 py-3 rounded-lg shadow-sm">
-                <select id="medicamentSelector"
-                    class=" p-2 border rounded-full w-72 focus:ring-1 focus:border-teal-600">
-                    @foreach ($consommations_all as $index => $consommation)
-                        @php
-                            $estCachee =
-                                $consommation->cmma == 0 &&
-                                $consommation->stock_securite == 0 &&
-                                $consommation->cmd_trim_svt == 0;
-                        @endphp
-                        @if (!$estCachee || $showHiddenCards)
-                            <option value="{{ $loop->index }}">{{ $consommation->medicament->nom }}</option>
-                        @endif
-                    @endforeach
-                </select>
-
-                <div class="flex items-center gap-2">
-                    @if (auth()->check() && in_array(auth()->user()->role->nom_role, ['District', 'Administrateur']))
-                        <select wire:model="fs" wire:change="chercherConsommations"
-                            class="w-44 bg-blue-100 rounded-full border font-bold border-gray-400 text-blue-900 focus:outline-none focus:ring-teal-600">
-                            @foreach ($formation_sanitaire as $fs)
-                                <option value="{{ $fs->id }}">{{ $fs->nom }}</option>
-                            @endforeach
-                        </select>
-                    @endif
-                    <select wire:model="structure_defaut" wire:change="chercherConsommations"
-                        class="w-28 bg-blue-100 rounded-full border font-bold border-gray-400 text-blue-900 focus:outline-none focus:ring-blue-600">
-                        <option value="FS">FS</option>
-                        <option value="ASC">ASC</option>
-                    </select>
-
-                    <select wire:model="periode_search" wire:change="chercherConsommations"
-                        class="w-72 bg-blue-100 rounded-full border font-bold border-gray-400 text-blue-900 focus:outline-none focus:ring-blue-600">
-                        @foreach ($periodes_all as $periode)
-                            <option value="{{ $periode->id }}">
-                                {{ $periode->nom }} : {{ $periode->mois_debut }}-{{ $periode->mois_fin }}
-                            </option>
-                        @endforeach
-                    </select>
+                <!-- Effet de brillance subtil -->
+                <div
+                    class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent rounded-xl pointer-events-none">
                 </div>
             </div>
             @if ($this->conso)
-                <div class="flex justify-between items-center mb-4"
-                    wire:key="header-buttons-{{ $this->conso->id }}-{{ $this->etat }}">
-                    <div>
-                        <p class="text-gray-700 font-semibold">État de la consommation : {{ $this->conso->etat }}</p>
+                <div class="flex justify-between items-center mb-4 mt-4"
+                    wire:key="header-buttons-{{ $this->conso->id }}-{{ $this->conso->etat ?? 'inconnu' }}">
+
+                    <select id="medicamentSelector"
+                        class=" p-2 border rounded-full w-72 focus:ring-1 focus:border-teal-600">
+                        @foreach ($consommations_all as $index => $consommation)
+                            @php
+                                $cartesParPage = 2;
+                                $estCachee =
+                                    $consommation->cmma == 0 &&
+                                    $consommation->stock_securite == 0 &&
+                                    $consommation->cmd_trim_svt == 0;
+                            @endphp
+                            @if (!$estCachee || $showHiddenCards)
+                                <option value="{{ $loop->index }}">{{ $consommation->medicament->nom }}</option>
+                            @endif
+                        @endforeach
+                    </select>
+
+                    <div class="flex justify-center items-center gap-4">
+                        <div class="flex items-center gap-2">
+                            @php
+                                $visibleCards = $consommations_all->filter(function ($c) use ($showHiddenCards) {
+                                    return !($c->cmma == 0 && $c->stock_securite == 0 && $c->cmd_trim_svt == 0) ||
+                                        $showHiddenCards;
+                                });
+                                $totalPages = ceil($visibleCards->count() / 1);
+                                $currentPageNumber = floor(($currentSlide ?? 0) / 1) + 1;
+                            @endphp
+
+                            @for ($i = 0; $i < $totalPages; $i++)
+                                <button wire:click="setCurrentSlide({{ $i * 1 }})"
+                                    class="w-3 h-3 rounded-full transition-all duration-300 {{ floor(($currentSlide ?? 0) / 1) == $i ? 'bg-teal-600 w-8' : 'bg-gray-300 hover:bg-gray-400' }}">
+                                </button>
+                            @endfor
+                        </div>
+                        <div class="text-sm text-gray-500 font-medium">
+                            <span class="text-teal-600">{{ $currentPageNumber }}</span> / {{ $totalPages }}
+                        </div>
                     </div>
+                    <!-- Boutons -->
                     <div class="flex gap-2">
-                        <button wire:click="exporterPDF({{ $this->conso->id }})"
-                            class="bg-blue-100 hover:bg-blue-200 text-blue-800 font-normal py-1.5 px-4 rounded-full shadow flex items-center gap-1">
+                        <!-- Valider (District + soumis) -->
+                    </div>
+                </div>
+            @endif
+            <div class="overflow-hidden rounded-3xl">
+                <div class="flex transition-transform duration-500 ease-in-out"
+                    style="transform: translateX(-{{ ($currentSlide ?? 0) * 100 }}%)">
+                    @php$cardIndex = 0;
+                                                                                @endphp 
+                    @foreach ($visibleCards->chunk(1) as $cardPair)
+                        <div class="flex-shrink-0 min-w-full flex gap-4 px-2">
+                            @foreach ($cardPair as $consommation)
+                                @php
+                                    $user = auth()->user();
+                                    $role = $user?->role->nom_role;
+                                    $accordee = $consommation->qte_accordee;
+                                    $medicament_id = $consommation->medicament_id;
+                                    $consommation_id = $consommation->consommation_id;
+                                    $stock_theo =
+                                        $consommation->qte_en_stock -
+                                        $consommation->qte_utilisee -
+                                        $consommation->qte_retour_cameg -
+                                        $consommation->perte_avarie -
+                                        $consommation->perimee;
+                                    $perte_non_dec = $consommation->qte_restante - $stock_theo;
+
+                                @endphp
+
+                                <div
+                                    class="bg-white rounded-3xl border border-teal-600 overflow-hidden min-w-[70%] min-h-auto mx-auto" wire:key="consommation-{{ $consommation->consommation_id }}">
+                                    <!-- Header avec gradient -->
+                                    <div
+                                        class="bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-700 px-6 py-3 relative overflow-hidden">
+                                        <div
+                                            class="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-24 -mt-24">
+                                        </div>
+                                        <div
+                                            class="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16">
+                                        </div>
+                                        <div class="relative z-10">
+                                            <div class="flex items-center justify-between mb-4">
+                                                <div class="flex items-center gap-3">
+                                                    <div
+                                                        class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm text-white">
+                                                        {{ $consommation->medicament->code }}
+                                                    </div>
+                                                    <div>
+                                                        <h2 class="text-xl font-bold text-white mb-1">
+                                                            {{ $consommation->medicament->nom }}</h2>
+                                                        <p class="text-teal-100 text-sm">Consommation
+                                                            trimestrielle</p>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    class="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm font-medium">
+                                                    @if ($this->conso->etat == 'soumis')
+                                                        <i class="bi bi-clock mr-1"></i>En validation
+                                                    @elseif ($this->conso->etat == 'valide')
+                                                        <i class="bi bi-check-circle mr-1"></i>Validé
+                                                    @elseif ($this->conso->etat == 'en_cours')
+                                                        <i class="bi bi-x-circle-fill mr-1"></i>Non soumis
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="p-4 ">
+                                        <!-- Métriques principales -->
+                                        <div class="grid grid-cols-3 gap-6 mb-3">
+                                            <div
+                                                class="bg-slate-100 border-l-4 border-blue-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
+                                                <div class="flex items-center gap-3 mb-3">
+                                                    <div
+                                                        class="bg-blue-100 text-blue-600 w-10 h-10 flex items-center justify-center rounded-full shadow">
+                                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path
+                                                                d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4zM3 8a1 1 0 000 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a1 1 0 100-2H3zm8 6a1 1 0 11-2 0V9a1 1 0 112 0v5z" />
+                                                        </svg>
+                                                    </div>
+                                                    <span class="text-blue-700 ">Stock total en
+                                                        début</span>
+                                                </div>
+                                                <div class="text-3xl font-bold text-blue-700">
+                                                    {{ $consommation->qte_en_stock }}
+                                                </div>
+                                            </div>
+
+                                            <!-- Carte CMM ajustée -->
+                                            <div
+                                                class="bg-slate-100 border-l-4 border-orange-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
+                                                <div class="flex items-center gap-3 mb-3">
+                                                    <div
+                                                        class="bg-orange-100 text-orange-600 w-10 h-10 flex items-center justify-center rounded-full shadow">
+                                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd"
+                                                                d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z"
+                                                                clip-rule="evenodd" />
+                                                        </svg>
+                                                    </div>
+                                                    <span class="text-orange-700 ">CMM
+                                                        ajustée</span>
+                                                </div>
+                                                <div class="text-3xl font-bold text-orange-700">
+                                                    {{ $consommation->cmma }}
+                                                </div>
+                                            </div>
+
+                                            <!-- Carte Stock sécurité -->
+                                            <div
+                                                class="bg-slate-100 border-l-4 border-teal-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
+                                                <div class="flex items-center gap-3 mb-3">
+                                                    <div
+                                                        class="bg-teal-100 text-teal-600 w-10 h-10 flex items-center justify-center rounded-full shadow">
+                                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd"
+                                                                d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                                clip-rule="evenodd" />
+                                                        </svg>
+                                                    </div>
+                                                    <span class="text-teal-700">Stock de
+                                                        sécurité</span>
+                                                </div>
+                                                <div class="text-3xl font-bold text-teal-700">
+                                                    {{ $consommation->stock_securite }}
+                                                </div>
+                                            </div>
+
+                                            <!-- Carte Qté commandée -->
+                                            <div
+                                                class="bg-slate-100 border-l-4 border-gray-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
+                                                <div class="flex items-center gap-3 mb-3">
+                                                    <div
+                                                        class="bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center rounded-full shadow">
+                                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path
+                                                                d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                                                        </svg>
+                                                    </div>
+                                                    <span class="text-gray-700">Quantité
+                                                        commandée</span>
+                                                </div>
+                                                <div class="text-3xl font-bold text-gray-700">
+                                                    {{ $consommation->cmd_trim_svt }}
+                                                </div>
+                                            </div>
+                                            <div
+                                                class="bg-slate-100 border-l-4 border-indigo-800 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
+
+                                                <div class="flex items-center gap-3 mb-3">
+                                                    <div
+                                                        class="bg-indigo-200 text-indigo-800 w-10 h-10 flex items-center justify-center rounded-full shadow">
+                                                        <i class="bi bi-check2-square text-indigo-800 text-lg"></i>
+                                                    </div>
+                                                    <span class="text-indigo-800">Quantité accordée</span>
+                                                </div>
+
+                                                @if ($role === 'Formation sanitaire' && $this->conso->etat == 'soumis')
+                                                    <div class="text-indigo-800 text-lg font-medium">
+                                                        <i class="bi bi-hourglass-split mr-2"></i>En cours de
+                                                        validation...
+                                                    </div>
+                                                @elseif ($role === 'Formation sanitaire' && $this->conso->etat == 'en_cours')
+                                                    <div class="text-red-600 flex justify-center gap-2">
+                                                        <i class="bi bi-exclamation-triangle"></i>
+                                                        <p>Soumettre pour validation !</p>
+                                                    </div>
+                                                @elseif ($role === 'Formation sanitaire' && $this->conso->etat == 'valide')
+                                                    <div class="text-3xl font-bold text-indigo-800">
+                                                        {{ $accordee ?? 'Non validé' }}
+                                                    </div>
+                                                @elseif ($role === 'District')
+                                                    @if ($not_edit[$medicament_id])
+                                                        <div class="flex items-center justify-between w-full">
+                                                            <div class="text-3xl font-bold text-indigo-800">
+                                                                {{ $accordee ?? '--' }}
+                                                            </div>
+                                                            @if ($this->conso->etat == 'soumis')
+                                                                <button type="button"
+                                                                    wire:click="showEditInput({{ $medicament_id }}, {{ $consommation_id }})"
+                                                                    class="w-10 h-10 flex items-center justify-center bg-white rounded-lg hover:bg-gray-100 border border-gray-300 transition-colors">
+                                                                    <i class="bi bi-pen-fill text-indigo-800"></i>
+                                                                </button>
+                                                            @endif
+                                                        </div>
+                                                    @endif
+
+                                                    @if ($edit[$medicament_id])
+                                                        <form
+                                                            wire:submit.prevent="enregistrerQteAccorde({{ $consommation_id }}, {{ $consommation->medicament_id }})"
+                                                            class="mt-3 w-full">
+                                                            <div class="flex gap-3 items-center">
+                                                                <input type="number"
+                                                                    wire:model="quantites_accordees.{{ $medicament_id }}"
+                                                                    placeholder="Saisir quantité"
+                                                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+                                                                    min="0" step="1" required>
+                                                                <button type="submit"
+                                                                    class="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 text-sm font-medium border border-gray-300 transition-colors">
+                                                                    OK
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    @endif
+                                                @endif
+                                                @if ($role === 'Administrateur' && $this->conso->etat == 'valide')
+                                                    <div class="text-3xl font-bold text-indigo-800">
+                                                        {{ $accordee ?? 'Non validé' }}
+                                                    </div>
+                                                @endif
+                                            </div>
+
+                                            <!-- Différence ajout/retrait -->
+                                            @if (
+                                                !is_null($accordee) &&
+                                                    $accordee != $consommation->cmd_trim_svt &&
+                                                    !($role === 'Formation sanitaire' && $this->conso->etat !== 'valide'))
+                                                <div
+                                                    class="flex-1 p-4 bg-gradient-to-br from-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-50 to-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-100 rounded-xl border border-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-200">
+                                                    <div class="flex items-center gap-2 mb-3">
+                                                        <i
+                                                            class="bi bi-{{ $accordee > $consommation->cmd_trim_svt ? 'arrow-up-circle' : 'arrow-down-circle' }} text-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-600 text-xl"></i>
+                                                        <h3
+                                                            class="text-lg font-bold text-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-800">
+                                                            {{ $accordee > $consommation->cmd_trim_svt ? 'Ajout' : 'Retiré' }}
+                                                        </h3>
+                                                    </div>
+                                                    <div
+                                                        class="text-3xl font-bold text-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-800">
+                                                        {{ $accordee > $consommation->cmd_trim_svt ? '+' : '' }}{{ $accordee - $consommation->cmd_trim_svt }}
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div x-data="{ open: false }" class="flex flex-col" wire:ignore>
+                                            <div class="flex justify-center">
+                                                <button type="button" @click="open = !open"
+                                                    class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm rounded-lg transition-colors">
+                                                    <span x-text="open ? 'Voir moins' : 'Voir plus'"></span>
+                                                </button>
+                                            </div>
+                                            <div x-show="open" x-transition
+                                                class="details-section bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-4 border border-gray-200 mt-2">
+                                                <h3
+                                                    class="text-gray-800 font-bold text-lg mb-4 flex items-center gap-2">
+                                                    <div class="w-2 h-2 bg-teal-600 rounded-full"></div>
+                                                    Informations détaillées du trimestre
+                                                </h3>
+                                                <div class="grid grid-cols-2 gap-3 text-sm">
+                                                    <div
+                                                        class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                        <span class="text-gray-600 font-medium">Stock
+                                                            en début</span>
+                                                        <span
+                                                            class="font-bold text-gray-800">{{ $consommation->qte_dispo_deb_periode }}</span>
+                                                    </div>
+                                                    <div
+                                                        class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                        <span class="text-gray-600 font-medium">Quantité reçue
+                                                            durant</span>
+                                                        <span
+                                                            class="font-bold text-gray-800">{{ $consommation->qte_recu }}</span>
+                                                    </div>
+                                                    <div
+                                                        class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                        <span class="text-gray-600 font-medium">Quantité
+                                                            utilisée</span>
+                                                        <span
+                                                            class="font-bold text-gray-800">{{ $consommation->qte_utilisee }}</span>
+                                                    </div>
+                                                    <div
+                                                        class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                        <span class="text-gray-600 font-medium">Nombre de
+                                                            bénéficiaires</span>
+                                                        <span
+                                                            class="font-bold text-gray-800">{{ $consommation->nb_beneficiaire }}</span>
+                                                    </div>
+                                                    <div
+                                                        class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                        <span class="text-gray-600 font-medium">Périmé</span>
+                                                        <span
+                                                            class="font-bold text-gray-800">{{ $consommation->perimee }}</span>
+                                                    </div>
+                                                    <div
+                                                        class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                        <span class="text-gray-600 font-medium">Pertes et
+                                                            avariées</span>
+                                                        <span
+                                                            class="font-bold text-gray-800">{{ $consommation->perte_avarie }}</span>
+                                                    </div>
+                                                    <div
+                                                        class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                        <span class="text-gray-600 font-medium">Quantité retourné à la
+                                                            CAMEG</span>
+                                                        <span
+                                                            class="font-bold text-gray-800">{{ $consommation->qte_retour_cameg }}</span>
+                                                    </div>
+                                                    <div
+                                                        class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                        <span class="text-gray-600 font-medium">Nombre de jours de
+                                                            rupture</span>
+                                                        <span
+                                                            class="font-bold text-gray-800">{{ $consommation->nb_jour_rupture }}</span>
+                                                    </div>
+
+                                                </div>
+                                                <div class="grid grid-cols-3 gap-3 text-sm mt-4">
+                                                    <div
+                                                        class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                        <span class="text-gray-600 font-medium">Stock réel en
+                                                            fin</span>
+                                                        <span
+                                                            class="font-bold text-gray-800">{{ $consommation->qte_restante }}</span>
+                                                    </div>
+                                                    <div
+                                                        class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                        <span class="text-gray-600 font-medium">Stock théorique</span>
+                                                        <span
+                                                            class="font-bold text-gray-800">{{ $stock_theo }}</span>
+                                                    </div>
+                                                    <div
+                                                        class="flex justify-between items-center p-3 bg-white rounded-lg border 
+    {{ $perte_non_dec > 0 ? 'border-yellow-300' : 'border-red-200' }}">
+                                                        <span
+                                                            class="{{ $perte_non_dec > 0 ? 'text-yellow-600' : 'text-red-600' }} font-medium">
+                                                            Ecart
+                                                        </span>
+                                                        <span
+                                                            class="font-bold {{ $perte_non_dec > 0 ? 'text-yellow-600' : 'text-red-600' }}">
+                                                            {{ $perte_non_dec }}
+                                                        </span>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endforeach
+
+                    @if ($visibleCards->isEmpty())
+                        <div class="w-full flex-shrink-0">
+                            <div
+                                class="text-center text-gray-500 py-32 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+                                <i class="bi bi-inbox text-6xl text-gray-300 mb-4"></i>
+                                <p class="text-2xl font-medium text-gray-400 mb-2">Aucune consommation
+                                    enregistrée</p>
+                                <p class="text-gray-400">Les données apparaîtront ici une fois disponibles</p>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Boutons de navigation -->
+            <div class="flex justify-between items-center mt-8">
+                <button wire:click="previousSlide"
+                    class="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    {{ ($currentSlide ?? 0) <= 0 ? 'disabled' : '' }}>
+                    <i class="bi bi-chevron-left"></i>
+                    Précédent
+                </button>
+                @if ($conso)
+                    <div class="flex gap-3" wire:key="conso--{{$conso->id}}">
+                        <button wire:click="exporterPDF({{ $this->conso->id ?? 0 }})"
+                            class="bg-blue-600 text-white hover:bg-blue-800 font-normal py-1.5 px-4 rounded-full shadow flex items-center gap-1">
                             <i class="bi bi-download"></i> Exporter
                         </button>
-                        @if ($this->conso->etat === 'soumis' && auth()->check() && auth()->user()->role->nom_role === 'District')
+                        @if ($this->conso->etat === 'soumis' && auth()->check() && optional(auth()->user()->role)->nom_role === 'District')
                             <button wire:click="validerConsommation({{ $this->conso->id }})"
-                                class="bg-green-100 hover:bg-green-300 text-green-600 font-normal py-1.5 px-4 rounded-full shadow flex items-center gap-1">
+                                class="bg-green-600 hover:bg-green-700 text-white font-normal py-1.5 px-4 rounded-full shadow flex items-center gap-1">
                                 <i class="bi bi-check"></i> Valider
                             </button>
                         @endif
-                        @if ($this->conso->etat === 'en_cours' && auth()->check() && auth()->user()->role->nom_role === 'Formation Sanitaire')
+                        @if ($this->conso->etat === 'en_cours' && auth()->check() && auth()->user()->role->nom_role === 'Formation sanitaire')
                             <button wire:click="activerEdition({{ $this->conso->id }})"
-                                onclick="console.log('on a cliqué')"
-                                class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-normal py-1.5 px-4 rounded-full shadow flex items-center gap-1">
+                                class="bg-orange-500 hover:bg-orange-700 text-white font-normal py-1.5 px-4 rounded-full shadow flex items-center gap-1">
                                 <i class="bi bi-pencil-square"></i> Modifier
                             </button>
                             <button wire:click="soumettreConsommation({{ $this->conso->id }})"
@@ -194,698 +624,433 @@
                             </button>
                         @endif
                     </div>
-                </div>
-            @endif
-            <div class="relative w-full max-w-6xl mx-auto">
-                <!-- Indicateur de position -->
-                <div class="flex justify-center items-center gap-4 mb-6">
-                    <div class="flex items-center gap-2">
-                        @forelse ($consommations_all as $index => $consommation)
-                            @php
-                                $estCachee =
-                                    $consommation->cmma == 0 &&
-                                    $consommation->stock_securite == 0 &&
-                                    $consommation->cmd_trim_svt == 0;
-                            @endphp
-                            @if (!$estCachee || $showHiddenCards)
-                                <button wire:click="setCurrentSlide({{ $loop->index }})"
-                                    class="w-3 h-3 rounded-full transition-all duration-300 {{ $loop->index == ($currentSlide ?? 0) ? 'bg-teal-600 w-8' : 'bg-gray-300 hover:bg-gray-400' }}">
-                                </button>
-                            @endif
-                        @empty
-                        @endforelse
-                    </div>
-                    <div class="text-sm text-gray-500 font-medium">
-                        <span class="text-teal-600">{{ ($currentSlide ?? 0) + 1 }}</span> /
-                        {{ $consommations_all->where(function ($c) use ($showHiddenCards) {return !($c->cmma == 0 && $c->stock_securite == 0 && $c->cmd_trim_svt == 0) || $showHiddenCards;})->count() }}
-                    </div>
-                </div>
+                @endif
+                <button wire:click="nextSlide"
+                    class="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    @disabled(floor($currentSlide ?? 0) >= $totalPages - 1)>
+                    Suivant
+                    <i class="bi bi-chevron-right"></i>
+                </button>
 
-                <!-- Conteneur du carousel -->
-                <div class="relative overflow-hidden rounded-3xl">
-                    <div class="flex transition-transform duration-500 ease-in-out"
-                        style="transform: translateX(-{{ ($currentSlide ?? 0) * 100 }}%)">
-
-                        @forelse ($consommations_all as $index => $consommation)
-                            @php
-                                $estCachee =
-                                    $consommation->cmma == 0 &&
-                                    $consommation->stock_securite == 0 &&
-                                    $consommation->cmd_trim_svt == 0;
-                                $user = auth()->user();
-                                $role = $user?->role->nom_role;
-                                $accordee = $consommation->qte_accordee;
-                                $medicament_id = $consommation->medicament_id;
-                                $consommation_id = $consommation->consommation_id;
-                            @endphp
-
-                            @if (!$estCachee || $showHiddenCards)
-                                <div class="w-full flex-shrink-0 px-2">
-                                    <div
-                                        class="bg-white shadow-2xl rounded-3xl border border-gray-100 overflow-hidden h-full min-h-[600px]">
-
-                                        <!-- Header avec gradient -->
-                                        <div
-                                            class="bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-700 px-8 py-8 relative overflow-hidden">
-                                            <div
-                                                class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32">
-                                            </div>
-                                            <div
-                                                class="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24">
-                                            </div>
-
-                                            <div class="relative z-10">
-                                                <div class="flex items-center justify-between mb-4">
-                                                    <div class="flex items-center gap-4">
-                                                        <div
-                                                            class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                                                            <i class="bi bi-capsule text-white text-2xl"></i>
-                                                        </div>
-                                                        <div>
-                                                            <h1 class="text-3xl font-bold text-white mb-2">
-                                                                {{ $consommation->medicament->nom }}</h1>
-                                                            <p class="text-teal-100 text-lg">Consommation trimestrielle
-                                                            </p>
-                                                        </div>
-                                                    </div>
-
-
-                                                    <div
-                                                        class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white font-medium">
-                                                        @if ($this->conso->etat == 'soumis')
-                                                            <i class="bi bi-clock mr-2"></i>En validation
-                                                        @elseif ($this->conso->etat == 'valide')
-                                                            <i class="bi bi-check-circle mr-2"></i>Validé
-                                                        @elseif ($this->conso->etat == 'en_cours')
-                                                            <i class="bi bi-x-circle-fill mr-2"></i>Validé
-                                                        @endif
-                                                    </div>
-
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Contenu principal -->
-                                        <div class="p-8">
-                                            <!-- Métriques principales en grand -->
-                                            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-                                                <div
-                                                    class="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-200">
-                                                    <i class="bi bi-box text-blue-600 text-3xl mb-3"></i>
-                                                    <div class="text-4xl font-bold text-blue-800 mb-2">
-                                                        {{ $consommation->qte_en_stock }}</div>
-                                                    <div class="text-blue-600 font-semibold">Stock total en debut du
-                                                        trimestre</div>
-                                                </div>
-
-                                                <div
-                                                    class="text-center p-6 bg-gradient-to-br from-teal-50 to-teal-100 rounded-2xl border border-teal-200">
-                                                    <i class="bi bi-shield-check text-teal-600 text-3xl mb-3"></i>
-                                                    <div class="text-4xl font-bold text-teal-800 mb-2">
-                                                        {{ $consommation->stock_securite }}</div>
-                                                    <div class="text-teal-600 font-semibold">Stock de sécurité</div>
-                                                </div>
-
-                                                <div
-                                                    class="text-center p-6 bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl border border-orange-200">
-                                                    <i class="bi bi-graph-up text-orange-600 text-3xl mb-3"></i>
-                                                    <div class="text-4xl font-bold text-orange-800 mb-2">
-                                                        {{ $consommation->cmma }}</div>
-                                                    <div class="text-orange-600 font-semibold">CMM ajustée</div>
-                                                </div>
-
-                                                <div
-                                                    class="text-center p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200">
-                                                    <i class="bi bi-cart text-gray-600 text-3xl mb-3"></i>
-                                                    <div class="text-4xl font-bold text-gray-800 mb-2">
-                                                        {{ $consommation->cmd_trim_svt }}</div>
-                                                    <div class="text-gray-600 font-semibold">Quantité commandée</div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Section quantité accordée -->
-                                            <div class="mb-8">
-                                                <div class="flex gap-6">
-                                                    <!-- Quantité accordée -->
-                                                    <div
-                                                        class="@if (!is_null($accordee) && $accordee != $consommation->cmd_trim_svt) flex-1 @else w-full @endif p-6 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-2xl border border-indigo-200">
-                                                        <div class="flex items-center gap-3 mb-4">
-                                                            <i
-                                                                class="bi bi-check2-square text-indigo-600 text-2xl"></i>
-                                                            <h3 class="text-xl font-bold text-indigo-800">Quantité
-                                                                accordée par le District</h3>
-                                                        </div>
-
-                                                        @if ($role === 'Formation sanitaire' && $this->conso->etat !== 'valide')
-                                                            <div class="text-indigo-600 text-lg font-medium">
-                                                                <i class="bi bi-hourglass-split mr-2"></i>En cours de
-                                                                validation...
-                                                            </div>
-                                                        @elseif ($role === 'Formation sanitaire' && $this->conso->etat == 'valide')
-                                                            <div class="text-4xl font-bold text-indigo-800">
-                                                                {{ $accordee ?? 'Non validé' }}
-                                                            </div>
-                                                        @elseif ($role === 'District')
-                                                            @if ($not_edit[$medicament_id])
-                                                                <div class="flex items-center justify-between">
-                                                                    <div class="text-4xl font-bold text-indigo-800">
-                                                                        {{ $accordee ?? '--' }}
-                                                                    </div>
-                                                                    @if ($this->conso->etat == 'soumis')
-                                                                        <button type="button"
-                                                                            wire:click="showEditInput({{ $medicament_id }}, {{ $consommation_id }})"
-                                                                            class="px-6 py-3 bg-white text-indigo-600 rounded-xl hover:bg-indigo-50 font-medium border border-indigo-200 transition-colors">
-                                                                            <i class="bi bi-pen mr-2"></i>Modifier
-                                                                        </button>
-                                                                    @endif
-                                                                </div>
-                                                            @endif
-                                                            @if ($edit[$medicament_id])
-                                                                <form
-                                                                    wire:submit.prevent="enregistrerQteAccorde({{ $consommation_id }}, {{ $consommation->medicament_id }})"
-                                                                    class="mt-4">
-                                                                    <div class="flex gap-4 items-center">
-                                                                        <input type="number"
-                                                                            wire:model="quantites_accordees.{{ $medicament_id }}"
-                                                                            placeholder="Saisir quantité"
-                                                                            class="flex-1 px-4 py-3 border border-indigo-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg"
-                                                                            min="0" step="1" required>
-                                                                        <button type="submit"
-                                                                            class="px-8 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium transition-colors">
-                                                                            <i class="bi bi-check-lg mr-2"></i>Valider
-                                                                        </button>
-                                                                    </div>
-                                                                </form>
-                                                            @endif
-                                                        @endif
-                                                    </div>
-
-                                                    <!-- Différence si applicable -->
-                                                    @if (!is_null($accordee) && $accordee != $consommation->cmd_trim_svt)
-                                                        <div
-                                                            class="flex-1 p-6 bg-gradient-to-br from-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-50 to-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-100 rounded-2xl border border-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-200">
-                                                            <div class="flex items-center gap-3 mb-4">
-                                                                <i
-                                                                    class="bi bi-{{ $accordee > $consommation->cmd_trim_svt ? 'arrow-up-circle' : 'arrow-down-circle' }} text-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-600 text-2xl"></i>
-                                                                <h3
-                                                                    class="text-xl font-bold text-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-800">
-                                                                    {{ $accordee > $consommation->cmd_trim_svt ? 'Ajout' : 'Retiré' }}
-                                                                </h3>
-                                                            </div>
-                                                            <div
-                                                                class="text-4xl font-bold text-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-800">
-                                                                {{ $accordee > $consommation->cmd_trim_svt ? '+' : '' }}{{ $accordee - $consommation->cmd_trim_svt }}
-                                                            </div>
-                                                        </div>
-                                                    @endif
-                                                </div>
-                                            </div>
-
-                                            <!-- Détails étendus -->
-                                            <div
-                                                class="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-6 border border-gray-200">
-                                                <h3
-                                                    class="text-gray-800 font-bold text-lg mb-6 flex items-center gap-3">
-                                                    <div class="w-3 h-3 bg-teal-600 rounded-full"></div>
-                                                    Informations détaillées du trimestre
-                                                </h3>
-                                                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                                    <div
-                                                        class="flex justify-between items-center p-4 bg-white rounded-xl border border-gray-200">
-                                                        <span class="text-gray-600 font-medium">Stock début</span>
-                                                        <span
-                                                            class="font-bold text-gray-800 text-lg">{{ $consommation->qte_dispo_deb_periode }}</span>
-                                                    </div>
-                                                    <div
-                                                        class="flex justify-between items-center p-4 bg-white rounded-xl border border-gray-200">
-                                                        <span class="text-gray-600 font-medium">Quantité reçue dans le
-                                                            trimestre</span>
-                                                        <span
-                                                            class="font-bold text-gray-800 text-lg">{{ $consommation->qte_recu }}</span>
-                                                    </div>
-                                                    <div
-                                                        class="flex justify-between items-center p-4 bg-white rounded-xl border border-gray-200">
-                                                        <span class="text-gray-600 font-medium">Quantité
-                                                            utilisée</span>
-                                                        <span
-                                                            class="font-bold text-gray-800 text-lg">{{ $consommation->qte_utilisee }}</span>
-                                                    </div>
-                                                    <div
-                                                        class="flex justify-between items-center p-4 bg-white rounded-xl border border-gray-200">
-                                                        <span class="text-gray-600 font-medium">Bénéficiaires</span>
-                                                        <span
-                                                            class="font-bold text-gray-800 text-lg">{{ $consommation->nb_beneficiaire }}</span>
-                                                    </div>
-                                                    <div
-                                                        class="flex justify-between items-center p-4 bg-white rounded-xl border border-gray-200">
-                                                        <span class="text-gray-600 font-medium">Périmé</span>
-                                                        <span
-                                                            class="font-bold text-gray-800 text-lg">{{ $consommation->perimee }}</span>
-                                                    </div>
-                                                    <div
-                                                        class="flex justify-between items-center p-4 bg-white rounded-xl border border-gray-200">
-                                                        <span class="text-gray-600 font-medium">Pertes et
-                                                            avariées</span>
-                                                        <span
-                                                            class="font-bold text-gray-800 text-lg">{{ $consommation->perte_avarie }}</span>
-                                                    </div>
-                                                    <div
-                                                        class="flex justify-between items-center p-4 bg-white rounded-xl border border-gray-200">
-                                                        <span class="text-gray-600 font-medium">Retournés à la
-                                                            CAMEG</span>
-                                                        <span
-                                                            class="font-bold text-gray-800 text-lg">{{ $consommation->qte_retour_cameg }}</span>
-                                                    </div>
-                                                    <div
-                                                        class="flex justify-between items-center p-4 bg-white rounded-xl border border-gray-200">
-                                                        <span class="text-gray-600 font-medium">Nombre de jours de
-                                                            rupture</span>
-                                                        <span
-                                                            class="font-bold text-gray-800 text-lg">{{ $consommation->nb_jour_rupture }}</span>
-                                                    </div>
-                                                    <div
-                                                        class="flex justify-between items-center p-4 bg-white rounded-xl border border-gray-200 md:col-span-1">
-                                                        <span class="text-gray-600 font-medium">Stock en fin de
-                                                            trimestre</span>
-                                                        <span
-                                                            class="font-bold text-gray-800 text-lg">{{ $consommation->qte_restante }}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-                        @empty
-                            <div class="w-full flex-shrink-0">
-                                <div
-                                    class="text-center text-gray-500 py-32 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
-                                    <i class="bi bi-inbox text-6xl text-gray-300 mb-4"></i>
-                                    <p class="text-2xl font-medium text-gray-400 mb-2">Aucune consommation enregistrée
-                                    </p>
-                                    <p class="text-gray-400">Les données apparaîtront ici une fois disponibles</p>
-                                </div>
-                            </div>
-                        @endforelse
-                    </div>
-                </div>
-
-                <!-- Boutons de navigation -->
-                <div class="flex justify-between items-center mt-8">
-                    <button wire:click="previousSlide"
-                        class="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                        {{ ($currentSlide ?? 0) <= 0 ? 'disabled' : '' }}>
-                        <i class="bi bi-chevron-left"></i>
-                        Précédent
-                    </button>
-
-                    <div class="flex gap-3">
-                        <button
-                            class="px-4 py-2 bg-teal-100 text-teal-700 rounded-lg hover:bg-teal-200 transition-colors">
-                            <i class="bi bi-printer"></i>
-                        </button>
-                        <button
-                            class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors">
-                            <i class="bi bi-download"></i>
-                        </button>
-                        <button
-                            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
-                            <i class="bi bi-share"></i>
-                        </button>
-                    </div>
-
-                    <button wire:click="nextSlide"
-                        class="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                        {{ ($currentSlide ?? 0) >=$consommations_all->where(function ($c) use ($showHiddenCards) {return !($c->cmma == 0 && $c->stock_securite == 0 && $c->cmd_trim_svt == 0) || $showHiddenCards;})->count() -1? 'disabled': '' }}>
-                        Suivant
-                        <i class="bi bi-chevron-right"></i>
-                    </button>
-                </div>
             </div>
 
-            @push('scripts')
-                <script>
-                    // Gestion des touches clavier pour la navigation
-                    document.addEventListener('keydown', function(e) {
-                        if (e.key === 'ArrowLeft') {
-                            @this.call('previousSlide');
-                        } else if (e.key === 'ArrowRight') {
-                            @this.call('nextSlide');
-                        }
-                    });
-
-                    // Support du swipe sur mobile
-                    let startX = 0;
-                    let currentX = 0;
-                    let isDragging = false;
-
-                    const carousel = document.querySelector('.overflow-hidden');
-
-                    carousel.addEventListener('touchstart', function(e) {
-                        startX = e.touches[0].clientX;
-                        isDragging = true;
-                    });
-
-                    carousel.addEventListener('touchmove', function(e) {
-                        if (!isDragging) return;
-                        currentX = e.touches[0].clientX;
-                    });
-
-                    carousel.addEventListener('touchend', function(e) {
-                        if (!isDragging) return;
-
-                        const diffX = startX - currentX;
-
-                        if (Math.abs(diffX) > 50) { // Seuil minimum pour le swipe
-                            if (diffX > 0) {
-                                @this.call('nextSlide');
-                            } else {
-                                @this.call('previousSlide');
-                            }
-                        }
-
-                        isDragging = false;
-                    });
-                </script>
-            @endpush
-            <div class="col-span-full mt-4 flex justify-center">
-                @if ($this->hiddenCardsCount > 0)
+            <!-- Bouton pour médicaments cachés -->
+            @if ($this->hiddenCardsCount > 0)
+                <div class="flex justify-center mt-6">
                     <button type="button" wire:click="toggleHiddenCards"
-                        class="px-4 py-2 {{ $showHiddenCards ? 'bg-red-600 hover:bg-red-700' : 'bg-teal-600 hover:bg-teal-700' }} text-white rounded-lg transition duration-300">
+                        class="px-6 py-3 {{ $showHiddenCards ? 'bg-red-600 hover:bg-red-700' : 'bg-teal-600 hover:bg-teal-700' }} text-white rounded-xl transition duration-300 font-medium">
                         @if ($showHiddenCards)
                             Masquer les médicaments non commandés
                         @else
                             Afficher les médicaments non commandés ({{ $this->hiddenCardsCount }})
                         @endif
                     </button>
-                @endif
-            </div>
+                </div>
+            @endif
     </div>
-    @endif
-    @if ($formulaireVisible)
-        <!-- Bouton Toggle -->
-        <button id="toggleButton" onclick="toggleInstructions()"
-            class="flex items-center gap-2 text-teal-600 text-decoration-underline">
-            <span id="buttonText">Masquer les instructions</span>
-            <svg id="arrowIcon" class="w-4 h-4 transition-transform duration-300" fill="none"
-                stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-            </svg>
-        </button>
 
-        <!-- Instructions (div à masquer/afficher) -->
-        <div id="instructionsDiv" class="overflow-x-auto transition-all duration-300 ease-in-out"
-            style="max-height: 200px; opacity: 1; margin-bottom: 16px;">
-            <div class="gap-2 items-center bg-gray-50 border border-gray-200 pb-2 px-4 py-3 rounded-lg shadow-sm">
-                <p class="text-sm text-gray-700 mb-2">
-                    * Les colonnes en <span class="text-red-600 font-semibold">rouge</span> sont calculées
-                    automatiquement à partir de vos saisies.
-                </p>
-                <p class="text-sm text-gray-700 mb-2">
-                    * Veuillez remplir les colonnes contenant l'indication <em>« Saisir... »</em> avec une valeur
-                    minimale de 0.
-                </p>
-                <p class="text-sm text-gray-700">
-                    * Les champs de calculs automatiques dépendent obligatoirement du Stock disponible en début de
-                    trimestre.
-                </p>
+    @push('scripts')
+        <script>
+            // Variable globale pour l'état des détails
+            let detailsVisible = true;
+
+            // Fonction pour toggle les détails
+            function toggleDetails() {
+                detailsVisible = !detailsVisible;
+                const detailsSections = document.querySelectorAll('.details-section');
+                const toggleBtn = document.getElementById('toggle-details-btn');
+
+                detailsSections.forEach(section => {
+                    if (detailsVisible) {
+                        section.style.display = 'block';
+                        section.style.opacity = '0';
+                        setTimeout(() => {
+                            section.style.transition = 'opacity 0.3s ease';
+                            section.style.opacity = '1';
+                        }, 10);
+                    } else {
+                        section.style.transition = 'opacity 0.3s ease';
+                        section.style.opacity = '0';
+                        setTimeout(() => {
+                            section.style.display = 'none';
+                        }, 300);
+                    }
+                });
+                if (detailsVisible) {
+                    toggleBtn.innerHTML = '<i class="bi bi-eye-slash mr-2"></i>Masquer les détails';
+                } else {
+                    toggleBtn.innerHTML = '<i class="bi bi-eye mr-2"></i>Afficher les détails';
+                }
+            }
+
+            // Gestion des touches clavier pour la navigation
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft') {
+                    @this.call('previousSlide');
+                } else if (e.key === 'ArrowRight') {
+                    @this.call('nextSlide');
+                }
+            });
+
+            // Support du swipe sur mobile
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
+
+            const carousel = document.querySelector('.overflow-hidden');
+
+            carousel.addEventListener('touchstart', function(e) {
+                startX = e.touches[0].clientX;
+                isDragging = true;
+            });
+
+            carousel.addEventListener('touchmove', function(e) {
+                if (!isDragging) return;
+                currentX = e.touches[0].clientX;
+                e.preventDefault();
+            });
+
+            carousel.addEventListener('touchend', function(e) {
+                if (!isDragging) return;
+
+                const diffX = startX - currentX;
+
+                if (Math.abs(diffX) > 50) { // Seuil minimum pour le swipe
+                    if (diffX > 0) {
+                        @this.call('nextSlide');
+                    } else {
+                        @this.call('previousSlide');
+                    }
+                }
+
+                isDragging = false;
+            });
+        </script>
+    @endpush
+</div>
+@endif
+@if ($formulaireVisible)
+    <!-- Bouton Toggle -->
+    <button id="toggleButton" onclick="toggleInstructions()"
+        class="flex items-center gap-2 text-teal-600 text-decoration-underline">
+        <span id="buttonText">Masquer les instructions</span>
+        <svg id="arrowIcon" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+    </button>
+    <div class="flex justify-between items-center relative mb-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                @php
+                    // Conditions pour gérer le disabled visuel
+                    $griserTout = empty($type_structure);
+                    $griserMedicaments = !$griserTout && empty($periode_choisie);
+                @endphp
+
+                <div class="flex items-center gap-3 text-sm font-medium text-gray-700">
+
+                    <!-- Structure -->
+                    <div
+                        class="flex items-center gap-2 bg-white/70 px-3 py-1 rounded-lg border border-blue-200/50 shrink-0">
+                        <!-- Icône SVG -->
+                        <svg class="w-4 h-4 text-indigo-600 shrink-0" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <!-- path ... -->
+                        </svg>
+                        <span class="text-gray-600 whitespace-nowrap">Structure :</span>
+                        <select wire:model.live="type_structure" wire:change="chargerMedicaments"
+                            onchange="viderInput()" id="structure"
+                            class="bg-transparent border-0 text-indigo-800 font-bold focus:outline-none focus:ring-0 cursor-pointer">
+                            <option value="">-- Sélectionner --</option>
+                            <option value="FS">FS</option>
+                            <option value="ASC">ASC</option>
+                        </select>
+                    </div>
+
+                    <div class="w-px h-6 bg-gradient-to-b from-transparent via-blue-300 to-transparent shrink-0"></div>
+
+                    <!-- Médicament -->
+                    <div
+                        class="flex items-center gap-2 bg-white/70 px-3 py-1 rounded-lg border border-blue-200/50 shrink-0">
+                        <!-- Icône SVG -->
+                        <svg class="w-4 h-4 text-green-600 shrink-0" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <!-- path ... -->
+                        </svg>
+                        <span class="text-gray-600 whitespace-nowrap">Médicament :</span>
+                        <select id="select_medicament" onchange="afficherFormulaire(this)"
+                            class="bg-transparent border-0 text-green-800 font-bold focus:outline-none focus:ring-0 cursor-pointer max-w-auto
+            {{ $griserTout || $griserMedicaments ? 'opacity-50 pointer-events-none select-none' : '' }}">
+                            <option value="">-- Sélectionner --</option>
+                            <option value="all">Tous les produits</option>
+                            @foreach ($medicaments as $index => $medicament)
+                                <option value="{{ $index }}" data-id="{{ $medicament->id }}">
+                                    {{ $medicament->nom }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="w-px h-6 bg-gradient-to-b from-transparent via-blue-300 to-transparent shrink-0"></div>
+
+                    <!-- Période -->
+                    <div
+                        class=" flex items-center gap-2 bg-white/70 px-3 py-1 rounded-lg border border-blue-200/50 shrink-0">
+                        <!-- Icône SVG -->
+                        <svg class="w-4 h-4 text-purple-600 shrink-0" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <!-- path ... -->
+                        </svg>
+                        <span class="text-gray-600 whitespace-nowrap">Période :</span>
+                        <select wire:model.live="periode_choisie" id="periode_search" onchange="viderInput()"
+                            class="bg-transparent border-0 text-purple-800 font-bold focus:outline-none focus:ring-0 cursor-pointer max-w-auto
+            {{ $griserTout ? 'opacity-50 pointer-events-none select-none' : '' }}">
+                            @foreach ($periodes_disponibles as $periode)
+                                <option value="{{ $periode->id }}">
+                                    {{ $periode->nom }} : {{ $periode->mois_debut }}-{{ $periode->mois_fin }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
             </div>
         </div>
-        <div class="flex justify-between bg-gray-50 border-gray-200 mb-4">
-            <!-- Sélection structure -->
-            <div class="flex items-center gap-2">
-                <p class="text-blue-900">Choisir entre FS et ASC pour continuer :</p>
-                <div>
-                    <select wire:model.live="type_structure" wire:change="chargerMedicaments" onchange="viderInput()"
-                        id="structure"
-                        class="w-48 bg-blue-100 rounded-full p-1 border font-bold border-gray-400 text-blue-900 focus:outline-none focus:ring-teal-700
-                                                        {{ $modifierConso ? 'bg-blue-100 opacity-50 pointer-events-none select-none' : '' }}">
-                        <option value="">-- Sélectionner --</option>
-                        <option value="FS">FS</option>
-                        <option value="ASC">ASC</option>
-                    </select>
-                </div>
-            </div>
-            <div class="flex items-center gap-2">
-                <p class="text-blue-900">Médicament à enrégistrer :</p>
-                <div>
-                    <select id="select_medicament" onchange="afficherFormulaire(this)"
-                        class="w-72 bg-blue-100 rounded-full p-1 border font-bold border-gray-400 text-blue-900 focus:outline-none focus:ring-teal-700">
-                        <option value="">-- Sélectionner --</option>
-                        <option value="all">Tous les produits</option>
-                        @foreach ($medicaments as $index => $medicament)
-                            <option value="{{ $index }}" data-id="{{ $medicament->id }}">
-                                {{ $medicament->nom }}
-                            </option>
-                        @endforeach
-                    </select>
 
-                </div>
-            </div>
-            <div class="flex items-center gap-2">
-                <p class="text-blue-900">Choisir la période ou laisser par défaut :</p>
-                <div>
-                    <select wire:model.live="periode_choisie" id="periode_search" onchange="viderInput()"
-                        class="w-72 bg-blue-100 rounded-full p-1 border font-bold border-gray-400 text-blue-900 focus:outline-none focus:ring-teal-700 {{ empty($type_structure) ? 'bg-blue-300 opacity-50 pointer-events-none select-none' : '' }}">
-                        @foreach ($periodes_disponibles as $periode)
-                            <option value="{{ $periode->id }}">
-                                {{ $periode->nom }} : {{ $periode->mois_debut }}-{{ $periode->mois_fin }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-        </div>
+        <!-- Effet de brillance subtil -->
         <div
-            class="bg-white transition-opacity duration-200 overflow-auto max-h-[650px] {{ empty($type_structure) ? 'bg-gray-500 opacity-50 pointer-events-none select-none' : '' }}">
-            <div class="w-full flex justify-end pr-4 hidden mb-1" id="close_form">
-                <div>
-                    <i class="bi bi-x-circle-fill text-red-600 text-xl cursor-pointer hover:text-red-800"
-                        title="Fermer tout le formulaire" onclick="masquerToutFormulaire()"></i>
-                </div>
+            class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent rounded-xl pointer-events-none">
+        </div>
+    </div>
+    <div
+        class="bg-white transition-opacity duration-200 overflow-auto max-h-[650px] {{ empty($type_structure) ? 'bg-gray-500 opacity-50 pointer-events-none select-none' : '' }}">
+        <div class="w-full flex justify-end pr-4 hidden mb-1" id="close_form">
+            <div>
+                <i class="bi bi-x-circle-fill text-red-600 text-xl cursor-pointer hover:text-red-800"
+                    title="Fermer tout le formulaire" onclick="masquerToutFormulaire()"></i>
             </div>
-            <form wire:submit.prevent="ajouterConsommation">
-                <div class="space-y-6 ">
-                    @foreach ($medicaments as $index => $medicament)
-                        <div wire:key="consommation-{{ $type_structure }}-{{ $periode_choisie }}-{{ $index }}"
-                            class="bg-white rounded-lg shadow-md border border-gray-200 p-6 hidden"
-                            id="formulaire_{{ $index }}" wire:key="medicament-{{ $medicament->id }}">
-                            <div class="flex items-center justify-between mb-2">
+        </div>
+        <form wire:submit.prevent="ajouterConsommation">
+            <div class="space-y-6 ">
+                @foreach ($medicaments as $index => $medicament)
+                    <div wire:key="consommation-{{ $type_structure }}-{{ $periode_choisie }}-{{ $index }}"
+                        class="bg-white rounded-lg shadow-md border border-gray-200 p-6 hidden"
+                        id="formulaire_{{ $index }}" wire:key="medicament-{{ $medicament->id }}">
+                        <div class="flex items-center justify-between mb-2">
+                            <div>
+                                <button type="button" onclick="toggleForm({{ $index }})"
+                                    class="flex items-center gap-2 text-blue-700 hover:underline font-semibold">
+                                    <h3 class="text-lg">{{ $medicament->nom }}</h3>
+                                    <svg class="w-4 h-4 transition-transform duration-300"
+                                        id="arrowIcon_{{ $index }}" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="flex gap-2 items-center">
+                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                                    Médicament #{{ $index + 1 }}
+                                </span>
                                 <div>
-                                    <button type="button" onclick="toggleForm({{ $index }})"
-                                        class="flex items-center gap-2 text-blue-700 hover:underline font-semibold">
-                                        <h3 class="text-lg">{{ $medicament->nom }}</h3>
-                                        <svg class="w-4 h-4 transition-transform duration-300"
-                                            id="arrowIcon_{{ $index }}" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div class="flex gap-2 items-center">
-                                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                                        Médicament #{{ $index + 1 }}
-                                    </span>
-                                    <div>
-                                        <i class="bi bi-x-circle-fill text-red-600 text-xl cursor-pointer hover:text-red-800"
-                                            title="Masquer ce formulaire"
-                                            onclick="masquerFormulaire({{ $index }})"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="transition-all duration-300 ease-in-out">
-                                @if (session()->has("message_sauvegarde_$index"))
-                                    <div
-                                        class="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md">
-                                        <div class="flex items-center gap-2">
-                                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M5 13l4 4L19 7"></path>
-                                            </svg>
-                                            <span>{{ session("message_sauvegarde_$index") }}</span>
-                                        </div>
-                                    </div>
-                                @endif
-                            </div>
-                            <div id="form_{{ $index }}"
-                                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                <div class="form-group">
-                                    <label class="block text-sm font-medium text-green-700 mb-2">
-                                        <span class="font-bold">Stock théorique en début de trimestre</span>
-                                    </label>
-                                    <input type="number" readonly id="stock_debut_attendu_{{ $index }}"
-                                        wire:model.live="consommations.{{ $index }}.stock_debut_attendu"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-green-700 font-bold text-center text-[17px]" />
-                                </div>
-                                <div class="form-group">
-                                    <label class="block text-sm font-medium text-blue-900 mb-2">
-                                        <span class="text-red-500">*</span> Stock réel en début de trimestre
-                                    </label>
-                                    <input type="number" id="stock_debut_{{ $index }}"
-                                        oninput="calculerStock({{ $index }}), calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
-                                        wire:model.debounce.500ms="consommations.{{ $index }}.stk_dsp_deb_trim"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.stk_dsp_deb_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
-                                        placeholder="Saisir..." min="0" step="1" />
-                                </div>
-                                <div class="form-group">
-                                    <label class="block text-sm font-medium text-blue-900 mb-2">
-                                        <span class="text-red-500">*</span> Quantité reçue dans le trimestre
-                                    </label>
-                                    <input type="number" id="qte_recu_{{ $index }}"
-                                        oninput="calculerStock({{ $index }}), checkInput({{ $index }})"
-                                        wire:model.debounce.500ms="consommations.{{ $index }}.qte_get_in_trim"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.qte_get_in_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
-                                        placeholder="Saisir..." min="0" step="1" />
-                                </div>
-                                <div class="form-group">
-                                    <label class="block text-sm font-medium text-red-600 mb-2">
-                                        <span class="font-bold">Quantité en Stock</span>
-                                    </label>
-                                    <input type="number" readonly id="qte_en_stock_{{ $index }}"
-                                        wire:model.live="consommations.{{ $index }}.qte_en_stock"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-red-500 font-bold text-center text-[17px]" />
-                                </div>
-                                <div class="form-group">
-                                    <label class="block text-sm font-medium text-blue-900 mb-2">
-                                        <span class="text-red-500">*</span> Quantité utilisée
-                                    </label>
-                                    <input type="number" id="qte_used_{{ $index }}"
-                                        oninput="calculerStockSecurite({{ $index }}), calculerStock({{ $index }}), checkInput({{ $index }})"
-                                        wire:model.debounce.500ms="consommations.{{ $index }}.qte_used"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.qte_used') !bg-red-100 !border-red-500 !border-2 @enderror"
-                                        placeholder="Saisir..." min="0" step="1" />
-                                </div>
-                                <div class="form-group">
-                                    <label class="block text-sm font-medium text-blue-900 mb-2">
-                                        Nombre de bénéficiaires
-                                    </label>
-                                    <input type="number" id="nb_beneficiaire_{{ $index }}"
-                                        oninput="checkInput({{ $index }})"
-                                        wire:model.debounce.500ms="consommations.{{ $index }}.nb_beneficiaire"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.nb_beneficiaire') !bg-red-100 !border-red-500 !border-2 @enderror"
-                                        placeholder="Saisir..." min="0" step="1" />
-                                </div>
-                                <div class="form-group">
-                                    <label class="block text-sm font-medium text-blue-900 mb-2">
-                                        Périmé
-                                    </label>
-                                    <input type="number" id="perimee_{{ $index }}"
-                                        oninput="checkInput({{ $index }})"
-                                        wire:model.debounce.500ms="consommations.{{ $index }}.perimee"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.perimee') !bg-red-100 !border-red-500 !border-2 @enderror"
-                                        placeholder="Saisir..." min="0" step="1" />
-                                </div>
-                                <div class="form-group">
-                                    <label class="block text-sm font-medium text-blue-900 mb-2">
-                                        Pertes et avariées
-                                    </label>
-                                    <input type="number" id="perte_avarie_{{ $index }}"
-                                        oninput="checkInput({{ $index }})"
-                                        wire:model.debounce.500ms="consommations.{{ $index }}.perte_avarie"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.perte_avarie') !bg-red-100 !border-red-500 !border-2 @enderror"
-                                        placeholder="Saisir..." min="0" step="1" />
-                                </div>
-                                <div class="form-group">
-                                    <label class="block text-sm font-medium text-blue-900 mb-2">
-                                        Quantité retournée à la CAMEG
-                                    </label>
-                                    <input type="number" id="qte_ret_cameg_{{ $index }}"
-                                        oninput="checkInput({{ $index }})"
-                                        wire:model.debounce.500ms="consommations.{{ $index }}.qte_ret_cameg"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.qte_ret_cameg') !bg-red-100 !border-red-500 !border-2 @enderror"
-                                        placeholder="Saisir..." min="0" step="1" />
-                                </div>
-                                <div class="form-group">
-                                    <label class="block text-sm font-medium text-blue-900 mb-2">
-                                        <span class="text-red-500">*</span> Nombre de jours de rupture
-                                    </label>
-                                    <input type="number" id="nb_jour_rupture_{{ $index }}"
-                                        oninput="calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
-                                        wire:model.debounce.500ms="consommations.{{ $index }}.nb_jour_rupture"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.nb_jour_rupture') !bg-red-100 !border-red-500 !border-2 @enderror"
-                                        placeholder="Saisir..." min="0" step="1" />
-                                </div>
-                                <div class="form-group">
-                                    <label class="block text-sm font-medium text-green-700 mb-2">
-                                        <span class="font-bold">Stock théorique en fin de trimestre</span>
-                                    </label>
-                                    <input type="number" readonly
-                                        id="qte_stock_fin_trim_attendu_{{ $index }}"
-                                        wire:model.live="consommations.{{ $index }}.qte_stock_fin_trim_attendu"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-green-700 font-bold text-center text-[17px]" />
-                                </div>
-                                <div class="form-group">
-                                    <label class="block text-sm font-medium text-blue-900 mb-2">
-                                        Stock réel en fin de trimestre
-                                    </label>
-                                    <input type="number" id="qte_stock_fin_trim_{{ $index }}"
-                                        oninput="calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
-                                        wire:model.debounce.500ms="consommations.{{ $index }}.qte_stock_fin_trim"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.qte_stock_fin_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
-                                        placeholder="Saisir..." min="0" step="1" />
-                                </div>
-                                <div class="form-group">
-                                    <label class="block text-sm font-medium text-red-600 mb-2">
-                                        <span class="font-bold">Stock de sécurité pour le trimestre à venir</span>
-                                    </label>
-                                    <input type="number" readonly id="stk_de_securite_{{ $index }}"
-                                        wire:model.debounce.500ms="consommations.{{ $index }}.stk_de_securite"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-red-500 font-bold text-center text-[17px]" />
-                                </div>
-                                <div class="form-group">
-                                    <label class="block text-sm font-medium text-red-600 mb-2">
-                                        <span class="font-bold">Consommation Moyenne Mentuelle ajustée
-                                            (CMMa)
-                                        </span>
-                                    </label>
-                                    <input type="number" readonly id="ccma_{{ $index }}"
-                                        wire:model.debounce.500ms="consommations.{{ $index }}.ccma"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-red-500 font-bold text-center text-[17px]" />
-                                </div>
-                                <div class="form-group">
-                                    <label class="block text-sm font-medium text-red-600 mb-2">
-                                        <span class="font-bold">Quantité commandée pour le trimestre à venir</span>
-                                    </label>
-                                    <input type="number" readonly id="cmd_trim_svt_{{ $index }}"
-                                        wire:model.debounce.500ms="consommations.{{ $index }}.cmd_trim_svt"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-red-500 font-bold text-center text-[17px]" />
+                                    <i class="bi bi-x-circle-fill text-red-600 text-xl cursor-pointer hover:text-red-800"
+                                        title="Masquer ce formulaire"
+                                        onclick="masquerFormulaire({{ $index }})"></i>
                                 </div>
                             </div>
                         </div>
-                    @endforeach
-                </div>
-                <!-- Boutons -->
-                <div class="mt-4 flex justify-end gap-2">
-                    @if ($modifierConso)
-                        <button type="submit"
-                            class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 transition-colors">
-                            Modifier
-                        </button>
-                    @else
-                        <button type="submit"
-                            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors">
-                            Enregistrer
-                        </button>
-                    @endif
-                    <button type="reset"
-                        class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition-colors">
-                        Annuler
+                        <div class="transition-all duration-300 ease-in-out">
+                            @if (session()->has("message_sauvegarde_$index"))
+                                <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        <span>{{ session("message_sauvegarde_$index") }}</span>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                        <div id="form_{{ $index }}"
+                            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-green-700 mb-2">
+                                    <span class="font-bold">Stock théorique en début de trimestre</span>
+                                </label>
+                                <input type="number" readonly id="stock_debut_attendu_{{ $index }}"
+                                    wire:model.live="consommations.{{ $index }}.stock_debut_attendu"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-green-700 font-bold text-center text-[17px]" />
+                            </div>
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-blue-900 mb-2">
+                                    <span class="text-red-500">*</span> Stock réel en début de trimestre
+                                </label>
+                                <input type="number" id="stock_debut_{{ $index }}"
+                                    oninput="calculerStock({{ $index }}), calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
+                                    wire:model.debounce.500ms="consommations.{{ $index }}.stk_dsp_deb_trim"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.stk_dsp_deb_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    placeholder="Saisir..." min="0" step="1" />
+                            </div>
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-blue-900 mb-2">
+                                    <span class="text-red-500">*</span> Quantité reçue dans le trimestre
+                                </label>
+                                <input type="number" id="qte_recu_{{ $index }}"
+                                    oninput="calculerStock({{ $index }}), checkInput({{ $index }})"
+                                    wire:model.debounce.500ms="consommations.{{ $index }}.qte_get_in_trim"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.qte_get_in_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    placeholder="Saisir..." min="0" step="1" />
+                            </div>
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-red-600 mb-2">
+                                    <span class="font-bold">Quantité en Stock</span>
+                                </label>
+                                <input type="number" readonly id="qte_en_stock_{{ $index }}"
+                                    wire:model.live="consommations.{{ $index }}.qte_en_stock"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-red-500 font-bold text-center text-[17px]" />
+                            </div>
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-blue-900 mb-2">
+                                    <span class="text-red-500">*</span> Quantité utilisée
+                                </label>
+                                <input type="number" id="qte_used_{{ $index }}"
+                                    oninput="calculerStockSecurite({{ $index }}), calculerStock({{ $index }}), checkInput({{ $index }})"
+                                    wire:model.debounce.500ms="consommations.{{ $index }}.qte_used"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.qte_used') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    placeholder="Saisir..." min="0" step="1" />
+                            </div>
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-blue-900 mb-2">
+                                    Nombre de bénéficiaires
+                                </label>
+                                <input type="number" id="nb_beneficiaire_{{ $index }}"
+                                    oninput="checkInput({{ $index }})"
+                                    wire:model.debounce.500ms="consommations.{{ $index }}.nb_beneficiaire"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.nb_beneficiaire') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    placeholder="Saisir..." min="0" step="1" />
+                            </div>
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-blue-900 mb-2">
+                                    Périmé
+                                </label>
+                                <input type="number" id="perimee_{{ $index }}"
+                                    oninput="checkInput({{ $index }})"
+                                    wire:model.debounce.500ms="consommations.{{ $index }}.perimee"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.perimee') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    placeholder="Saisir..." min="0" step="1" />
+                            </div>
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-blue-900 mb-2">
+                                    Pertes et avariées
+                                </label>
+                                <input type="number" id="perte_avarie_{{ $index }}"
+                                    oninput="checkInput({{ $index }})"
+                                    wire:model.debounce.500ms="consommations.{{ $index }}.perte_avarie"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.perte_avarie') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    placeholder="Saisir..." min="0" step="1" />
+                            </div>
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-blue-900 mb-2">
+                                    Quantité retournée à la CAMEG
+                                </label>
+                                <input type="number" id="qte_ret_cameg_{{ $index }}"
+                                    oninput="checkInput({{ $index }})"
+                                    wire:model.debounce.500ms="consommations.{{ $index }}.qte_ret_cameg"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.qte_ret_cameg') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    placeholder="Saisir..." min="0" step="1" />
+                            </div>
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-blue-900 mb-2">
+                                    <span class="text-red-500">*</span> Nombre de jours de rupture
+                                </label>
+                                <input type="number" id="nb_jour_rupture_{{ $index }}"
+                                    oninput="calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
+                                    wire:model.debounce.500ms="consommations.{{ $index }}.nb_jour_rupture"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.nb_jour_rupture') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    placeholder="Saisir..." min="0" step="1" />
+                            </div>
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-green-700 mb-2">
+                                    <span class="font-bold">Stock théorique en fin de trimestre</span>
+                                </label>
+                                <input type="number" readonly id="qte_stock_fin_trim_attendu_{{ $index }}"
+                                    wire:model.live="consommations.{{ $index }}.qte_stock_fin_trim_attendu"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-green-700 font-bold text-center text-[17px]" />
+                            </div>
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-blue-900 mb-2">
+                                    Stock réel en fin de trimestre
+                                </label>
+                                <input type="number" id="qte_stock_fin_trim_{{ $index }}"
+                                    oninput="calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
+                                    wire:model.debounce.500ms="consommations.{{ $index }}.qte_stock_fin_trim"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.qte_stock_fin_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    placeholder="Saisir..." min="0" step="1" />
+                            </div>
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-red-600 mb-2">
+                                    <span class="font-bold">Stock de sécurité pour le trimestre à venir</span>
+                                </label>
+                                <input type="number" readonly id="stk_de_securite_{{ $index }}"
+                                    wire:model.debounce.500ms="consommations.{{ $index }}.stk_de_securite"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-red-500 font-bold text-center text-[17px]" />
+                            </div>
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-red-600 mb-2">
+                                    <span class="font-bold">Consommation Moyenne Mentuelle ajustée
+                                        (CMMa)
+                                    </span>
+                                </label>
+                                <input type="number" readonly id="ccma_{{ $index }}"
+                                    wire:model.debounce.500ms="consommations.{{ $index }}.ccma"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-red-500 font-bold text-center text-[17px]" />
+                            </div>
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-red-600 mb-2">
+                                    <span class="font-bold">Quantité commandée pour le trimestre à venir</span>
+                                </label>
+                                <input type="number" readonly id="cmd_trim_svt_{{ $index }}"
+                                    wire:model.debounce.500ms="consommations.{{ $index }}.cmd_trim_svt"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-red-500 font-bold text-center text-[17px]" />
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            <!-- Boutons -->
+            <div class="mt-4 flex justify-end gap-2">
+                @if ($modifierConso)
+                    <button type="submit"
+                        class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 transition-colors">
+                        Modifier
                     </button>
-                </div>
+                @else
+                    <button type="submit"
+                        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors">
+                        Enregistrer
+                    </button>
+                @endif
+                <button type="reset"
+                    class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition-colors">
+                    Annuler
+                </button>
+            </div>
 
-            </form>
-        </div>
-</div>
+        </form>
+    </div>
+    </div>
 @endif
 </div>
 <script>
@@ -1132,18 +1297,6 @@
         });
     });
 
-
-
-
-
-
-
-
-
-
-
-
-
     function calculerStock(index) {
         console.log('Pourquoi?');
         const stockDebutInput = document.getElementById(`stock_debut_${index}`);
@@ -1215,7 +1368,7 @@
             const cmma = (qteUsed / 90) * 30;
             ccmaInput.value = Math.ceil(cmma);
             cmdTrimSvtInput.value = Math.ceil((qteUsed + Math.ceil(qteUsed)) -
-            qteStockFinTrim); //Dans ce cas qteUsed est ég&ale à stkSecurite
+                qteStockFinTrim); //Dans ce cas qteUsed est ég&ale à stkSecurite
         } else if (nbJourRupture > 0 && nbJourRupture < 90) {
             const denom = 90 - nbJourRupture;
             const stkSecurite = (qteUsed * 90) / denom;
@@ -1304,11 +1457,13 @@
             inputs.qteRetCameg.value = null;
             inputs.qteEnStock_fin_att.value = total - qteUsed;
             alert(
-                `Les quantités saisies dépassent le stock disponible pour ce médicament. Les champs ont été réinitialisés.`);
+                `Les quantités saisies dépassent le stock disponible pour ce médicament. Les champs ont été réinitialisés.`
+            );
         }
         if (qteEnStockFinTrim && qteEnStockFinTrim > reste) {
             alert(
-                'Info : Votre quantité restante réelle saisie est supérieur à la quantité restante théorique. Cliquez Ok pour continuez.');
+                'Info : Votre quantité restante réelle saisie est supérieur à la quantité restante théorique. Cliquez Ok pour continuez.'
+            );
         };
         if (nbJourRupture < 0 || nbJourRupture > 89) {
             alert("Le nombre de jours de rupture doit être compris entre 0 et 89.");
@@ -1335,8 +1490,6 @@
                 card.classList.add('hidden');
             }
         });
-
-        // Si recherche vide → recacher les cartes des médicaments non commandés
         if (search.trim() === '') {
             document.querySelectorAll('.hidden-card').forEach(card => {
                 card.classList.add('hidden');

@@ -8,7 +8,12 @@ use App\Models\Medicament;
 use App\Models\Consommation;
 use App\Models\Periode;
 use Livewire\Component;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\CreateConsommation;
+use App\Mail\SubmitConsommation;
+use App\Mail\ValidateConsommation;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 use Carbon\Carbon;
@@ -50,25 +55,29 @@ class Consommations extends Component
 
     public function nextSlide()
     {
-        $maxSlides = $this->consommations_all->where(function ($c) {
+        $visibleCards = $this->consommations_all->filter(function ($c) {
             return !($c->cmma == 0 && $c->stock_securite == 0 && $c->cmd_trim_svt == 0) || $this->showHiddenCards;
-        })->count() - 1;
+        });
 
-        if ($this->currentSlide < $maxSlides) {
-            $this->currentSlide++;
+        $totalPages = ceil($visibleCards->count() / 1);
+        $currentPage = floor($this->currentSlide / 1);
+
+        if ($currentPage < $totalPages - 1) {
+            $this->currentSlide = ($currentPage + 1) * 1;
         }
     }
 
     public function previousSlide()
     {
-        if ($this->currentSlide > 0) {
-            $this->currentSlide--;
+        $currentPage = floor($this->currentSlide / 1);
+
+        if ($currentPage > 0) {
+            $this->currentSlide = ($currentPage - 1) * 1;
         }
     }
-
-    public function setCurrentSlide($index)
+    public function setCurrentSlide($slideIndex)
     {
-        $this->currentSlide = $index;
+        $this->currentSlide = $slideIndex;
     }
     public function mettreAJourQte($index, $valeur)
     {
@@ -159,10 +168,16 @@ class Consommations extends Component
 
     public function render()
     {
-        return view(
-            'livewire.consommations',
+        $visibleCards = $this->consommations_all->filter(function ($c) {
+            return !($c->cmma == 0 && $c->stock_securite == 0 && $c->cmd_trim_svt == 0) || $this->showHiddenCards;
+        });
 
-        );
+        $totalPages = ceil($visibleCards->count() / 1);  // ou le nombre par page que tu veux
+
+        return view('livewire.consommations', [
+            'visibleCards' => $visibleCards,
+            'totalPages' => $totalPages,
+        ]);
     }
 
     public function afficherFormulaire()
@@ -347,48 +362,114 @@ class Consommations extends Component
             'consommations.*.cmd_trim_svt.min' => 'La commande ne peut pas être négative.',
         ]);
     }
-    public function ajouterConsommation()
+    /*public function ajouterConsommation()
     {
+
         $this->nettoyerValeursNul();
         if ($this->periode_choisie && $this->type_structure && !is_null($this->consommations)) {
             $user = auth()->user();
             $entity = $user->entity;
-
             $existe = Consommation::where('formation_sanitaire_id', $entity['id'])
                 ->where('periode_id', $this->periode_choisie)
                 ->where('acteur', $this->type_structure)
                 ->first();
-                if ($existe) {
-                    $this->addError('periode_choisie', 'Une consommation existe déjà pour cette période et cette formation sanitaire.');
+            if ($existe) {
+                $this->addError('periode_choisie', 'Une consommation existe déjà pour cette période et cette formation sanitaire.');
                 return;
-            $this->validateInputs();
-            $this->calculValeur();
-            if (!is_null($existe)) {
-                foreach ($this->consommations as $conso) {
-                    $consommation_medicament = ConsommationMedicament::where('consommation_id', $existe->id)
-                        ->where('medicament_id', $conso['medicament_id'])
-                        ->first();
-                    if (!$consommation_medicament) {
-                        $consommation_medicament = new ConsommationMedicament();
-                        $consommation_medicament->consommation_id = $existe->id;
-                        $consommation_medicament->medicament_id = $conso['medicament_id'];
+                $this->validateInputs();
+                $this->calculValeur();
+                dd($this->periode_choisie, $this->type_structure, $this->consommations);
+                if (!is_null($existe)) {
+                    foreach ($this->consommations as $conso) {
+                        $consommation_medicament = ConsommationMedicament::where('consommation_id', $existe->id)
+                            ->where('medicament_id', $conso['medicament_id'])
+                            ->first();
+                        if (!$consommation_medicament) {
+                            $consommation_medicament = new ConsommationMedicament();
+                            $consommation_medicament->consommation_id = $existe->id;
+                            $consommation_medicament->medicament_id = $conso['medicament_id'];
+                        }
+                        $consommation_medicament->qte_dispo_deb_periode = $conso['stk_dsp_deb_trim'];
+                        $consommation_medicament->qte_recu = $conso['qte_get_in_trim'];
+                        $consommation_medicament->qte_en_stock = $conso['qte_en_stock'];
+                        $consommation_medicament->qte_utilisee = $conso['qte_used'];
+                        $consommation_medicament->nb_beneficiaire = $conso['nb_beneficiaire'];
+                        $consommation_medicament->perimee = $conso['perimee'];
+                        $consommation_medicament->perte_avarie = $conso['perte_avarie'];
+                        $consommation_medicament->qte_retour_cameg = $conso['qte_ret_cameg'];
+                        $consommation_medicament->nb_jour_rupture = $conso['nb_jour_rupture'];
+                        $consommation_medicament->qte_restante = $conso['qte_stock_fin_trim'];
+                        $consommation_medicament->stock_securite = $conso['stk_de_securite'];
+                        $consommation_medicament->cmma = $conso['ccma'];
+                        $consommation_medicament->cmd_trim_svt = $conso['cmd_trim_svt'];
+                        $consommation_medicament->save();
                     }
-                    $consommation_medicament->qte_dispo_deb_periode = $conso['stk_dsp_deb_trim'];
-                    $consommation_medicament->qte_recu = $conso['qte_get_in_trim'];
-                    $consommation_medicament->qte_en_stock = $conso['qte_en_stock'];
-                    $consommation_medicament->qte_utilisee = $conso['qte_used'];
-                    $consommation_medicament->nb_beneficiaire = $conso['nb_beneficiaire'];
-                    $consommation_medicament->perimee = $conso['perimee'];
-                    $consommation_medicament->perte_avarie = $conso['perte_avarie'];
-                    $consommation_medicament->qte_retour_cameg = $conso['qte_ret_cameg'];
-                    $consommation_medicament->nb_jour_rupture = $conso['nb_jour_rupture'];
-                    $consommation_medicament->qte_restante = $conso['qte_stock_fin_trim'];
-                    $consommation_medicament->stock_securite = $conso['stk_de_securite'];
-                    $consommation_medicament->cmma = $conso['ccma'];
-                    $consommation_medicament->cmd_trim_svt = $conso['cmd_trim_svt'];
-                    $consommation_medicament->save();
+                } else {
+                    $consommation = new Consommation();
+                    $consommation->periode_id = $this->periode_choisie;
+                    $consommation->acteur = $this->type_structure;
+                    $consommation->formation_sanitaire_id = $entity['id'];
+                    $consommation->etat = 'en_cours';
+                    $consommation->save();
+
+                    foreach ($this->consommations as $conso) {
+                        $consommation_medicament = new ConsommationMedicament();
+                        $consommation_medicament->consommation_id = $consommation->id;
+                        $consommation_medicament->medicament_id = $conso['medicament_id'];
+                        $consommation_medicament->qte_dispo_deb_periode = $conso['stk_dsp_deb_trim'];
+                        $consommation_medicament->qte_recu = $conso['qte_get_in_trim'];
+                        $consommation_medicament->qte_en_stock = $conso['qte_en_stock'];
+                        $consommation_medicament->qte_utilisee = $conso['qte_used'];
+                        $consommation_medicament->nb_beneficiaire = $conso['nb_beneficiaire'];
+                        $consommation_medicament->perimee = $conso['perimee'];
+                        $consommation_medicament->perte_avarie = $conso['perte_avarie'];
+                        $consommation_medicament->qte_retour_cameg = $conso['qte_ret_cameg'];
+                        $consommation_medicament->nb_jour_rupture = $conso['nb_jour_rupture'];
+                        $consommation_medicament->qte_restante = $conso['qte_stock_fin_trim'];
+                        $consommation_medicament->stock_securite = $conso['stk_de_securite'];
+                        $consommation_medicament->cmma = $conso['ccma'];
+                        $consommation_medicament->cmd_trim_svt = $conso['cmd_trim_svt'];
+                        $consommation_medicament->save();
+                    }
+                }
+
+                $this->structure_defaut = $this->type_structure;
+                $this->periode_actuelle = Periode::where('id', $this->periode_choisie)->first();
+                $this->formulaireVisible = false;
+                $this->tableauVisible = true;
+                $this->chargerConsommations($this->periode_choisie, $this->type_structure);
+            }
+        }
+    }*/
+    public function ajouterConsommation()
+    {
+        $this->nettoyerValeursNul();
+
+        if (!$this->periode_choisie || !$this->type_structure || is_null($this->consommations)) {
+            return;
+        }
+
+        $this->validateInputs(); // validation personnalisée si tu l’as définie
+        $this->calculValeur();   // calcul des champs dérivés si nécessaire
+
+        $user = auth()->user();
+        $entity = $user->entity;
+
+        DB::beginTransaction();
+
+        try {
+            $consommation = Consommation::where('formation_sanitaire_id', $entity['id'])
+                ->where('periode_id', $this->periode_choisie)
+                ->where('acteur', $this->type_structure)
+                ->first();
+
+            if ($consommation) {
+                // Mise à jour des médicaments liés
+                foreach ($this->consommations as $conso) {
+                    $this->sauvegarderOuMettreAJourConsommationMedicament($consommation->id, $conso);
                 }
             } else {
+                // Création de la consommation
                 $consommation = new Consommation();
                 $consommation->periode_id = $this->periode_choisie;
                 $consommation->acteur = $this->type_structure;
@@ -396,35 +477,57 @@ class Consommations extends Component
                 $consommation->etat = 'en_cours';
                 $consommation->save();
 
+                // Insertion des médicaments liés
                 foreach ($this->consommations as $conso) {
-                    $consommation_medicament = new ConsommationMedicament();
-                    $consommation_medicament->consommation_id = $consommation->id;
-                    $consommation_medicament->medicament_id = $conso['medicament_id'];
-                    $consommation_medicament->qte_dispo_deb_periode = $conso['stk_dsp_deb_trim'];
-                    $consommation_medicament->qte_recu = $conso['qte_get_in_trim'];
-                    $consommation_medicament->qte_en_stock = $conso['qte_en_stock'];
-                    $consommation_medicament->qte_utilisee = $conso['qte_used'];
-                    $consommation_medicament->nb_beneficiaire = $conso['nb_beneficiaire'];
-                    $consommation_medicament->perimee = $conso['perimee'];
-                    $consommation_medicament->perte_avarie = $conso['perte_avarie'];
-                    $consommation_medicament->qte_retour_cameg = $conso['qte_ret_cameg'];
-                    $consommation_medicament->nb_jour_rupture = $conso['nb_jour_rupture'];
-                    $consommation_medicament->qte_restante = $conso['qte_stock_fin_trim'];
-                    $consommation_medicament->stock_securite = $conso['stk_de_securite'];
-                    $consommation_medicament->cmma = $conso['ccma'];
-                    $consommation_medicament->cmd_trim_svt = $conso['cmd_trim_svt'];
-                    $consommation_medicament->save();
+                    $this->sauvegarderOuMettreAJourConsommationMedicament($consommation->id, $conso);
                 }
             }
-
+            DB::commit();
+            if (!$consommation->wasRecentlyCreated) {
+                // optionnel : envoyer mail mise à jour
+            } else {
+                Mail::to($user->email)->send(new CreateConsommation($user, $consommation));
+            }
             $this->structure_defaut = $this->type_structure;
-            $this->periode_actuelle = Periode::where('id', $this->periode_choisie)->first();
+            $this->periode_actuelle = Periode::find($this->periode_choisie);
             $this->formulaireVisible = false;
             $this->tableauVisible = true;
             $this->chargerConsommations($this->periode_choisie, $this->type_structure);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            dd($e->getMessage());
+            $this->addError('general', 'Une erreur est survenue lors de l’enregistrement.');
+            logger()->error('Erreur consommation: ' . $e->getMessage());
         }
-    }}
+    }
+    protected function sauvegarderOuMettreAJourConsommationMedicament($consommation_id, $conso)
+    {
+        $consommation_medicament = ConsommationMedicament::where('consommation_id', $consommation_id)
+            ->where('medicament_id', $conso['medicament_id'])
+            ->first();
 
+        if (!$consommation_medicament) {
+            $consommation_medicament = new ConsommationMedicament();
+            $consommation_medicament->consommation_id = $consommation_id;
+            $consommation_medicament->medicament_id = $conso['medicament_id'];
+        }
+
+        $consommation_medicament->qte_dispo_deb_periode = $conso['stk_dsp_deb_trim'];
+        $consommation_medicament->qte_recu = $conso['qte_get_in_trim'];
+        $consommation_medicament->qte_en_stock = $conso['qte_en_stock'];
+        $consommation_medicament->qte_utilisee = $conso['qte_used'];
+        $consommation_medicament->nb_beneficiaire = $conso['nb_beneficiaire'];
+        $consommation_medicament->perimee = $conso['perimee'];
+        $consommation_medicament->perte_avarie = $conso['perte_avarie'];
+        $consommation_medicament->qte_retour_cameg = $conso['qte_ret_cameg'];
+        $consommation_medicament->nb_jour_rupture = $conso['nb_jour_rupture'];
+        $consommation_medicament->qte_restante = $conso['qte_stock_fin_trim'];
+        $consommation_medicament->stock_securite = $conso['stk_de_securite'];
+        $consommation_medicament->cmma = $conso['ccma'];
+        $consommation_medicament->cmd_trim_svt = $conso['cmd_trim_svt'];
+
+        $consommation_medicament->save();
+    }
     private function nettoyerValeursNul()
     {
         foreach ($this->consommations as $index => $conso) {
@@ -498,17 +601,21 @@ class Consommations extends Component
     {
         $user = auth()->user();
 
-        if (in_array($user->role->nom_role, ['District', 'Administrateur']) && $this->fs) {
-            $this->conso = Consommation::where('formation_sanitaire_id', $this->fs)
-                ->where('periode_id', $periode_id)
-                ->where('acteur', $acteur)
-                ->first();
-        } else {
-            $this->conso = Consommation::where('formation_sanitaire_id', $user->entity_id)
-                ->where('periode_id', $periode_id)
-                ->where('acteur', $acteur)
-                ->first();
+        $query = Consommation::query()
+            ->where('periode_id', $periode_id)
+            ->where('acteur', $acteur);
+        $query->where('formation_sanitaire_id', $this->fs ?? $user->entity_id);
+        if ($user->role->nom_role === 'Administrateur') {
+            if ($this->fs) {
+                $query->where('etat', 'valide');
+            }
+        } elseif ($user->role->nom_role === 'District') {
+            if ($this->fs) {
+                $query->whereIn('etat', ['soumis', 'valide']);
+            }
         }
+        $this->conso = $query->first();
+
 
         if ($this->conso) {
             $this->consommations_all = ConsommationMedicament::where('consommation_id', $this->conso->id)->get();
@@ -529,11 +636,13 @@ class Consommations extends Component
 
     public function soumettreConsommation($id)
     {
+        $user = auth()->user();
         $conso = Consommation::where('id', $id)->first();
         if ($conso) {
             $conso->etat = 'soumis';
             $conso->submitted_at = now();
             $conso->save();
+            Mail::to($user->email)->send(new SubmitConsommation($user, $conso));
             $this->chargerConsommations($conso->periode_id, $conso->acteur);
             $this->conso = $conso;
             session()->flash('message', 'La consommation a été soumise. Elle sera validé par le district');
@@ -543,8 +652,14 @@ class Consommations extends Component
     {
         $conso = Consommation::where('id', $id)->first();
         if ($conso) {
+            $fs_id = $conso->formation_sanitaire_id;
+            $fs = FormationSanitaire::find($fs_id);
+            $fs_user = $fs->utilisateur;
+            $user = auth()->user();
             $conso->etat = 'valide';
             $conso->save();
+            Mail::to($user->email)->send(new ValidateConsommation($user, $conso));
+            Mail::to($fs_user->email)->send(new ValidateConsommation($fs_user, $conso));
             $this->chercherConsommations();
             $this->conso = $conso;
             $this->periode_search = $conso->periode_id;
@@ -589,19 +704,19 @@ class Consommations extends Component
     }
 
     public function exporterPDF($id)
-{
-    $conso = Consommation::find($id);
-    $consommations = $this->consommations_all->filter(function ($c) {
-        return !($c->cmma == 0 && $c->stock_securite == 0 && $c->cmd_trim_svt == 0) || $this->showHiddenCards;
-    });
+    {
+        $conso = Consommation::find($id);
+        $consommations = $this->consommations_all->filter(function ($c) {
+            return !($c->cmma == 0 && $c->stock_securite == 0 && $c->cmd_trim_svt == 0) || $this->showHiddenCards;
+        });
 
-    $pdf = Pdf::loadView('consommations-pdf', [
-        'consommations' => $consommations,
-        'conso' => $conso,
-    ])->setPaper('a4', 'portrait');
+        $pdf = Pdf::loadView('consommations-pdf', [
+            'consommations' => $consommations,
+            'conso' => $conso,
+        ])->setPaper('a4', 'portrait');
 
-    return response()->streamDownload(function () use ($pdf) {
-        echo $pdf->stream();
-    }, 'consommations.pdf');
-}
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->stream();
+        }, 'consommations.pdf');
+    }
 }
