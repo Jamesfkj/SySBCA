@@ -21,6 +21,7 @@ class Dashboard extends Component
     public $asc_submit;
     public $user;
     public $periode;
+    public $trimestre;
     public $consommations_fs;
     public $consommations_fs_total;
     public $consommations_asc_total;
@@ -36,6 +37,11 @@ class Dashboard extends Component
     public $nb_asc_valide = 0;
     public $fs_prompt = 0;
     public $asc_prompt = 0;
+    public $asc_prompt_pourcentage;
+    public $fs_prompt_pourcentage;
+    public $asc_comp_pourcentage;
+    public $fs_comp_pourcentage;
+    public $percentage_denominateur;
     public $fs_ids = [];
     public $soumissions = [];
     public $validations = [];
@@ -52,6 +58,7 @@ class Dashboard extends Component
         $this->initialiserDonneesSelonRole();
         $this->chargerStatistiques();
         $this->checkSubmit();
+        $this->percentage_denominateur = $this->nb_fs;
     }
 
     private function initialiserDonneesSelonRole()
@@ -71,54 +78,61 @@ class Dashboard extends Component
         }
     }
 
+
     private function initialiserAdministrateur()
     {
         // Charger toutes les régions, districts et formations sanitaires
         $this->regions = Region::orderBy('nom')->get();
         $this->districts = District::orderBy('nom')->get();
         $this->fs = FormationSanitaire::orderBy('nom')->get();
-        
+
         // Initialiser les données globales par défaut (toutes les FS)
         $this->fs_ids = FormationSanitaire::pluck('id');
         $this->calculerStatistiquesDeBase();
     }
 
     private function mettreAJourDonneesAdministrateur()
-    {
-        // Réinitialiser les collections
-        $this->districts = collect();
-        $this->fs = collect();
-        $this->fs_ids = collect();
+{
+    $this->districts = collect();
+    $this->fs = collect();
+    $this->fs_ids = collect();
 
-        if ($this->region_search) {
-            // Filtrer les districts par région
-            $this->districts = District::where('region_id', $this->region_search)
+    if ($this->region_search) {
+        // Recherche filtrée par région
+        $this->districts = District::where('region_id', $this->region_search)
+            ->orderBy('nom')
+            ->get();
+
+        if ($this->district_search) {
+            // Filtré à la fois par région et district
+            $this->fs = FormationSanitaire::where('district_id', $this->district_search)
                 ->orderBy('nom')
                 ->get();
-            
-            if ($this->district_search) {
-                // Filtrer les FS par district spécifique
-                $this->fs = FormationSanitaire::where('district_id', $this->district_search)
-                    ->orderBy('nom')
-                    ->get();
-                $this->fs_ids = $this->fs->pluck('id');
-            } else {
-                // Toutes les FS de la région sélectionnée
-                $districtIds = $this->districts->pluck('id');
-                $this->fs = FormationSanitaire::whereIn('district_id', $districtIds)
-                    ->orderBy('nom')
-                    ->get();
-                $this->fs_ids = $this->fs->pluck('id');
-            }
         } else {
-            // Aucune région sélectionnée = toutes les données
-            $this->districts = District::orderBy('nom')->get();
-            $this->fs = FormationSanitaire::orderBy('nom')->get();
-            $this->fs_ids = $this->fs->pluck('id');
+            // Toutes les FS de la région sélectionnée
+            $districtIds = $this->districts->pluck('id');
+            $this->fs = FormationSanitaire::whereIn('district_id', $districtIds)
+                ->orderBy('nom')
+                ->get();
         }
+    } elseif ($this->district_search) {
+        
+        $this->districts = District::all();
 
-        $this->calculerStatistiquesDeBase();
+        $this->fs = FormationSanitaire::where('district_id', $this->district_search)
+            ->orderBy('nom')
+            ->get();
+    } else {
+        // Aucune région ni district sélectionné
+        $this->districts = District::orderBy('nom')->get();
+        $this->fs = FormationSanitaire::orderBy('nom')->get();
     }
+
+    $this->fs_ids = $this->fs->pluck('id');
+
+    $this->calculerStatistiquesDeBase();
+}
+
 
     private function initialiserDistrict()
     {
@@ -156,27 +170,50 @@ class Dashboard extends Component
 
     public function chargerPeriode()
     {
-        $mois = now()->month;
-        $year = now()->year;
-        $trimestre = ceil($mois / 3);
-        $nomPeriode = "T{$trimestre} {$year}";
-        $this->periode = $nomPeriode;
-        $dernierMoisTrimestre = $trimestre * 3;
-        $dernierJourMois = Carbon::createFromDate($year, $dernierMoisTrimestre, 1)->endOfMonth()->day;
-        $this->prompt_date = Carbon::createFromDate($year, $dernierMoisTrimestre, $dernierJourMois);
-        // Charger toutes les périodes
         $this->periodes_all = Periode::orderByDesc('id')->get();
-        
-        // Trouver la période actuelle
-        $this->periode_actuelle = $this->periodes_all->firstWhere('nom', $nomPeriode)
-            ?? $this->periodes_all->first();
 
-        // Initialiser le filtre de période avec la période actuelle
-        if (!$this->periode_search) {
+        // Déterminer la période à utiliser 
+        if ($this->periode_search) {
+            $this->periode_actuelle = $this->periodes_all->firstWhere('id', $this->periode_search);
+        } else {
+            $mois = now()->month;
+            $year = now()->year;
+            $trimestre = ceil($mois / 3);
+            $nomPeriode = "T{$trimestre} {$year}";
+
+            $this->periode_actuelle = $this->periodes_all->firstWhere('nom', $nomPeriode)
+                ?? $this->periodes_all->first();
+
             $this->periode_search = $this->periode_actuelle->id;
         }
-    }
 
+        // Recalcul du trimestre et du prompt_date en fonction de la période sélectionnée
+        if ($this->periode_actuelle) {
+            // Extraire l'année et le trimestre depuis le nom de période "T2 2025" par exemple
+            [$t, $year] = explode(' ', $this->periode_actuelle->nom);
+            $trimestre = (int) str_replace('T', '', $t);
+
+            switch ($trimestre) {
+                case 1:
+                    $this->prompt_date = Carbon::create($year, 4, 5);
+                    break;
+                case 2:
+                    $this->prompt_date = Carbon::create($year, 7, 5);
+                    break;
+                case 3:
+                    $this->prompt_date = Carbon::create($year, 10, 5);
+                    break;
+                case 4:
+                    $this->prompt_date = Carbon::create($year + 1, 1, 5);
+                    break;
+            }
+        }
+    }
+    public function updatedPeriodeSearch()
+    {
+        $this->chargerPeriode();
+    }
+    
     public function chargerStatistiques()
     {
         if ($this->fs_ids->isEmpty()) {
@@ -206,17 +243,49 @@ class Dashboard extends Component
     private function calculerStatistiquesConsommation()
     {
         $periodeId = $this->periode_search ?? $this->periode_actuelle->id;
-
+        $fs = $this->fs_search ?? null;
+        $this->trimestre = 0;
         // Statistiques ASC
         $this->nb_asc_soumission = $this->compterConsommations('ASC', ['soumis', 'valide'], $periodeId);
         $this->nb_asc_valide = $this->compterConsommations('ASC', ['valide'], $periodeId);
         $this->asc_prompt = $this->compterConsommationsPrompt('ASC', $periodeId);
+        
 
         // Statistiques FS
         $this->nb_fs_soumission = $this->compterConsommations('FS', ['soumis', 'valide'], $periodeId);
         $this->nb_fs_valide = $this->compterConsommations('FS', ['valide'], $periodeId);
         $this->fs_prompt = $this->compterConsommationsPrompt('FS', $periodeId);
+
+        $this->calculerPromptPercentage();
+        $this->calculerComptPercentage();
     }
+
+    public function calculerPromptPercentage(){
+        $fs = $this->fs_search;
+        $nb_fs = $this->nb_fs ?? 1;
+        if($fs != ""){
+            $this->fs_prompt_pourcentage = intval(($this->fs_prompt) * 100); 
+            $this->asc_prompt_pourcentage = intval(($this->asc_prompt) * 100); 
+        }
+        else{
+            $this->fs_prompt_pourcentage = intval(($this->fs_prompt / $nb_fs) * 100); 
+            $this->asc_prompt_pourcentage = intval(($this->asc_prompt / $nb_fs) * 100); 
+        }
+    }
+
+    public function calculerComptPercentage(){
+        $fs = $this->fs_search;
+        $nb_fs = $this->nb_fs ?? 1;
+        if($fs != ""){
+            $this->fs_comp_pourcentage = intval(($this->nb_fs_soumission) * 100); 
+            $this->asc_comp_pourcentage = intval(($this->nb_asc_soumission) * 100); 
+        }
+        else{
+            $this->fs_comp_pourcentage = intval(($this->nb_fs_soumission / $nb_fs) * 100); 
+            $this->asc_comp_pourcentage = intval(($this->nb_asc_soumission / $nb_fs) * 100); 
+        }
+    }
+    
 
     private function compterConsommations($acteur, $etats, $periodeId)
     {
@@ -224,8 +293,6 @@ class Dashboard extends Component
             ->whereIn('formation_sanitaire_id', $this->fs_ids)
             ->whereIn('etat', $etats)
             ->where('periode_id', $periodeId);
-
-        // Appliquer le filtre formation sanitaire si sélectionné
         if ($this->fs_search) {
             $query->where('formation_sanitaire_id', $this->fs_search);
         }
@@ -237,7 +304,7 @@ class Dashboard extends Component
     {
         $query = Consommation::where('acteur', $acteur)
             ->whereIn('formation_sanitaire_id', $this->fs_ids)
-            ->where('etat', 'soumis')
+            ->whereIn('etat', ['soumis', 'valide'])
             ->where('periode_id', $periodeId)
             ->where('submitted_at', '<=', $this->prompt_date);
 
@@ -251,7 +318,7 @@ class Dashboard extends Component
     {
         $query = Consommation::with(['formationSanitaire', 'periode'])
             ->whereIn('formation_sanitaire_id', $this->fs_ids)
-            ->where('etat', 'soumis')
+            ->whereIn('etat', ['soumis', 'valide'])
             ->where('periode_id', $this->periode_search ?? $this->periode_actuelle->id);
 
         // Appliquer le filtre formation sanitaire si sélectionné
@@ -269,13 +336,13 @@ class Dashboard extends Component
             ->where('etat', 'valide')
             ->where('periode_id', $this->periode_search ?? $this->periode_actuelle->id);
 
-        // Appliquer le filtre formation sanitaire si sélectionné
         if ($this->fs_search) {
             $query->where('formation_sanitaire_id', $this->fs_search);
         }
 
         $this->validations = $query->orderByDesc('updated_at')->limit(50)->get();
     }
+
 
     private function chargerTopCommandes()
     {
@@ -301,12 +368,17 @@ class Dashboard extends Component
 
     public function chercherStatistiques()
     {
+        if($this->fs_search != ""){
+            $this->percentage_denominateur = 1;
+        }
+        else{
+            $this->percentage_denominateur = $this->nb_fs;
+        }
         // Mettre à jour les données selon le rôle
         if ($this->user->role->nom_role === 'Administrateur') {
             $this->mettreAJourDonneesAdministrateur();
         }
 
-        // Recharger toutes les statistiques
         $this->chargerStatistiques();
     }
 
@@ -386,6 +458,25 @@ class Dashboard extends Component
     public function checkSubmit()
     {
         $user = $this->user;
+        $mois = now()->month;
+        $year = now()->year;
+        $trimestre = ceil($mois / 3);
+        $nomPeriode = "T{$trimestre} {$year}";
+        $this->periode = $nomPeriode;
+        switch ($trimestre) {
+            case 1:
+                $this->prompt_date = Carbon::create($year, 4, 5);
+                break;
+            case 2:
+                $this->prompt_date = Carbon::create($year, 7, 5);
+                break;
+            case 3:
+                $this->prompt_date = Carbon::create($year, 10, 5);
+                break;
+            case 4:
+                $this->prompt_date = Carbon::create($year + 1, 1, 5);
+                break;
+        }
         $this->chargerConsommations();
         if ($user->role->nom_role === 'Formation sanitaire') {
             $periode = Periode::where('nom', $this->periode)->first();

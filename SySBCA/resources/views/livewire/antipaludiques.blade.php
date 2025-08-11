@@ -80,6 +80,7 @@
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Nom</th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Code</th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Composition</th>
+                            <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Conditionnement</th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Réservé FS</th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Actions</th>
                         </tr>
@@ -90,6 +91,7 @@
                                 <td class="px-6 py-4 text-blue-900">{{ $medicament->nom }}</td>
                                 <td class="px-6 py-4 text-blue-900">{{ $medicament->code }}</td>
                                 <td class="px-6 py-4 text-blue-900">{{ $medicament->composition ?? '-' }}</td>
+                                <td class="px-6 py-4 text-blue-900">{{ $medicament->conditionnement ?? '-' }}</td>
                                 <td class="px-6 py-4 text-blue-900 text-center">
                                     @if($medicament->fs_only)
                                         <i class="bi bi-check-lg text-green-600"></i>
@@ -146,6 +148,13 @@
                         @error('composition') <span class="text-red-600">{{ $message }}</span> @enderror
                     </div>
 
+                    <div class="mb-4">
+                        <label for="conditionnement" class="block text-sm font-medium text-blue-900">Conditionnement</label>
+                        <input type="text" id="conditionnement" wire:model.live="conditionnement"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900">
+                        @error('conditionnement') <span class="text-red-600">{{ $message }}</span> @enderror
+                    </div>
+
                     <div class="mb-6">
                         <label for="fs_only" class="block text-sm font-medium text-blue-900">Uniquement pour Formations
                             Sanitaires</label>
@@ -188,6 +197,13 @@
                         <input type="text" id="edit_composition" wire:model.live="editComposition"
                             class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900">
                         @error('editComposition') <span class="text-red-600">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="edit_conditionnement" class="block text-sm font-medium text-blue-900">Conditionnement</label>
+                        <input type="text" id="edit_conditionnement" wire:model.live="editConditionnement"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-blue-900">
+                        @error('editConditionnement') <span class="text-red-600">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="mb-6">

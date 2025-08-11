@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('nom')->unique();
             $table->string('code');
+            $table->string('conditionnement');
             $table->string('composition')->nullable();
             $table->boolean('fs_only')->default(false)->nullable();
             $table->timestamps();

@@ -11,7 +11,7 @@ class Antipaludiques extends Component
     public $showEditForm = false;
     public $search = '';
     public $medicaments = [];
-
+    public $conditionnement;
     public $nom = '';
     public $code = '';
     public $composition = '';
@@ -21,6 +21,7 @@ class Antipaludiques extends Component
     public $editNom;
     public $editCode;
     public $editComposition;
+    public $editConditionnement;
     public $editFsOnly = true;
 
     public function afficherFormulaire()
@@ -30,6 +31,8 @@ class Antipaludiques extends Component
             'editId',
             'editNom',
             'editCode',
+            'editConditionnement',
+            'conditionnement',
             'editComposition',
             'editFsOnly',
             'nom',
@@ -49,6 +52,7 @@ class Antipaludiques extends Component
                 'nom',
                 'code',
                 'composition',
+                'conditionnement',
                 'fs_only'
             ]);
 
@@ -57,6 +61,7 @@ class Antipaludiques extends Component
             $this->editNom = $medicament->nom;
             $this->editCode = $medicament->code;
             $this->editComposition = $medicament->composition;
+            $this->editConditionnement = $medicament->conditionnement;
             $this->editFsOnly = $medicament->fs_only;
         }
     }
@@ -84,6 +89,7 @@ class Antipaludiques extends Component
             'nom' => 'required|string|max:255|unique:medicaments,nom',
             'code' => 'required|string|max:100',
             'composition' => 'nullable|string|max:500',
+            'conditionnement' => 'required|string|max:100',
             'fs_only' => 'boolean',
         ], [
             'nom.required' => 'Le nom du médicament est obligatoire.',
@@ -98,6 +104,10 @@ class Antipaludiques extends Component
             'composition.string' => 'La composition doit être une chaîne de caractères.',
             'composition.max' => 'La composition ne peut pas dépasser 500 caractères.',
 
+            'conditionnement.required' => 'Le conditionnement est obligatoire.',
+            'conditionnement.string' => 'Le conditionnement doit être une chaîne de caractères.',
+            'conditionnement.max' => 'Le conditionnement ne peut pas dépasser 100 caractères.',
+
             'fs_only.boolean' => 'La valeur pour "Uniquement pour Formations Sanitaires" doit être vrai ou faux.',
         ]);
 
@@ -106,6 +116,7 @@ class Antipaludiques extends Component
         $medicament->nom = $this->nom;
         $medicament->code = $this->code;
         $medicament->composition = $this->composition;
+        $medicament->conditionnement = $this->conditionnement;
         $medicament->fs_only = $this->fs_only;
         $medicament->save();
 
@@ -120,6 +131,7 @@ class Antipaludiques extends Component
             'editNom' => 'required|string|max:255|unique:medicaments,nom,' . $this->editId,
             'editCode' => 'required|string|max:100',
             'editComposition' => 'nullable|string|max:500',
+            'editConditionnement' => 'required|string|max:100',
             'editFsOnly' => 'boolean',
         ], [
             'editNom.required' => 'Le nom du médicament est obligatoire.',
@@ -134,6 +146,10 @@ class Antipaludiques extends Component
             'editComposition.string' => 'La composition doit être une chaîne de caractères.',
             'editComposition.max' => 'La composition ne peut pas dépasser 500 caractères.',
 
+            'editConditionnement.required' => 'Le conditionnement est obligatoire.',
+            'editConditionnement.string' => 'Le conditionnement doit être une chaîne de caractères.',
+            'editConditionnement.max' => 'Le conditionnement ne peut pas dépasser 100 caractères.',
+
             'editFsOnly.boolean' => 'La valeur pour "Uniquement pour Formations Sanitaires" doit être vrai ou faux.',
         ]);
 
@@ -143,7 +159,8 @@ class Antipaludiques extends Component
             $medicament->nom = $this->editNom;
             $medicament->code = $this->editCode;
             $medicament->composition = $this->editComposition;
-            $medicament->fs_only = $this->editFsOnly; // ✅ corrige ici
+            $medicament->conditionnement = $this->editConditionnement;
+            $medicament->fs_only = $this->editFsOnly; 
             $medicament->save();
 
             session()->flash('message', 'Médicament mis à jour avec succès !');

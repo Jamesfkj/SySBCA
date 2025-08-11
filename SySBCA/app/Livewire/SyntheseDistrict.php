@@ -136,12 +136,12 @@ class SyntheseDistrict extends Component
             $this->conso_ids = Consommation::whereIn('formation_sanitaire_id', $fs_ids)
                 ->where('acteur', $this->type_synthese)
                 ->where('periode_id', $this->periode_search)
-                ->where('etat', 'valide')
+                ->whereIn('etat', ['valide', 'soumis'])
                 ->pluck('id')->toArray();
         } elseif ($this->type_synthese === 'FS+ASC') {
             $this->conso_ids = Consommation::whereIn('formation_sanitaire_id', $fs_ids)
                 ->where('periode_id', $this->periode_search)
-                ->where('etat', 'valide')
+                ->whereIn('etat', ['valide', 'soumis'])
                 ->pluck('id')->toArray();
         }
 

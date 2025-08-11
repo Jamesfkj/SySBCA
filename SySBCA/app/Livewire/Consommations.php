@@ -15,7 +15,10 @@ use App\Mail\ValidateConsommation;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-
+use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelLow;
+use Endroid\QrCode\Writer\PngWriter;
 use Carbon\Carbon;
 use function Laravel\Prompts\select;
 use function Pest\Laravel\withMiddleware;
@@ -693,6 +696,10 @@ class Consommations extends Component
             ->first();
 
         if ($conso) {
+            if ($quantite > ($conso->cmma + $conso->cmd_trim_svt)) {
+                $this->addError('general', 'La quantité accordée ne doit pas être supérieure à la somme du CMMa et la quantité commandée.');
+                return;
+            }
             $conso->qte_accordee = $quantite;
             $conso->save();
             unset($this->quantites_accordees[$medicament_id]);
@@ -705,6 +712,11 @@ class Consommations extends Component
 
     public function exporterPDF($id)
     {
+        $text = urlencode('https://mon-site.fr');
+        $qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&format=png&data={$text}";
+
+        $qrCodeData = file_get_contents($qrCodeUrl);
+        $qrCode = base64_encode($qrCodeData);
         $conso = Consommation::find($id);
         $consommations = $this->consommations_all->filter(function ($c) {
             return !($c->cmma == 0 && $c->stock_securite == 0 && $c->cmd_trim_svt == 0) || $this->showHiddenCards;
@@ -713,6 +725,7 @@ class Consommations extends Component
         $pdf = Pdf::loadView('consommations-pdf', [
             'consommations' => $consommations,
             'conso' => $conso,
+            'qrCode' => $qrCode,
         ])->setPaper('a4', 'portrait');
 
         return response()->streamDownload(function () use ($pdf) {

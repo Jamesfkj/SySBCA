@@ -1,364 +1,242 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rapport de Consommation - Médicaments</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
     <style>
-
+        /* Style général */
         body {
-            font-family: 'DejaVu Sans', Arial, sans-serif;
-            font-size: 12px;
-            line-height: 1.4;
-            color: #000;
-            background: white;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13px;
+            color: #222;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            background: #fff;
         }
 
-        /* En-tête officiel - Garde les couleurs */
+        h1 {
+            text-align: center;
+            font-size: 20px;
+            text-transform: uppercase;
+            margin: 15px 0;
+            color: #0f766e;
+        }
+
+        h4 {
+            margin: 8px 0;
+            color: #0f766e;
+        }
+
+        /* En-tête */
         .header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            padding: 10px 20px;
             border-bottom: 3px solid #0f766e;
-            padding-bottom: 15px;
-            margin-bottom: 25px;
         }
 
-        .header-left {
-            flex: 1;
-            text-align: center;
-        }
-
+        .header-left,
         .header-right {
-            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             text-align: center;
+            max-width: 45%;
         }
 
         .header-logo img {
-            height: 70px;
-            width: auto;
-            margin-bottom: 10px;
+            max-height: 60px;
+            margin-bottom: 5px;
         }
 
         .logo-placeholder {
-            width: 70px;
-            height: 70px;
-            background: #f8f9fa;
-            border: 2px solid #0f766e;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 10px;
             font-size: 10px;
-            color: #0f766e;
-            font-weight: bold;
-            border-radius: 5px;
+            text-align: center;
+            border: 1px solid #ccc;
+            padding: 4px;
+            color: #888;
         }
 
-        .ministry-info {
-            font-size: 11px;
-            color: #0f766e;
-            font-weight: bold;
-            line-height: 1.2;
-            margin-bottom: 3px;
-        }
-
-        .direction-info {
-            font-size: 9px;
-            color: #666;
-            line-height: 1.1;
-            margin: 1px 0;
-        }
-
-        .republic-info {
-            font-size: 14px;
-            font-weight: bold;
-            color: #0f766e;
-            margin-bottom: 8px;
-        }
-
+        .ministry-info,
+        .direction-info,
+        .republic-info,
         .motto {
             font-size: 11px;
-            font-style: italic;
-            color: #666;
-        }
-
-        /* Titre principal - Garde la couleur */
-        h1 {
-            background: #0f766e;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 18px;
+            line-height: 1.2;
+            text-transform: uppercase;
             font-weight: bold;
-            margin: 25px 0;
-            border-radius: 5px;
         }
 
-        /* Métadonnées du rapport - Simplifié pour PDF */
+        /* Métadonnées */
         .meta {
-            background: white;
-            border: 2px solid #000;
-            padding: 15px;
-            margin-bottom: 25px;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            display: flex;
+            flex-wrap: wrap;
             gap: 15px;
+            padding: 10px 20px;
+            border: 1px solid #ddd;
+            margin: 15px 20px;
+            background: #f9f9f9;
         }
 
         .meta-item {
-            text-align: center;
-            border: 1px solid #000;
-            padding: 10px;
+            flex: 1 1 30%;
         }
 
         .meta-label {
             font-weight: bold;
-            color: #000;
-            font-size: 11px;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-            border-bottom: 1px solid #000;
-            padding-bottom: 5px;
+            color: #0f766e;
         }
 
         .meta-value {
-            font-size: 12px;
-            color: #000;
-            font-weight: bold;
-            margin-top: 8px;
+            margin-top: 2px;
         }
 
-        /* Sections des médicaments - Noir et blanc */
+        /* Médicaments */
         .medication-section {
-            margin-bottom: 35px;
-            page-break-inside: avoid;
-            border: 3px solid #000;
+            border: 1px solid #ddd;
+            margin: 15px 20px;
+            border-radius: 4px;
             overflow: hidden;
         }
 
         .medication-title {
-            background: #000;
-            color: white;
-            padding: 12px 15px;
-            font-size: 14px;
+            background: #0f766e;
+            color: #fff;
+            padding: 8px 10px;
             font-weight: bold;
-            margin: 0;
         }
 
         .medication-number {
-            background: #333;
-            color: white;
-            padding: 3px 8px;
-            margin-right: 10px;
-            font-size: 12px;
-            border: 1px solid #000;
+            background: #fff;
+            color: #0f766e;
+            border-radius: 50%;
+            padding: 2px 7px;
+            margin-right: 8px;
         }
 
-        /* Tableaux de données - Noir et blanc */
+        /* Tableaux */
         .data-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
-            margin: 0;
-            border: 2px solid #000;
         }
 
         .data-table th,
         .data-table td {
-            border: 2px solid #000;
-            padding: 12px 15px;
+            border: 1px solid #ddd;
+            padding: 6px 10px;
             text-align: left;
-            vertical-align: top;
         }
 
         .data-table th {
-            background: #000;
-            color: white;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 0.5px;
-            width: 40%;
+            background: #f0f0f0;
+            color: #0f766e;
+            font-size: 12px;
         }
 
         .data-table td {
-            background: white;
-            color: #000;
-            font-weight: bold;
+            font-size: 12px;
         }
 
-        .data-table tr:nth-child(even) td {
-            background: #f5f5f5;
-        }
-
-        /* Mise en évidence des valeurs - Noir et blanc */
-        .highlight-value {
-            background: #ddd;
-            padding: 3px 8px;
-            border: 2px solid #000;
+        /* Valeurs colorées */
+        .positive-value {
+            color: #0f766e;
             font-weight: bold;
-            color: #000;
-            display: inline-block;
         }
 
         .critical-value {
-            background: #000;
-            padding: 3px 8px;
-            border: 2px solid #000;
+            color: #b91c1c;
             font-weight: bold;
-            color: white;
-            display: inline-block;
         }
 
-        .positive-value {
-            background: white;
-            padding: 3px 8px;
-            border: 2px solid #000;
+        .highlight-value {
+            color: #b45309;
             font-weight: bold;
-            color: #000;
-            display: inline-block;
-        }
-
-        /* Numérotation des pages */
-        .page-number {
-            position: fixed;
-            bottom: 1cm;
-            right: 50%;
-            transform: translateX(50%);
-            font-size: 12px;
-            font-weight: bold;
-            color: #000;
-            background: white;
-            padding: 5px 15px;
-            border: 2px solid #000;
         }
 
         /* Pied de page */
         .document-footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 3px solid #000;
-            font-size: 10px;
-            color: #000;
-            page-break-inside: avoid;
+            margin: 20px;
+            border-top: 2px solid #0f766e;
+            padding-top: 10px;
         }
 
         .footer-grid {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            gap: 30px;
-            align-items: center;
-            margin-bottom: 15px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
         .qr-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             text-align: center;
-            border: 2px solid #000;
-            padding: 10px;
-        }
-
-        .qr-section canvas {
-            margin-bottom: 8px;
-            border: 2px solid #000;
-        }
-
-        .qr-info {
-            font-size: 8px;
-            color: #000;
-            line-height: 1.2;
-            font-weight: bold;
+            font-size: 11px;
         }
 
         .report-info {
-            text-align: center;
-            border: 2px solid #000;
-            padding: 15px;
-        }
-
-        .report-info h4 {
-            font-size: 12px;
-            color: #000;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            font-weight: bold;
-            border-bottom: 2px solid #000;
-            padding-bottom: 5px;
+            flex: 1;
+            font-size: 11px;
         }
 
         .report-detail {
-            margin: 5px 0;
-            font-size: 9px;
-            font-weight: bold;
-            color: #000;
+            margin: 4px 0;
+        }
+
+        .status-pending {
+            background: #fbbf24;
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
         }
 
         .signature-section {
-            text-align: center;
-            border: 2px solid #000;
-            padding: 15px;
-        }
-
-        .signature-section h4 {
+            flex: 1;
             font-size: 11px;
-            color: #000;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            font-weight: bold;
-            border-bottom: 2px solid #000;
-            padding-bottom: 5px;
         }
 
         .signature-line {
-            border-bottom: 2px solid #000;
-            width: 150px;
-            margin: 25px auto 8px;
+            border-bottom: 1px solid #000;
+            height: 20px;
+            width: 100%;
+            margin-top: 10px;
         }
 
-        .signature-details {
-            font-size: 9px;
-            color: #000;
-            line-height: 1.2;
-            font-weight: bold;
-        }
-
-        /* Responsive pour impression */
+        /* Impression */
         @media print {
             body {
-                padding: 0;
-                font-size: 10px;
+                font-size: 12px;
+                color: #000;
             }
-            
-            .medication-section {
-                page-break-inside: avoid;
+
+            .header {
+                border-bottom: 2px solid #000;
             }
-            
-            .data-table th,
-            .data-table td {
-                padding: 8px 10px;
-                font-size: 10px;
+
+            .meta {
+                background: #fff;
             }
-            
-            .page-number {
-                display: none; /* Le @page counter gère déjà cela */
-            }
-            
-            * {
-                -webkit-print-color-adjust: exact !important;
-                color-adjust: exact !important;
+
+            .status-pending {
+                background: none;
+                color: #000;
+                border: 1px solid #000;
             }
         }
     </style>
 </head>
-<body data-date="{{ date('d/m/Y') }}">
+
+<body>
     <!-- En-tête officiel -->
     <div class="header">
         <div class="header-left">
             <div class="header-logo">
-                <img src="{{ asset('images/pnlp3.jpg') }}" alt="Logo PNLP" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <img src="{{ asset('images/pnlp3.jpg') }}" alt="Logo PNLP"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                 <div class="logo-placeholder" style="display: none;">LOGO<br>PNLP</div>
             </div>
             <div class="ministry-info">MINISTÈRE DE LA SANTÉ DE L'HYGIÈNE PUBLIQUE</div>
@@ -368,10 +246,11 @@
             <div class="direction-info">ET LES PROGRAMMES DE SANTÉ PUBLIQUE</div>
             <div class="direction-info">PROGRAMME NATIONAL DE LUTTE CONTRE LE PALUDISME</div>
         </div>
-        
+
         <div class="header-right">
             <div class="header-logo">
-                <img src="{{ public_path('assets/logo.png') }}" alt="Armoiries Togo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <img src="{{ public_path('assets/logo.png') }}" alt="Armoiries Togo"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                 <div class="logo-placeholder" style="display: none;">ARMOIRIES<br>TOGO</div>
             </div>
             <div class="republic-info">RÉPUBLIQUE TOGOLAISE</div>
@@ -410,9 +289,11 @@
                 <th>Stock début de période</th>
                 <td>
                     @if($consommation->qte_dispo_deb_periode > 0)
-                        <span class="positive-value">{{ number_format($consommation->qte_dispo_deb_periode, 0, ',', ' ') }}</span>
+                    <span class="positive-value">{{ number_format($consommation->qte_dispo_deb_periode, 0, ',', ' ')
+                        }}</span>
                     @else
-                        <span class="critical-value">{{ number_format($consommation->qte_dispo_deb_periode, 0, ',', ' ') }}</span>
+                    <span class="critical-value">{{ number_format($consommation->qte_dispo_deb_periode, 0, ',', ' ')
+                        }}</span>
                     @endif
                 </td>
             </tr>
@@ -424,9 +305,9 @@
                 <th>Quantité utilisée</th>
                 <td>
                     @if($consommation->qte_utilisee > 0)
-                        <span class="highlight-value">{{ number_format($consommation->qte_utilisee, 0, ',', ' ') }}</span>
+                    <span class="highlight-value">{{ number_format($consommation->qte_utilisee, 0, ',', ' ') }}</span>
                     @else
-                        {{ number_format($consommation->qte_utilisee, 0, ',', ' ') }}
+                    {{ number_format($consommation->qte_utilisee, 0, ',', ' ') }}
                     @endif
                 </td>
             </tr>
@@ -438,9 +319,9 @@
                 <th>Médicaments périmés</th>
                 <td>
                     @if($consommation->perimee > 0)
-                        <span class="critical-value">{{ number_format($consommation->perimee, 0, ',', ' ') }}</span>
+                    <span class="critical-value">{{ number_format($consommation->perimee, 0, ',', ' ') }}</span>
                     @else
-                        <span class="positive-value">{{ number_format($consommation->perimee, 0, ',', ' ') }}</span>
+                    <span class="positive-value">{{ number_format($consommation->perimee, 0, ',', ' ') }}</span>
                     @endif
                 </td>
             </tr>
@@ -448,9 +329,9 @@
                 <th>Pertes et avariées</th>
                 <td>
                     @if($consommation->perte_avarie > 0)
-                        <span class="critical-value">{{ number_format($consommation->perte_avarie, 0, ',', ' ') }}</span>
+                    <span class="critical-value">{{ number_format($consommation->perte_avarie, 0, ',', ' ') }}</span>
                     @else
-                        <span class="positive-value">{{ number_format($consommation->perte_avarie, 0, ',', ' ') }}</span>
+                    <span class="positive-value">{{ number_format($consommation->perte_avarie, 0, ',', ' ') }}</span>
                     @endif
                 </td>
             </tr>
@@ -462,9 +343,9 @@
                 <th>Jours de rupture</th>
                 <td>
                     @if($consommation->nb_jour_rupture > 0)
-                        <span class="critical-value">{{ $consommation->nb_jour_rupture }} jours</span>
+                    <span class="critical-value">{{ $consommation->nb_jour_rupture }} jours</span>
                     @else
-                        <span class="positive-value">{{ $consommation->nb_jour_rupture }} jours</span>
+                    <span class="positive-value">{{ $consommation->nb_jour_rupture }} jours</span>
                     @endif
                 </td>
             </tr>
@@ -476,9 +357,9 @@
                 <th>CMM ajustée</th>
                 <td>
                     @if($consommation->cmma)
-                        <span class="highlight-value">{{ number_format($consommation->cmma, 2, ',', ' ') }} /mois</span>
+                    <span class="highlight-value">{{ number_format($consommation->cmma, 2, ',', ' ') }} /mois</span>
                     @else
-                        N/A
+                    N/A
                     @endif
                 </td>
             </tr>
@@ -490,9 +371,9 @@
                 <th>Quantité accordée</th>
                 <td>
                     @if($consommation->qte_accordee !== null)
-                        <span class="highlight-value">{{ number_format($consommation->qte_accordee, 0, ',', ' ') }}</span>
+                    <span class="highlight-value">{{ number_format($consommation->qte_accordee, 0, ',', ' ') }}</span>
                     @else
-                        <span style="color: #333; font-style: italic; font-weight: normal;">En attente de validation</span>
+                    <span style="color: #666; font-style: italic;">En attente de validation</span>
                     @endif
                 </td>
             </tr>
@@ -511,19 +392,26 @@
                     RPT-{{ date('Y-m-d-His') }}<br>
                     <strong>Utilisateur:</strong><br>
                     {{ Auth::user()->email ?? 'system@cms-vidosa.tg' }}
+                   <img src="data:image/png;base64,{{ $qrCode }}" 
+             alt="QR Code" 
+             style="width: 50px; height: 50px; margin-top: 10px;">
                 </div>
             </div>
-            
+
             <!-- Informations du rapport -->
             <div class="report-info">
                 <h4>Informations de génération</h4>
                 <div class="report-detail"><strong>Rapport généré le :</strong> {{ date('d/m/Y à H:i') }}</div>
-                <div class="report-detail"><strong>Créateur :</strong> {{ Auth::user()->name ?? Auth::user()->email ?? 'Système' }}</div>
-                <div class="report-detail"><strong>Référence :</strong> RPT-{{ date('Y-m-d-His') }}-{{ \Illuminate\Support\Str::random(6) }}</div>
+                <div class="report-detail"><strong>Créateur :</strong> {{ Auth::user()->name ?? Auth::user()->email ??
+                    'Système' }}</div>
+                <div class="report-detail"><strong>Référence :</strong> RPT-{{ date('Y-m-d-His') }}-{{
+                    \Illuminate\Support\Str::random(6) }}</div>
                 <div class="report-detail"><strong>Total médicaments :</strong> {{ count($consommations) }}</div>
-                <div class="report-detail"><strong>Statut :</strong> En attente de validation</div>
+                <div class="report-detail"><strong>Statut :</strong>
+                    <span class="status-pending">En attente de validation</span>
+                </div>
             </div>
-            
+
             <!-- Section signatures -->
             <div class="signature-section">
                 <h4>Validation</h4>
@@ -543,7 +431,7 @@
 
     <script>
         // Génération du code QR avec les données du rapport
-        window.onload = function() {
+        window.onload = function () {
             const qrData = JSON.stringify({
                 id_rapport: 'RPT-{{ date("Y-m-d-His") }}',
                 id_consommation: '{{ $conso->id ?? "N/A" }}',
@@ -552,29 +440,30 @@
                 periode: '{{ $conso->periode->nom ?? "Période inconnue" }}',
                 date_creation: '{{ date("Y-m-d") }}',
                 nb_medicaments: {{ count($consommations) }},
-                type: 'rapport_consommation_medicaments'
+            type: 'rapport_consommation_medicaments'
             });
-            
-            QRCode.toCanvas(document.getElementById('qrcode'), qrData, {
-                width: 80,
-                height: 80,
-                margin: 2,
-                color: {
-                    dark: '#000000',
-                    light: '#FFFFFF'
-                },
-                errorCorrectionLevel: 'M'
-            }, function (error) {
-                if (error) {
-                    console.error('Erreur génération QR Code:', error);
-                    // Fallback: afficher un message à la place du QR code
-                    document.getElementById('qrcode').style.display = 'none';
-                    const fallback = document.createElement('div');
-                    fallback.innerHTML = '<div style="border: 2px solid #000; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 10px; text-align: center; color: #000; font-weight: bold;">QR<br>CODE</div>';
-                    document.getElementById('qrcode').parentNode.appendChild(fallback);
-                }
-            });
+
+        QRCode.toCanvas(document.getElementById('qrcode'), qrData, {
+            width: 80,
+            height: 80,
+            margin: 2,
+            color: {
+                dark: '#0f766e',
+                light: '#FFFFFF'
+            },
+            errorCorrectionLevel: 'M'
+        }, function (error) {
+            if (error) {
+                console.error('Erreur génération QR Code:', error);
+                // Fallback: afficher un message à la place du QR code
+                document.getElementById('qrcode').style.display = 'none';
+                const fallback = document.createElement('div');
+                fallback.innerHTML = '<div style="border: 2px solid #0f766e; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 10px; text-align: center; color: #0f766e;">QR<br>CODE</div>';
+                document.getElementById('qrcode').parentNode.appendChild(fallback);
+            }
+        });
         };
     </script>
 </body>
+
 </html>

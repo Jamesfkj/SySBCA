@@ -376,33 +376,29 @@
                     <h3 class="text-xl font-semibold text-gray-800">Complétude des Rapports</h3>
                 </div>
                 <div class="space-y-6">
-                    @php
-                        $fs_pourcentage = $nb_fs > 0 ? intval(($nb_fs_soumission / $nb_fs) * 100) : 0;
-                        $asc_pourcentage = $nb_fs > 0 ? intval(($nb_asc_soumission / $nb_fs) * 100) : 0;
-                    @endphp
                     <div x-data="{ loaded: false }" x-init="setTimeout(() => loaded = true, 1000)" class="space-y-6">
                         <div>
                             <div class="flex justify-between mb-1">
                                 <span class="text-sm font-medium text-gray-700">Formation Sanitaire (FS) <span
                                         class="text-blue-600"> | {{ $nb_fs_soumission }} sur
-                                        {{ $nb_fs }}</span></span>
-                                <span class="text-sm font-semibold text-indigo-600">{{ $fs_pourcentage }}%</span>
+                                        {{ $percentage_denominateur }}</span></span>
+                                <span class="text-sm font-semibold text-indigo-600">{{ $fs_comp_pourcentage }}%</span>
                             </div>
                             <div class="w-full bg-gray-300 rounded-full h-4">
                                 <div class="bg-indigo-600 h-4 rounded-full transition-all duration-1000 ease-in-out"
-                                    :style="loaded ? 'width: {{ $fs_pourcentage }}%' : 'width: 0%'"></div>
+                                    :style="loaded ? 'width: {{ $fs_comp_pourcentage }}%' : 'width: 0%'"></div>
                             </div>
                         </div>
                         <div>
                             <div class="flex justify-between mb-1">
                                 <span class="text-sm font-medium text-gray-700">Agents Santé Communautaire (ASC) <span
                                         class="text-blue-600"> | {{ $nb_asc_soumission }} sur
-                                        {{ $nb_fs }}</span></span>
-                                <span class="text-sm font-semibold text-teal-600">{{ $asc_pourcentage }}%</span>
+                                        {{ $percentage_denominateur }}</span></span>
+                                <span class="text-sm font-semibold text-teal-600">{{ $asc_comp_pourcentage }}%</span>
                             </div>
                             <div class="w-full bg-gray-300 rounded-full h-4">
                                 <div class="bg-teal-500 h-4 rounded-full transition-all duration-1000 ease-in-out"
-                                    :style="loaded ? 'width: {{ $asc_pourcentage }}%' : 'width: 0%'"></div>
+                                    :style="loaded ? 'width: {{ $asc_comp_pourcentage }}%' : 'width: 0%'"></div>
                             </div>
                         </div>
                     </div>
@@ -412,13 +408,12 @@
                 <div class="flex items-center mb-4">
                     <i class="bi bi-clock-history text-orange-500 text-xl mr-2"></i>
                     <h3 class="text-xl font-semibold text-gray-800">Promptitude des Soumissions</h3>
-                </div>
+                    <p class=" text-gray-600 ml-2">
+                        <span class="font-semibold"> | Deadline :</span> {{ $prompt_date->format('d/m/Y') }}
+                    </p>
 
+                </div>
                 <div class="space-y-6">
-                    @php
-                        $fs_promptitude = $nb_fs > 0 ? intval(($fs_prompt / $nb_fs) * 100) : 0;
-                        $asc_promptitude = $nb_fs > 0 ? intval(($asc_prompt / $nb_fs) * 100) : 0;
-                    @endphp
                     <!-- Promptitude FS -->
                     <div x-data="{ loaded: false }" x-init="setTimeout(() => loaded = true, 1000)" class="space-y-6">
 
@@ -427,12 +422,12 @@
                             <div class="flex justify-between mb-1">
                                 <span class="text-sm font-medium text-gray-700">Formation Sanitaire (FS) <span
                                         class="text-blue-600"> | {{ $fs_prompt }} sur
-                                        {{ $nb_fs }}</span></span>
-                                <span class="text-sm font-semibold text-orange-600">{{ $fs_promptitude }}%</span>
+                                        {{ $percentage_denominateur }}</span></span>
+                                <span class="text-sm font-semibold text-orange-600">{{ $fs_prompt_pourcentage }}%</span>
                             </div>
                             <div class="w-full bg-gray-300 rounded-full h-4">
                                 <div class="bg-orange-500 h-4 rounded-full transition-all duration-1000 ease-in-out"
-                                    :style="loaded ? 'width: {{ $fs_promptitude }}%' : 'width: 0%'"></div>
+                                    :style="loaded ? 'width: {{ $fs_prompt_pourcentage }}%' : 'width: 0%'"></div>
                             </div>
                         </div>
 
@@ -441,12 +436,12 @@
                             <div class="flex justify-between mb-1">
                                 <span class="text-sm font-medium text-gray-700">Agents Santé Communautaire (ASC) <span
                                         class="text-blue-600"> | {{ $asc_prompt }} sur
-                                        {{ $nb_fs }}</span></span>
-                                <span class="text-sm font-semibold text-yellow-600">{{ $asc_promptitude }}%</span>
+                                        {{ $percentage_denominateur }}</span></span>
+                                <span class="text-sm font-semibold text-yellow-600">{{ $asc_prompt_pourcentage }}%</span>
                             </div>
                             <div class="w-full bg-gray-300 rounded-full h-4">
                                 <div class="bg-yellow-400 h-4 rounded-full transition-all duration-1000 ease-in-out"
-                                    :style="loaded ? 'width: {{ $asc_promptitude }}%' : 'width: 0%'"></div>
+                                    :style="loaded ? 'width: {{ $asc_prompt_pourcentage }}%' : 'width: 0%'"></div>
                             </div>
                         </div>
                     </div>
