@@ -1,5 +1,5 @@
 <div>
-    <div wire:loading wire:target="chercherStatistiques"
+    <div wire:loading wire:target="chercherStatistiques, exporterPDF"
         class="absolute top-0 left-0 w-full h-1 bg-teal-600 animate-progress-bar z-20">
     </div>
     @if (auth()->check() && auth()->user()->role->nom_role == 'Formation sanitaire')
@@ -237,6 +237,7 @@
                     </div>
                 </div>
             @endif
+
             <div class="flex flex-col w-1/4">
                 <label class="text-sm font-semibold text-blue-800 mb-2">Formation sanitaire :</label>
                 <div class="relative">
@@ -264,6 +265,31 @@
                     </select>
                 </div>
             </div>
+            @if (auth()->check() && auth()->user()->role->nom_role === 'District')
+                <div class="relative ml-auto">
+                    <!-- Bouton principal -->
+                    <button
+                        class="bg-blue-600 text-white hover:bg-blue-800 font-medium py-2 px-4 rounded-lg shadow-sm flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-800"
+                        onclick="document.getElementById('exportMenu').classList.toggle('hidden')">
+                        <i class="bi bi-download"></i> Exporter
+                        <i class="bi bi-caret-down-fill text-xs"></i>
+                    </button>
+
+                    <!-- Menu dropdown -->
+                    <div id="exportMenu"
+                        class="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg hidden z-20">
+                        <button wire:click="exporterPDF"
+                            class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                            <i class="bi bi-file-earmark-pdf text-red-600"></i> PDF
+                        </button>
+                        <button wire:click="exporterExcel"
+                            class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                            <i class="bi bi-file-earmark-excel text-green-600"></i> Excel
+                        </button>
+                    </div>
+                </div>
+            @endif
+
         </div>
 
         <div class="space-y-6 bg-opacity-10">
@@ -423,7 +449,8 @@
                                 <span class="text-sm font-medium text-gray-700">Formation Sanitaire (FS) <span
                                         class="text-blue-600"> | {{ $fs_prompt }} sur
                                         {{ $percentage_denominateur }}</span></span>
-                                <span class="text-sm font-semibold text-orange-600">{{ $fs_prompt_pourcentage }}%</span>
+                                <span
+                                    class="text-sm font-semibold text-orange-600">{{ $fs_prompt_pourcentage }}%</span>
                             </div>
                             <div class="w-full bg-gray-300 rounded-full h-4">
                                 <div class="bg-orange-500 h-4 rounded-full transition-all duration-1000 ease-in-out"
@@ -437,7 +464,8 @@
                                 <span class="text-sm font-medium text-gray-700">Agents Santé Communautaire (ASC) <span
                                         class="text-blue-600"> | {{ $asc_prompt }} sur
                                         {{ $percentage_denominateur }}</span></span>
-                                <span class="text-sm font-semibold text-yellow-600">{{ $asc_prompt_pourcentage }}%</span>
+                                <span
+                                    class="text-sm font-semibold text-yellow-600">{{ $asc_prompt_pourcentage }}%</span>
                             </div>
                             <div class="w-full bg-gray-300 rounded-full h-4">
                                 <div class="bg-yellow-400 h-4 rounded-full transition-all duration-1000 ease-in-out"

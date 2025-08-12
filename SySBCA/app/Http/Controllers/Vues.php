@@ -41,4 +41,8 @@ class Vues extends Controller
         return view('user.synthese-district');
     }
 
+    public function profil(){
+        return view('user.profil');
+    }
+
 }

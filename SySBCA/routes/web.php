@@ -23,6 +23,7 @@ Route::middleware(['is_autenticated', 'is_suspended'])->group(function () {
         Route::get('/medicaments', [Vues::class, 'medicament'])->name('medicaments.index');
     });
     Route::get('/dashboard', [Vues::class, 'dashboard'])->name('dashboard');
+    Route::get('/profil', [Vues::class, 'profil'])->name('profil');
 });
 Route::get('/activation-compte/{token}', [ActivateUser::class, 'showActivate'])
     ->name('activation.compte');

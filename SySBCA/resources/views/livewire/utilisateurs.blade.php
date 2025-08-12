@@ -80,7 +80,6 @@
                 <table class="min-w-full border-collapse">
                     <thead class="sticky top-0 bg-white z-10">
                         <tr class="bg-gray-100">
-
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Email</th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-blue-900 border-b">Nom d'utilisateur
                             </th>

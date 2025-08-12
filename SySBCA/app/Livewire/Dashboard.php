@@ -7,6 +7,7 @@ use App\Models\FormationSanitaire;
 use App\Models\Periode;
 use App\Models\District;
 use App\Models\Region;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -454,6 +455,41 @@ class Dashboard extends Component
     {
         return view('livewire.dashboard');
     }
+
+   public function exporterPDF()
+    {
+        $utilisateur = auth()->user();
+
+        if ($utilisateur->role->nom_role === 'District') {
+            $district = District::find($utilisateur->entity_id);
+            $periode_id = $this->periode_search ?? $this->periode_actuelle->id;
+            $periode = Periode::find($periode_id);
+            $periode_suivant = Periode::where('id', '>', $periode_id)->orderBy('id', 'asc')->first();
+            $nb_fs = $this->nb_fs;
+            $nb_asc = FormationSanitaire::where('district_id', $district->id)->sum('nb_asc');
+            $fs_ids = FormationSanitaire::where('district_id', $district->id)->pluck('id');
+            $consommations = Consommation::where('periode_id', $periode_id)->whereIn('formation_sanitaire_id', $fs_ids)->get();
+
+            $pdf = Pdf::loadView('infoDistrict', [
+                'consommations' => $consommations,
+                'periode' => $periode,
+                'periode_suivant' => $periode_suivant,
+                'district' => $district,
+                'nb_fs' => $nb_fs,
+                'nb_asc' => $nb_asc,
+                'deadline' => $this->prompt_date,
+                'nb_fs_soumission' => $this->nb_fs_soumission,
+                'nb_asc_soumission' => $this->nb_asc_soumission,
+                'fs_prompt' => $this->fs_prompt,
+                'asc_prompt' => $this->asc_prompt,
+            ])->setPaper('a4', 'portrait');
+
+            return response()->streamDownload(function () use ($pdf) {
+                echo $pdf->stream();
+            }, 'infoDistrict.pdf');
+        }
+    }
+
 
     public function checkSubmit()
     {

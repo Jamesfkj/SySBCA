@@ -246,7 +246,7 @@
                 <div class="flex transition-transform duration-500 ease-in-out"
                     style="transform: translateX(-{{ ($currentSlide ?? 0) * 100 }}%)">
                     @php$cardIndex = 0;
-                                                                                @endphp 
+                                                                                                                        @endphp ?>
                     @foreach ($visibleCards->chunk(1) as $cardPair)
                         <div class="flex-shrink-0 min-w-full flex gap-4 px-2">
                             @foreach ($cardPair as $consommation)
@@ -266,8 +266,8 @@
 
                                 @endphp
 
-                                <div
-                                    class="bg-white rounded-3xl border border-teal-600 overflow-hidden min-w-[70%] min-h-auto mx-auto" wire:key="consommation-{{ $consommation->consommation_id }}">
+                                <div class="bg-white rounded-3xl border border-teal-600 overflow-hidden min-w-[70%] min-h-auto mx-auto"
+                                    wire:key="consommation-{{ $consommation->consommation_id }}">
                                     <!-- Header avec gradient -->
                                     <div
                                         class="bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-700 px-6 py-3 relative overflow-hidden">
@@ -602,7 +602,7 @@
                     Précédent
                 </button>
                 @if ($conso)
-                    <div class="flex gap-3" wire:key="conso--{{$conso->id}}">
+                    <div class="flex gap-3" wire:key="conso--{{ $conso->id }}">
                         <button wire:click="exporterPDF({{ $this->conso->id ?? 0 }})"
                             class="bg-blue-600 text-white hover:bg-blue-800 font-normal py-1.5 px-4 rounded-full shadow flex items-center gap-1">
                             <i class="bi bi-download"></i> Exporter
@@ -832,223 +832,333 @@
             </div>
         </div>
         <form wire:submit.prevent="ajouterConsommation">
-            <div class="space-y-6 ">
+            <div class="space-y-8">
                 @foreach ($medicaments as $index => $medicament)
                     <div wire:key="consommation-{{ $type_structure }}-{{ $periode_choisie }}-{{ $index }}"
-                        class="bg-white rounded-lg shadow-md border border-gray-200 p-6 hidden"
+                        class="relative overflow-hidden rounded-2xl shadow-2xl border-0 p-8 hidden glass-effect card-hover bg-white"
                         id="formulaire_{{ $index }}" wire:key="medicament-{{ $medicament->id }}">
-                        <div class="flex items-center justify-between mb-2">
-                            <div>
-                                <button type="button" onclick="toggleForm({{ $index }})"
-                                    class="flex items-center gap-2 text-blue-700 hover:underline font-semibold">
-                                    <h3 class="text-lg">{{ $medicament->nom }}</h3>
-                                    <svg class="w-4 h-4 transition-transform duration-300"
-                                        id="arrowIcon_{{ $index }}" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
+
+                        <!-- Header avec gradient -->
+                        <div class="absolute top-0 left-0 right-0 h-2 gradient-bg"></div>
+
+                        <!-- En-tête du médicament -->
+                        <div class="flex items-center justify-between mb-8">
+                            <div class="flex items-center space-x-4">
+                                <div
+                                    class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                                     <p class="text-white text-xl">{{ $medicament->code }}</p>
+                                </div>
+                                <div>
+                                    <button type="button" onclick="toggleForm({{ $index }})"
+                                        class="group flex items-center gap-3 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 hover:from-purple-600 hover:to-blue-600 font-bold text-xl transition-all duration-300">
+                                        <h3 class="text-lg">{{ $medicament->nom }}</h3>
+                                        <svg class="w-5 h-5 transition-all duration-300 group-hover:rotate-180"
+                                            id="arrowIcon_{{ $index }}" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    <p class="text-gray-500 text-sm mt-1">Conditionnement : {{ $medicament->conditionnement }} : {{ $medicament->qte_par_conditionnement }} {{ $medicament->format }}</p>
+                                </div>
                             </div>
-                            <div class="flex gap-2 items-center">
-                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                            <div class="flex gap-3 items-center">
+                                <span
+                                    class="bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 px-4 py-1 rounded-full text-sm font-bold shadow-md border border-blue-200">
                                     Médicament #{{ $index + 1 }}
                                 </span>
                                 <div>
-                                    <i class="bi bi-x-circle-fill text-red-600 text-xl cursor-pointer hover:text-red-800"
-                                        title="Masquer ce formulaire"
-                                        onclick="masquerFormulaire({{ $index }})"></i>
+                                    <button type="button" onclick="masquerFormulaire({{ $index }})"
+                                        class="w-10 h-10 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-md border-0">
+                                        <i class="bi bi-x-circle-fill text-xl cursor-pointer"
+                                            title="Masquer ce formulaire"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Message de sauvegarde -->
                         <div class="transition-all duration-300 ease-in-out">
                             @if (session()->has("message_sauvegarde_$index"))
-                                <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md">
-                                    <div class="flex items-center gap-2">
-                                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                        <span>{{ session("message_sauvegarde_$index") }}</span>
+                                <div
+                                    class="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-400 rounded-lg shadow-md">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </div>
+                                        <span
+                                            class="text-green-800 font-medium">{{ session("message_sauvegarde_$index") }}</span>
                                     </div>
                                 </div>
                             @endif
                         </div>
+
+                        <!-- Formulaire avec grille moderne -->
                         <div id="form_{{ $index }}"
-                            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+
+                            <!-- Stock théorique début -->
                             <div class="form-group">
-                                <label class="block text-sm font-medium text-green-700 mb-2">
-                                    <span class="font-bold">Stock théorique en début de trimestre</span>
+                                <label class="flex items-center gap-2 text-sm font-medium text-green-700 mb-3">
+                                    <i class="bi bi-calculator text-emerald-500"></i>
+                                    <span class="font-bold">Stock théorique initiale</span>
                                 </label>
                                 <input type="number" readonly id="stock_debut_attendu_{{ $index }}"
                                     wire:model.live="consommations.{{ $index }}.stock_debut_attendu"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-green-700 font-bold text-center text-[17px]" />
+                                    class="w-full px-3 py-2 border-2 border-emerald-200 rounded-lg bg-gradient-to-r from-emerald-50 to-green-50 text-green-700 font-bold text-center text-sm shadow-inner" />
                             </div>
+
+                            <!-- Stock réel début -->
                             <div class="form-group">
-                                <label class="block text-sm font-medium text-blue-900 mb-2">
-                                    <span class="text-red-500">*</span> Stock réel en début de trimestre
+                                <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
+                                    <i class="bi bi-box-seam text-blue-500"></i>
+                                    Stock réel initiale
                                 </label>
                                 <input type="number" id="stock_debut_{{ $index }}"
                                     oninput="calculerStock({{ $index }}), calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
                                     wire:model.debounce.500ms="consommations.{{ $index }}.stk_dsp_deb_trim"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.stk_dsp_deb_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.stk_dsp_deb_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
                                     placeholder="Saisir..." min="0" step="1" />
                             </div>
+
+                            <!-- Quantité reçue -->
                             <div class="form-group">
-                                <label class="block text-sm font-medium text-blue-900 mb-2">
-                                    <span class="text-red-500">*</span> Quantité reçue dans le trimestre
+                                <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
+                                    <i class="bi bi-arrow-down-circle text-blue-500"></i>
+                                    Quantité reçue dans le trimestre
                                 </label>
                                 <input type="number" id="qte_recu_{{ $index }}"
                                     oninput="calculerStock({{ $index }}), checkInput({{ $index }})"
                                     wire:model.debounce.500ms="consommations.{{ $index }}.qte_get_in_trim"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.qte_get_in_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.qte_get_in_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
                                     placeholder="Saisir..." min="0" step="1" />
                             </div>
+
+                            <!-- Quantité en stock -->
                             <div class="form-group">
-                                <label class="block text-sm font-medium text-red-600 mb-2">
+                                <label class="flex items-center gap-2 text-sm font-medium text-red-600 mb-3">
+                                    <i class="bi bi-archive text-red-500"></i>
                                     <span class="font-bold">Quantité en Stock</span>
                                 </label>
                                 <input type="number" readonly id="qte_en_stock_{{ $index }}"
                                     wire:model.live="consommations.{{ $index }}.qte_en_stock"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-red-500 font-bold text-center text-[17px]" />
+                                    class="w-full px-3 py-2 border-2 border-red-200 rounded-xl bg-gradient-to-r from-red-50 to-pink-50 text-red-500 font-bold text-center text-[17px] shadow-inner" />
                             </div>
+
+                            <!-- Quantité utilisée -->
                             <div class="form-group">
-                                <label class="block text-sm font-medium text-blue-900 mb-2">
-                                    <span class="text-red-500">*</span> Quantité utilisée
+                                <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
+                                    <span class="text-red-500 text-lg">*</span>
+                                    <i class="bi bi-arrow-up-circle text-blue-500"></i>
+                                    Quantité utilisée
                                 </label>
                                 <input type="number" id="qte_used_{{ $index }}"
                                     oninput="calculerStockSecurite({{ $index }}), calculerStock({{ $index }}), checkInput({{ $index }})"
                                     wire:model.debounce.500ms="consommations.{{ $index }}.qte_used"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.qte_used') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.qte_used') !bg-red-100 !border-red-500 !border-2 @enderror"
                                     placeholder="Saisir..." min="0" step="1" />
                             </div>
+
+                            <!-- Nombre de bénéficiaires -->
                             <div class="form-group">
-                                <label class="block text-sm font-medium text-blue-900 mb-2">
+                                <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
+                                    <i class="bi bi-people text-blue-500"></i>
                                     Nombre de bénéficiaires
                                 </label>
                                 <input type="number" id="nb_beneficiaire_{{ $index }}"
                                     oninput="checkInput({{ $index }})"
                                     wire:model.debounce.500ms="consommations.{{ $index }}.nb_beneficiaire"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.nb_beneficiaire') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.nb_beneficiaire') !bg-red-100 !border-red-500 !border-2 @enderror"
                                     placeholder="Saisir..." min="0" step="1" />
                             </div>
+
+                            <!-- Périmé -->
                             <div class="form-group">
-                                <label class="block text-sm font-medium text-blue-900 mb-2">
+                                <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
+                                    <i class="bi bi-exclamation-triangle text-yellow-500"></i>
                                     Périmé
                                 </label>
                                 <input type="number" id="perimee_{{ $index }}"
                                     oninput="checkInput({{ $index }})"
                                     wire:model.debounce.500ms="consommations.{{ $index }}.perimee"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.perimee') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.perimee') !bg-red-100 !border-red-500 !border-2 @enderror"
                                     placeholder="Saisir..." min="0" step="1" />
                             </div>
+
+                            <!-- Pertes et avariées -->
                             <div class="form-group">
-                                <label class="block text-sm font-medium text-blue-900 mb-2">
+                                <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
+                                    <i class="bi bi-trash text-orange-500"></i>
                                     Pertes et avariées
                                 </label>
                                 <input type="number" id="perte_avarie_{{ $index }}"
                                     oninput="checkInput({{ $index }})"
                                     wire:model.debounce.500ms="consommations.{{ $index }}.perte_avarie"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.perte_avarie') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.perte_avarie') !bg-red-100 !border-red-500 !border-2 @enderror"
                                     placeholder="Saisir..." min="0" step="1" />
                             </div>
+
+                            <!-- Quantité retournée CAMEG -->
                             <div class="form-group">
-                                <label class="block text-sm font-medium text-blue-900 mb-2">
+                                <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
+                                    <i class="bi bi-arrow-return-left text-purple-500"></i>
                                     Quantité retournée à la CAMEG
                                 </label>
                                 <input type="number" id="qte_ret_cameg_{{ $index }}"
                                     oninput="checkInput({{ $index }})"
                                     wire:model.debounce.500ms="consommations.{{ $index }}.qte_ret_cameg"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.qte_ret_cameg') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.qte_ret_cameg') !bg-red-100 !border-red-500 !border-2 @enderror"
                                     placeholder="Saisir..." min="0" step="1" />
                             </div>
+
+                            <!-- Jours de rupture -->
                             <div class="form-group">
-                                <label class="block text-sm font-medium text-blue-900 mb-2">
-                                    <span class="text-red-500">*</span> Nombre de jours de rupture
+                                <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
+                                    <span class="text-red-500 text-lg">*</span>
+                                    <i class="bi bi-calendar-x text-red-500"></i>
+                                    Nombre de jours de rupture
                                 </label>
                                 <input type="number" id="nb_jour_rupture_{{ $index }}"
                                     oninput="calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
                                     wire:model.debounce.500ms="consommations.{{ $index }}.nb_jour_rupture"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.nb_jour_rupture') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.nb_jour_rupture') !bg-red-100 !border-red-500 !border-2 @enderror"
                                     placeholder="Saisir..." min="0" step="1" />
                             </div>
+
+                            <!-- Stock théorique fin -->
                             <div class="form-group">
-                                <label class="block text-sm font-medium text-green-700 mb-2">
+                                <label class="flex items-center gap-2 text-sm font-medium text-green-700 mb-3">
+                                    <i class="bi bi-calculator text-emerald-500"></i>
                                     <span class="font-bold">Stock théorique en fin de trimestre</span>
                                 </label>
                                 <input type="number" readonly id="qte_stock_fin_trim_attendu_{{ $index }}"
                                     wire:model.live="consommations.{{ $index }}.qte_stock_fin_trim_attendu"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-green-700 font-bold text-center text-[17px]" />
+                                    class="w-full px-4 py-3 border-2 border-emerald-200 rounded-xl bg-gradient-to-r from-emerald-50 to-green-50 text-green-700 font-bold text-center text-[17px] shadow-inner" />
                             </div>
+
+                            <!-- Stock réel fin -->
                             <div class="form-group">
-                                <label class="block text-sm font-medium text-blue-900 mb-2">
+                                <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
+                                    <i class="bi bi-box text-blue-500"></i>
                                     Stock réel en fin de trimestre
                                 </label>
                                 <input type="number" id="qte_stock_fin_trim_{{ $index }}"
                                     oninput="calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
                                     wire:model.debounce.500ms="consommations.{{ $index }}.qte_stock_fin_trim"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent text-blue-900
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @error('consommations.' . $index . '.qte_stock_fin_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.qte_stock_fin_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
                                     placeholder="Saisir..." min="0" step="1" />
                             </div>
+
+                            <!-- Stock de sécurité -->
                             <div class="form-group">
-                                <label class="block text-sm font-medium text-red-600 mb-2">
+                                <label class="flex items-center gap-2 text-sm font-medium text-red-600 mb-3">
+                                    <i class="bi bi-shield-check text-red-500"></i>
                                     <span class="font-bold">Stock de sécurité pour le trimestre à venir</span>
                                 </label>
                                 <input type="number" readonly id="stk_de_securite_{{ $index }}"
                                     wire:model.debounce.500ms="consommations.{{ $index }}.stk_de_securite"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-red-500 font-bold text-center text-[17px]" />
+                                    class="w-full px-4 py-3 border-2 border-red-200 rounded-xl bg-gradient-to-r from-red-50 to-pink-50 text-red-500 font-bold text-center text-[17px] shadow-inner" />
                             </div>
+
+                            <!-- CCMA -->
                             <div class="form-group">
-                                <label class="block text-sm font-medium text-red-600 mb-2">
-                                    <span class="font-bold">Consommation Moyenne Mentuelle ajustée
-                                        (CMMa)
-                                    </span>
+                                <label class="flex items-center gap-2 text-sm font-medium text-red-600 mb-3">
+                                    <i class="bi bi-graph-up text-red-500"></i>
+                                    <span class="font-bold">Consommation Moyenne Mentuelle ajustée (CMMa)</span>
                                 </label>
                                 <input type="number" readonly id="ccma_{{ $index }}"
                                     wire:model.debounce.500ms="consommations.{{ $index }}.ccma"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-red-500 font-bold text-center text-[17px]" />
+                                    class="w-full px-4 py-3 border-2 border-red-200 rounded-xl bg-gradient-to-r from-red-50 to-pink-50 text-red-500 font-bold text-center text-[17px] shadow-inner" />
                             </div>
+
+                            <!-- Quantité commandée -->
                             <div class="form-group">
-                                <label class="block text-sm font-medium text-red-600 mb-2">
+                                <label class="flex items-center gap-2 text-sm font-medium text-red-600 mb-3">
+                                    <i class="bi bi-cart-plus text-red-500"></i>
                                     <span class="font-bold">Quantité commandée pour le trimestre à venir</span>
                                 </label>
                                 <input type="number" readonly id="cmd_trim_svt_{{ $index }}"
                                     wire:model.debounce.500ms="consommations.{{ $index }}.cmd_trim_svt"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-red-500 font-bold text-center text-[17px]" />
+                                    class="w-full px-4 py-3 border-2 border-red-200 rounded-xl bg-gradient-to-r from-red-50 to-pink-50 text-red-500 font-bold text-center text-[17px] shadow-inner" />
                             </div>
                         </div>
                     </div>
                 @endforeach
             </div>
-            <!-- Boutons -->
-            <div class="mt-4 flex justify-end gap-2">
+
+            <!-- Boutons d'action -->
+            <div class="mt-8 flex justify-end gap-4 pt-8 border-t border-gray-200">
                 @if ($modifierConso)
                     <button type="submit"
-                        class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 transition-colors">
-                        Modifier
+                        class="group relative px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
+                        <span class="relative z-10 flex items-center gap-2">
+                            <i class="bi bi-pencil-square"></i>
+                            Modifier
+                        </span>
+                        <div
+                            class="absolute inset-0 bg-gradient-to-r from-orange-600 to-orange-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left">
+                        </div>
                     </button>
                 @else
                     <button type="submit"
-                        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors">
-                        Enregistrer
+                        class="group relative px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
+                        <span class="relative z-10 flex items-center gap-2">
+                            <i class="bi bi-check-circle"></i>
+                            Enregistrer
+                        </span>
+                        <div
+                            class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-green-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left">
+                        </div>
                     </button>
                 @endif
+
                 <button type="reset"
-                    class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition-colors">
-                    Annuler
+                    class="group relative px-8 py-4 bg-gradient-to-r from-gray-400 to-gray-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
+                    <span class="relative z-10 flex items-center gap-2">
+                        <i class="bi bi-x-circle"></i>
+                        Annuler
+                    </span>
+                    <div
+                        class="absolute inset-0 bg-gradient-to-r from-gray-500 to-gray-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left">
+                    </div>
                 </button>
             </div>
-
         </form>
+
+        <style>
+            .gradient-bg {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+
+            .glass-effect {
+                backdrop-filter: blur(10px);
+                background: rgba(255, 255, 255, 0.95);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+
+            .input-focus {
+                transition: all 0.3s ease;
+            }
+
+            .input-focus:focus {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            }
+
+            .card-hover {
+                transition: all 0.3s ease;
+            }
+
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            }
+        </style>
     </div>
     </div>
 @endif

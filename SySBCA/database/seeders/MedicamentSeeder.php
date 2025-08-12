@@ -17,7 +17,10 @@ class MedicamentSeeder extends Seeder
             [
                 'nom' => 'Artemether + Lumefantrine',
                 'code' => 'AL',
-                'composition' => 'Artemether 20mg + Lumefantrine 120mg',
+                'composition' => '12 comp/pl',
+                'conditionnement' => 'Boîte',
+                'qte_par_conditionnement' => 12,
+                'format' => 'Plaquette',
                 'fs_only' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -25,7 +28,10 @@ class MedicamentSeeder extends Seeder
             [
                 'nom' => 'Amodiaquine + Artesunate',
                 'code' => 'ASAQ',
-                'composition' => 'Amodiaquine 150mg + Artesunate 50mg',
+                'composition' => '6 comp/pl',
+                'conditionnement' => 'Boîte',
+                'qte_par_conditionnement' => 6,
+                'format' => 'Plaquette',
                 'fs_only' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -33,7 +39,10 @@ class MedicamentSeeder extends Seeder
             [
                 'nom' => 'Chloroquine',
                 'code' => 'CQ',
-                'composition' => 'Chloroquine phosphate 250mg',
+                'composition' => '30 comp/pl',
+                'conditionnement' => 'Boîte',
+                'qte_par_conditionnement' => 30,
+                'format' => 'Plaquette',
                 'fs_only' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -41,7 +50,10 @@ class MedicamentSeeder extends Seeder
             [
                 'nom' => 'Quinine',
                 'code' => 'QN',
-                'composition' => 'Quinine sulfate 300mg',
+                'composition' => '6 comp/pl',
+                'conditionnement' => 'Boîte',
+                'qte_par_conditionnement' => 6,
+                'format' => 'Plaquette',
                 'fs_only' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -49,11 +61,15 @@ class MedicamentSeeder extends Seeder
             [
                 'nom' => 'Sulfadoxine + Pyrimethamine',
                 'code' => 'SP',
-                'composition' => 'Sulfadoxine 500mg + Pyrimethamine 25mg',
+                'composition' => '3 comp/pl',
+                'conditionnement' => 'Boîte',
+                'qte_par_conditionnement' => 3,
+                'format' => 'Plaquette',
                 'fs_only' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
         ]);
+    
     }
 }

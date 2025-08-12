@@ -32,6 +32,7 @@ class ActivateUser extends Controller
             [
                 'password' => 'required|string|min:8|confirmed',
                 'password_confirmation' => 'required',
+                
             ],
             [
                 'password.required' => 'Le mot de passe est requis.',

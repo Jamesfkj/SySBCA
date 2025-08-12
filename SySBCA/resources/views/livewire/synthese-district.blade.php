@@ -157,6 +157,15 @@
             <div class="flex transition-transform duration-500 ease-in-out carousel-container"
                 style="transform: translateX(-{{ $currentSlide * 100 }}%)">
                 @foreach ($visibleCards as $index => $synthese)
+                    @php
+                        $stock_theo =
+                                        $synthese['qte_en_stock'] -
+                                        $synthese['qte_utilisee'] -
+                                        $synthese['qte_retour_cameg'] -
+                                        $synthese['perte_avarie'] -
+                                        $synthese['perimee'];
+                                    $perte_non_dec = $synthese['qte_restante'] - $stock_theo;
+                    @endphp
                     <div class="flex-shrink-0 w-full flex justify-center px-2 min-w-[70%]">
                         <div
                             class="bg-white rounded-3xl border border-teal-600 overflow-hidden w-full max-w-4xl mx-auto shadow-lg hover:shadow-xl transition-all duration-300">
@@ -187,8 +196,6 @@
                                                 class="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm font-medium">
                                                 <i class="bi bi-check-circle mr-1"></i>Validé
                                             </div>
-                                            <!-- Indicateur de position -->
-
                                         </div>
                                     </div>
                                 </div>
@@ -283,7 +290,7 @@
                                                 {{ $synthese['qte_accordee'] }}</div>
                                         @else
                                             <div class="text-indigo-800 text-lg font-medium">
-                                                <i class="bi bi-hourglass-split mr-2"></i>En cours...
+                                                 N/A
                                             </div>
                                         @endif
                                     </div>
@@ -373,11 +380,31 @@
                                             <span
                                                 class="font-bold text-gray-800">{{ $synthese['nb_jour_rupture'] ?? 0 }}</span>
                                         </div>
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-3 text-sm mt-4">
                                         <div
-                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200 col-span-2">
-                                            <span class="text-gray-600 font-medium">Stock final</span>
+                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                            <span class="text-gray-600 font-medium">Stock réel en
+                                                fin</span>
                                             <span
                                                 class="font-bold text-gray-800">{{ $synthese['qte_restante'] ?? 0 }}</span>
+                                        </div>
+                                        <div
+                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                            <span class="text-gray-600 font-medium">Stock théorique</span>
+                                            <span class="font-bold text-gray-800">{{ $stock_theo }}</span>
+                                        </div>
+                                        <div
+                                            class="flex justify-between items-center p-3 bg-white rounded-lg border 
+    {{ $perte_non_dec > 0 ? 'border-yellow-300' : 'border-red-200' }}">
+                                            <span
+                                                class="{{ $perte_non_dec > 0 ? 'text-yellow-600' : 'text-red-600' }} font-medium">
+                                                Ecart
+                                            </span>
+                                            <span
+                                                class="font-bold {{ $perte_non_dec > 0 ? 'text-yellow-600' : 'text-red-600' }}">
+                                                {{ $perte_non_dec }}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>

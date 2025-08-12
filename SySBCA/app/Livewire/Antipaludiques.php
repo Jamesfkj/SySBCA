@@ -16,7 +16,10 @@ class Antipaludiques extends Component
     public $code = '';
     public $composition = '';
     public $fs_only = false;
-
+    public $qte_par_conditionnement;
+    public $format;
+    public $editFormat;
+    public $editQteParConditionnement;
     public $editId;
     public $editNom;
     public $editCode;
@@ -33,6 +36,7 @@ class Antipaludiques extends Component
             'editCode',
             'editConditionnement',
             'conditionnement',
+            'editQteParConditionnement',
             'editComposition',
             'editFsOnly',
             'nom',
@@ -62,6 +66,8 @@ class Antipaludiques extends Component
             $this->editCode = $medicament->code;
             $this->editComposition = $medicament->composition;
             $this->editConditionnement = $medicament->conditionnement;
+            $this->editQteParConditionnement = $medicament->qte_par_conditionnement;
+            $this->editFormat = $medicament->format;
             $this->editFsOnly = $medicament->fs_only;
         }
     }
@@ -89,7 +95,9 @@ class Antipaludiques extends Component
             'nom' => 'required|string|max:255|unique:medicaments,nom',
             'code' => 'required|string|max:100',
             'composition' => 'nullable|string|max:500',
-            'conditionnement' => 'required|string|max:100',
+            'conditionnement' => 'required|in:Boîte,Flacon,Ballot,Unité',
+            'qte_par_conditionnement' => 'required|integer|min:1',
+            'format' => 'required|in:Plaquette,Ampoule,Doses,Unité',
             'fs_only' => 'boolean',
         ], [
             'nom.required' => 'Le nom du médicament est obligatoire.',
@@ -104,20 +112,27 @@ class Antipaludiques extends Component
             'composition.string' => 'La composition doit être une chaîne de caractères.',
             'composition.max' => 'La composition ne peut pas dépasser 500 caractères.',
 
-            'conditionnement.required' => 'Le conditionnement est obligatoire.',
-            'conditionnement.string' => 'Le conditionnement doit être une chaîne de caractères.',
-            'conditionnement.max' => 'Le conditionnement ne peut pas dépasser 100 caractères.',
+            'conditionnement.required' => 'Le champ conditionnement est obligatoire.',
+            'conditionnement.in' => 'Le conditionnement sélectionné est invalide.',
+
+            'qte_par_conditionnement.required' => 'La quantité par conditionnement est obligatoire.',
+            'qte_par_conditionnement.integer' => 'La quantité par conditionnement doit être un nombre entier.',
+            'qte_par_conditionnement.min' => 'La quantité par conditionnement doit être au moins de 1.',
+
+            'format.required' => 'Le champ format est obligatoire.',
+            'format.in' => 'Le format sélectionné est invalide.',
 
             'fs_only.boolean' => 'La valeur pour "Uniquement pour Formations Sanitaires" doit être vrai ou faux.',
         ]);
-
 
         $medicament = new Medicament();
         $medicament->nom = $this->nom;
         $medicament->code = $this->code;
         $medicament->composition = $this->composition;
         $medicament->conditionnement = $this->conditionnement;
-        $medicament->fs_only = $this->fs_only;
+        $medicament->qte_par_conditionnement = $this->qte_par_conditionnement;
+        $medicament->format = $this->format;
+        $medicament->fs_only = $this->fs_only ?? false;
         $medicament->save();
 
         session()->flash('message', 'Médicament ajouté avec succès !');
@@ -131,28 +146,40 @@ class Antipaludiques extends Component
             'editNom' => 'required|string|max:255|unique:medicaments,nom,' . $this->editId,
             'editCode' => 'required|string|max:100',
             'editComposition' => 'nullable|string|max:500',
-            'editConditionnement' => 'required|string|max:100',
+            'editConditionnement' => 'required|in:Boîte,Flacon,Ballot,Unité',
+            'editQteParConditionnement' => 'required|integer|min:1',
+            'editFormat' => 'required|in:Plaquette,Ampoule,Doses,Unité',
             'editFsOnly' => 'boolean',
         ], [
+            // nom
             'editNom.required' => 'Le nom du médicament est obligatoire.',
             'editNom.string' => 'Le nom doit être une chaîne de caractères.',
             'editNom.max' => 'Le nom ne peut pas dépasser 255 caractères.',
             'editNom.unique' => 'Ce nom de médicament existe déjà.',
 
+            // code
             'editCode.required' => 'Le code est obligatoire.',
             'editCode.string' => 'Le code doit être une chaîne de caractères.',
             'editCode.max' => 'Le code ne peut pas dépasser 100 caractères.',
 
+            // composition
             'editComposition.string' => 'La composition doit être une chaîne de caractères.',
             'editComposition.max' => 'La composition ne peut pas dépasser 500 caractères.',
 
-            'editConditionnement.required' => 'Le conditionnement est obligatoire.',
-            'editConditionnement.string' => 'Le conditionnement doit être une chaîne de caractères.',
-            'editConditionnement.max' => 'Le conditionnement ne peut pas dépasser 100 caractères.',
+            'editConditionnement.required' => 'Le champ conditionnement est obligatoire.',
+            'editConditionnement.in' => 'Le conditionnement sélectionné est invalide.',
 
+            // quantité par conditionnement
+            'editQteParConditionnement.required' => 'La quantité par conditionnement est obligatoire.',
+            'editQteParConditionnement.integer' => 'La quantité par conditionnement doit être un nombre entier.',
+            'editQteParConditionnement.min' => 'La quantité par conditionnement doit être au moins de 1.',
+
+            'editFormat.required' => 'Le champ format est obligatoire.',
+            'editFormat.in' => 'Le format sélectionné est invalide.',
+
+            // fs_only
             'editFsOnly.boolean' => 'La valeur pour "Uniquement pour Formations Sanitaires" doit être vrai ou faux.',
         ]);
-
 
         $medicament = Medicament::find($this->editId);
         if ($medicament) {
@@ -160,13 +187,16 @@ class Antipaludiques extends Component
             $medicament->code = $this->editCode;
             $medicament->composition = $this->editComposition;
             $medicament->conditionnement = $this->editConditionnement;
-            $medicament->fs_only = $this->editFsOnly; 
+            $medicament->qte_par_conditionnement = $this->editQteParConditionnement;
+            $medicament->format = $this->editFormat;
+            $medicament->fs_only = $this->editFsOnly ?? false;
             $medicament->save();
 
             session()->flash('message', 'Médicament mis à jour avec succès !');
             $this->afficherTableau();
         }
     }
+
 
 
     public function delete($id)

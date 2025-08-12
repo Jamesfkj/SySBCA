@@ -4,7 +4,7 @@
         <a href="{{ route('dashboard') }}"
             class="{{ str_starts_with(request()->path(), 'dashboard') ? 'bg-green-100 text-green-700' : '' }} flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
             <div class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
-                <i class="bi bi-speedometer2"></i>
+                <i class="bi bi-speedometer2" title="Tableau de bord"></i>
             </div>
             <span x-show="sidebarOpen" class="truncate">Tableau de bord</span>
         </a>
@@ -18,7 +18,7 @@
                     class="{{ request()->is('utilisateurs*') ? 'bg-green-100 text-green-700' : '' }} flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
                     <div
                         class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
-                        <i class="bi bi-people-fill"></i>
+                        <i class="bi bi-people-fill" title="Utilisateurs"></i>
                     </div>
                     <span x-show="sidebarOpen" class="truncate">Utilisateurs</span>
                 </a>
@@ -27,7 +27,7 @@
                     class="{{ request()->is('regions*') ? 'bg-green-100 text-green-700' : '' }} flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
                     <div
                         class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
-                        <i class="bi bi-globe"></i>
+                        <i class="bi bi-globe" title="Régions"></i>
                     </div>
                     <span x-show="sidebarOpen" class="truncate">Régions</span>
                 </a>
@@ -35,7 +35,7 @@
                     class="{{ request()->is('districts*') ? 'bg-green-100 text-green-700' : '' }} flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
                     <div
                         class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
-                        <i class="bi bi-map-fill"></i>
+                        <i class="bi bi-map-fill" title="Districts"></i>
                     </div>
                     <span x-show="sidebarOpen" class="truncate">Districts</span>
                 </a>
@@ -45,7 +45,7 @@
                     class="{{ request()->is('fs*') ? 'bg-green-100 text-green-700' : '' }} flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
                     <div
                         class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
-                        <i class="bi bi-hospital-fill"></i>
+                        <i class="bi bi-hospital-fill" title="Formations sanitaires "></i>
                     </div>
                     <span x-show="sidebarOpen" class="truncate">Formations sanitaires</span>
                 </a>
@@ -55,7 +55,7 @@
                     class="{{ request()->is('medicaments*') ? 'bg-green-100 text-green-700' : '' }} flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
                     <div
                         class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
-                        <i class="bi bi-capsule"></i>
+                        <i class="bi bi-capsule" title="Médicaments"></i>
                     </div>
                     <span x-show="sidebarOpen" class="truncate">Médicaments</span>
                 </a>
@@ -64,7 +64,7 @@
         <a href="{{ route('consommations.index') }}"
             class=" {{ str_starts_with(request()->path(), 'consommations') ? 'bg-green-100 text-green-700' : '' }} flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
             <div class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
-                <i class="bi bi-box-fill"></i>
+                <i class="bi bi-box-fill" title="Consommations"></i>
             </div>
             <span x-show="sidebarOpen" class="truncate">Consommations</span>
         </a>
@@ -72,16 +72,16 @@
             <a href="{{ route('synthese.district') }}"
             class=" {{ str_starts_with(request()->path(), 'synthese-district') ? 'bg-green-100 text-green-700' : '' }} flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
             <div class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
-                <i class="bi bi-file-earmark-text"></i>
+                <i class="bi bi-file-earmark-text" title="Synthèse District"></i>
             </div>
             <span x-show="sidebarOpen" class="truncate">Synthèse District</span>
         </a>
         @endif
         <hr class="border-white/30 my-3">
-        <a href="#"
-            class="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
+        <a href="{{ route('profil') }}"
+            class="{{ str_starts_with(request()->path(), 'profil') ? 'bg-green-100 text-green-700' : '' }} flex items-center gap-3 py-2 px-3 rounded-md hover:bg-green-100 hover:text-green-700 transition">
             <div class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
-                <i class="bi bi-person-fill"></i>
+                <i class="bi bi-person-fill" title="Profil"></i>
             </div>
             <span x-show="sidebarOpen" class="truncate">Profil</span>
         </a>
@@ -90,7 +90,7 @@
             <button type="submit"
                 class="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-red-100 hover:text-red-700 transition w-full text-left">
                 <div class="bg-white/80 w-9 aspect-square rounded-full flex items-center justify-center text-teal-900">
-                    <i class="bi bi-box-arrow-left"></i>
+                    <i class="bi bi-box-arrow-left" title="Déconnexion"></i>
                 </div>
                 <span x-show="sidebarOpen" class="truncate">Déconnexion</span>
             </button>
