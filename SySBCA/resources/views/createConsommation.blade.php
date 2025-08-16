@@ -95,6 +95,10 @@
 
 <body>
     <div class="email-container">
+        <div class="flex justify-center mt-1">
+            <img src="{{ $message->embed(public_path('images/pnlp3.jpg')) }}" alt="Logo PNLP" width="100"
+            style="display:block; margin:auto;">
+        </div>
         <h1>Bonjour {{ $utilisateur->username }} !</h1>
 
         <p>
@@ -109,11 +113,13 @@
             <li><strong>Formation sanitaire :</strong> {{ $conso->formationSanitaire->nom ?? 'N/A' }}</li>
             <li><strong>Acteur concerné :</strong> {{ $conso->acteur ?? 'N/A' }}</li>
             <li><strong>Période :</strong> {{ $conso->periode->nom ?? 'N/A' }}</li>
-            <li><strong>Date de création :</strong> {{ optional($conso->created_at)->format('d/m/y H:i') ?? 'N/A' }}</li>
+            <li><strong>Date de création :</strong> {{ optional($conso->created_at)->format('d/m/y H:i') ?? 'N/A' }}
+            </li>
         </ul>
 
         <p>
-            Nous vous invitons à vous connecter à la plateforme pour consulter ou soumettre votre consommation au niveau district pour la validation.
+            Nous vous invitons à vous connecter à la plateforme pour consulter ou soumettre votre consommation au niveau
+            district pour la validation.
         </p>
 
         <p>

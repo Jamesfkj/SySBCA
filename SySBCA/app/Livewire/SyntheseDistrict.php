@@ -7,6 +7,11 @@ use App\Models\ConsommationMedicament;
 use App\Models\District;
 use App\Models\FormationSanitaire;
 use Livewire\Component;
+use App\Exports\SyntheseDistrictExport;
+
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Crypt;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 use App\Models\Periode;
@@ -116,53 +121,64 @@ class SyntheseDistrict extends Component
 
         if ($utilisateur->role->nom_role === 'District') {
             $district = District::find($utilisateur->entity_id);
-            $periode_id = $this->periode_search ?? $this->periode_actuelle->id;
-            $periode = Periode::find($periode_id);
-            $periode_suivant = Periode::where('id', '>', $periode_id)->orderBy('id', 'asc')->first();
-            $rapport_exist = ReferenceRapport::where('district_id', $district->id)
-                ->where('periode_id', $periode_id)
-                ->orderByDesc('version')
-                ->first();
-
-            $nouvelUuid = (string) Str::uuid();
-            $referenceRapport = new ReferenceRapport();
-            $referenceRapport->uuid = $nouvelUuid;
-            $referenceRapport->district_id = $district->id;
-            $referenceRapport->periode_id = $periode_id;
-            $referenceRapport->version = $rapport_exist ? $rapport_exist->version + 1 : 1;
-            $referenceRapport->save();
-
-            $qrData = json_encode([
-                'numero' => $nouvelUuid,
-                'district_id' => $district->id,
-                'periode_id' => $periode_id,
-                'version' => $referenceRapport->version,
-                'Date' => now()
-            ]);
-            $type_synthese = $this->type_synthese;
-            $text = urlencode($qrData);
-            $qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&format=png&data={$text}";
-
-            $qrCodeData = file_get_contents($qrCodeUrl);
-            $qrCode = base64_encode($qrCodeData);
-
-            $consommations = $this->synthese_district;
-
-            $pdf = Pdf::loadView('syntheseConsommation', [
-                'consommations' => $consommations,
-                'qrCode' => $qrCode,
-                'periode' => $periode,
-                'periode_suivant' => $periode_suivant,
-                'district' => $district,
-                'type_synthese' => $type_synthese,
-
-            ])->setPaper('a4', 'portrait');
-
-            return response()->streamDownload(function () use ($pdf) {
-                echo $pdf->stream();
-            }, 'syntheseConsommation.pdf');
+        } elseif ($utilisateur->role->nom_role === 'Administrateur') {    
+                $district = District::where('id', $this->districts_search)->first() ?? null;
         }
+        $periode_id = $this->periode_search ?? $this->periode_actuelle->id;
+        $periode = Periode::find($periode_id);
+        $periode_suivant = Periode::where('id', '>', $periode_id)->orderBy('id', 'asc')->first();
+
+        // Générer un UUID unique pour le rapport
+        $nouvelUuid = (string) Str::uuid();
+
+        // Enregistrer la référence du rapport
+        $referenceRapport = new ReferenceRapport();
+        $referenceRapport->uuid = $nouvelUuid;
+        $referenceRapport->user_id = $utilisateur->id;
+        $referenceRapport->save();
+
+        // Générer un token sécurisé pour le QR code
+        $tokenData = [
+            'uuid' => $nouvelUuid,
+            'date' => now()->format('Y-m-d H:i:s'),
+        ];
+        $token = Crypt::encryptString(json_encode($tokenData));
+
+        // Créer l’URL de vérification
+        $verificationUrl = route('verification', ['token' => $token]);
+
+        // Générer le QR code via API externe
+        $qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&format=png&data=" . urlencode($verificationUrl);
+        $qrCodeData = file_get_contents($qrCodeUrl);
+        $qrCode = base64_encode($qrCodeData);
+
+        // Récupérer les consommations pour le PDF
+        $consommations = $this->synthese_district;
+        $type_synthese = $this->type_synthese;
+
+        // Générer le PDF
+        $pdf = Pdf::loadView('syntheseConsommation', [
+            'consommations' => $consommations,
+            'qrCode' => $qrCode,
+            'periode' => $periode,
+            'periode_suivant' => $periode_suivant,
+            'district' => $district,
+            'type_synthese' => $type_synthese,
+        ])->setPaper('a4', 'portrait');
+
+        // Télécharger le PDF
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->stream();
+        }, 'syntheseConsommation.pdf');
     }
+
+    public function exporterExcel()
+    {
+        $filename = 'synthese_district_' . date('Y-m-d_H-i-s') . '.xlsx';
+        return Excel::download(new SyntheseDistrictExport($this->synthese_district), $filename);
+    }
+
+
 
     public function chargerFs()
     {
@@ -170,6 +186,9 @@ class SyntheseDistrict extends Component
             $this->fs = FormationSanitaire::where('district_id', $this->user->entity_id)->get();
         } elseif ($this->user->role->nom_role == 'Administrateur') {
             $this->fs = FormationSanitaire::where('district_id', $this->districts_search)->get();
+            if ($this->districts_search === 'all') {
+                $this->fs = FormationSanitaire::all();
+            }
         }
     }
 
@@ -214,13 +233,13 @@ class SyntheseDistrict extends Component
                                                                       SUM(cmma) as cmma,
                                                                       SUM(cmd_trim_svt) as cmd_trim_svt,
                                                                       SUM(qte_accordee) as qte_accordee')
-            ->with('medicament') // Charger la relation medicament
+            ->with('medicament')
             ->whereIn('consommation_id', $this->conso_ids)
             ->groupBy('medicament_id')
             ->get()
-            ->toArray(); // Convertir en array pour éviter les problèmes de sérialisation
+            ->toArray();
 
-        // Réinitialiser le slide si nécessaire
+
         if ($this->currentSlide >= count($this->synthese_district)) {
             $this->currentSlide = 0;
         }
@@ -229,7 +248,7 @@ class SyntheseDistrict extends Component
     public function rechercherSynthese()
     {
         $this->periode_info = Periode::where('id', $this->periode_search)->first();
-        $this->district_info = District::where('id', $this->districts_search)->first();
+        $this->district_info = District::where('id', $this->districts_search)->first() ?? null;
         $this->chargerSyntheseConsommationFsOuAsc();
         // Réinitialiser le carrousel au premier slide
         $this->currentSlide = 0;

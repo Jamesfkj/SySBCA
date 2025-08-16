@@ -32,7 +32,7 @@ class ActivateUser extends Controller
             [
                 'password' => 'required|string|min:8|confirmed',
                 'password_confirmation' => 'required',
-                
+
             ],
             [
                 'password.required' => 'Le mot de passe est requis.',
@@ -46,6 +46,8 @@ class ActivateUser extends Controller
         $user->etat = 'actif';
         $user->remember_token = null;
         $user->save();
-        return redirect()->route('login');
+        return redirect()
+            ->route('login')
+            ->with('success', 'Compte activé avec succès. Veuillez vous connecter pour accéder à votre espace');
     }
 }

@@ -125,12 +125,6 @@
                                             title="Réactiver cet utilisateur">
                                             <i class="bi bi-check-circle-fill"></i>
                                         </button>
-                                        <button wire:click="delete({{ $utilisateur->id }})"
-                                            wire:confirm="Êtes-vous sûr de vouloir supprimer définitivement cet utilisateur ?"
-                                            class="text-red-600 hover:text-red-700 flex items-center justify-center w-9 h-9 rounded-full bg-red-100 shadow-md"
-                                            title="Supprimer cet utilisateur">
-                                            <i class="bi bi-trash3-fill"></i>
-                                        </button>
                                     @else
                                         <button wire:click="afficherEdition({{ $utilisateur->id }})"
                                             class="text-blue-600 hover:text-blue-700 flex items-center justify-center w-9 h-9 rounded-full bg-blue-100 shadow-md"

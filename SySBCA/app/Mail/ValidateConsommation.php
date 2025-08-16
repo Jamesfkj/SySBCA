@@ -25,10 +25,12 @@ class ValidateConsommation extends Mailable
     public function build(): static
     {
         return $this->subject('Validation de consommation')
-                    ->view('validateConsommation')
-                    ->with([
-                        'utilisateur' => $this->utilisateur,
-                        'conso' => $this->conso,
-                    ]);
+            ->view('validateConsommation')
+            ->with([
+                'utilisateur' => $this->utilisateur,
+                'conso' => $this->conso,
+            ])->withSwiftMessage(function ($message) {
+                $logoCid = $message->embed(public_path('images/pnlp3.jpg'));
+            });
     }
 }

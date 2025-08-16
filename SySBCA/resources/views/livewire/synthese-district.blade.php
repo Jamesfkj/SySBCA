@@ -1,5 +1,5 @@
 <div>
-    <div wire:loading wire:target="rechercherSynthese, nextSlide, previousSlide, goToSlide, exporterPDF"
+    <div wire:loading wire:target="rechercherSynthese, nextSlide, previousSlide, goToSlide,exporterExcel, exporterPDF"
         class="absolute top-0 left-0 w-full h-1 bg-teal-600 animate-progress-bar z-20">
     </div>
     <div class="flex flex-wrap justify-between items-center relative mb-6 gap-4">
@@ -66,8 +66,8 @@
                 @if (auth()->check() && auth()->user()->role->nom_role == 'Administrateur')
                     <div
                         class="flex items-center gap-2 bg-white/70 px-3 py-1.5 rounded-lg border border-blue-200/50 shrink-0">
-                        <span class="text-blue-900 font-bold truncate max-w-[150px]" title="{{ $district_info->nom }}">
-                            District : {{ $district_info->nom }}
+                        <span class="text-blue-900 font-bold truncate max-w-[150px]" title="{{ $district_info->nom ?? 'Tous les districts'}}">
+                            District : {{ $district_info->nom ?? 'Tous les districts'}}  
                         </span>
                     </div>
                     <div class="w-px h-6 bg-gradient-to-b from-transparent via-blue-300 to-transparent shrink-0">
@@ -97,6 +97,7 @@
                     <div class="relative">
                         <select wire:model.live="districts_search" wire:change="rechercherSynthese"
                             class="w-40 bg-white border border-blue-300 text-blue-900 text-sm rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
+                            <option value="all">Tous les districts</option>
                             @foreach ($districts as $district)
                                 <option value="{{ $district->id }}">{{ $district->nom }}</option>
                             @endforeach

@@ -115,71 +115,113 @@
 
 
         <!-- Séparateur avec titre -->
-        <div class="text-2xl text-teal-600 mt-8 mb-6 font-bold flex items-center justify-center gap-4">
+        <!-- Section titre avec séparateurs -->
+        <div class="flex items-center justify-center mt-8 mb-6">
             <hr class="flex-1 border-gray-300">
-            <p class="whitespace-nowrap px-4">Date de soumission des consommations</p>
+            <h2 class="px-6 text-2xl font-bold text-teal-600 whitespace-nowrap">
+                Date de soumission des consommations
+            </h2>
             <hr class="flex-1 border-gray-300">
         </div>
-        <!-- Tables plus larges -->
-        <div class="mt-6 flex justify-between gap-6">
-            <!-- Table 1 - Plus large -->
-            <div class="bg-white shadow-lg rounded-lg overflow-auto max-h-[400px] flex-1">
-                <div class="text-xl font-semibold text-blue-900 mb-4">Formation sanitaire (FS)</div>
-                <table class="w-full border-collapse">
-                    <thead class="sticky top-0 bg-white z-10">
-                        <tr class="bg-gray-100">
-                            <th class="px-8 py-4 text-left text-sm font-medium text-blue-900 border-b w-1/2">Période de
-                                la
-                                consommation</th>
-                            <th class="px-8 py-4 text-left text-sm font-medium text-blue-900 border-b w-1/2">Date de
-                                soummission</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($consommations_fs as $conso)
-                            <tr class="border-b hover:bg-gray-50 transition-colors duration-150">
-                                <td class="px-8 py-5 text-blue-900 font-medium">{{ $conso->periode->nom }}</td>
-                                <td class="px-8 py-5 text-blue-900">{{ $conso->created_at?->format('d/m/Y H:i') }}</td>
-                            </tr>
-                        @empty
+
+        <!-- Conteneur principal des tableaux -->
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Tableau Formation sanitaire (FS) -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="px-6 py-4 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
+                    <h3 class="text-xl font-semibold text-blue-900">Formation sanitaire (FS)</h3>
+                </div>
+
+                <div class="overflow-x-auto max-h-96">
+                    <table class="w-full">
+                        <thead class="sticky top-0 bg-gray-50 z-10">
                             <tr>
-                                <td colspan="2" class="px-8 py-8 text-center text-gray-500 italic">
-                                    Aucune consommation trouvée.
-                                </td>
+                                <th
+                                    class="px-6 py-4 text-left text-sm font-semibold text-blue-900 border-b-2 border-gray-200">
+                                    Période de la consommation
+                                </th>
+                                <th
+                                    class="px-6 py-4 text-left text-sm font-semibold text-blue-900 border-b-2 border-gray-200">
+                                    Date de création
+                                </th>
+                                <th
+                                    class="px-6 py-4 text-left text-sm font-semibold text-blue-900 border-b-2 border-gray-200">
+                                    Date de soumission
+                                </th>
                             </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @forelse ($consommations_fs as $conso)
+                                <tr class="hover:bg-blue-50 transition-colors duration-200">
+                                    <td class="px-6 py-4 text-blue-900 font-medium">
+                                        {{ $conso->periode->nom }}
+                                    </td>
+                                    <td class="px-6 py-4 text-blue-800">
+                                        {{ $conso->created_at?->format('d/m/Y H:i') }}
+                                    </td>
+                                    <td class="px-6 py-4 text-blue-800">
+                                        {{ $conso->submitted_at ? \Carbon\Carbon::parse($conso->submitted_at)->format('d/m/Y H:i') : 'N/A' }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="px-6 py-8 text-center text-gray-500 italic">
+                                        Aucune consommation trouvée.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-            <!-- Table 2 - Plus large -->
-            <div class="bg-white shadow-lg rounded-lg overflow-auto max-h-[400px] flex-1">
-                <table class="w-full border-collapse">
-                    <div class="text-xl font-semibold mb-4 text-blue-900 ">Agent Santé Communautaire (ASC)</div>
-                    <thead class="sticky top-0 bg-white z-10">
-                        <tr class="bg-gray-100">
-                            <th class="px-8 py-4 text-left text-sm font-medium text-blue-900 border-b w-1/2">Période de
-                                la
-                                consommation</th>
-                            <th class="px-8 py-4 text-left text-sm font-medium text-blue-900 border-b w-1/2">Date de
-                                soummission</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($consommations_asc as $conso)
-                            <tr class="border-b hover:bg-gray-50 transition-colors duration-150">
-                                <td class="px-8 py-5 text-blue-900 font-medium">{{ $conso->periode->nom }}</td>
-                                <td class="px-8 py-5 text-blue-900">{{ $conso->created_at?->format('d/m/Y H:i') }}</td>
-                            </tr>
-                        @empty
+            <!-- Tableau Agent Santé Communautaire (ASC) -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="px-6 py-4 bg-gradient-to-r from-green-50 to-green-100 border-b border-green-200">
+                    <h3 class="text-xl font-semibold text-blue-900">Agent Santé Communautaire (ASC)</h3>
+                </div>
+
+                <div class="overflow-x-auto max-h-96">
+                    <table class="w-full">
+                        <thead class="sticky top-0 bg-gray-50 z-10">
                             <tr>
-                                <td colspan="2" class="px-8 py-8 text-center text-gray-500 italic">
-                                    Aucune consommation trouvée.
-                                </td>
+                                <th
+                                    class="px-6 py-4 text-left text-sm font-semibold text-blue-900 border-b-2 border-gray-200">
+                                    Période de la consommation
+                                </th>
+                                <th
+                                    class="px-6 py-4 text-left text-sm font-semibold text-blue-900 border-b-2 border-gray-200">
+                                    Date de création
+                                </th>
+                                <th
+                                    class="px-6 py-4 text-left text-sm font-semibold text-blue-900 border-b-2 border-gray-200">
+                                    Date de soumission
+                                </th>
                             </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @forelse ($consommations_asc as $conso)
+                                <tr class="hover:bg-green-50 transition-colors duration-200">
+                                    <td class="px-6 py-4 text-blue-900 font-medium">
+                                        {{ $conso->periode->nom }}
+                                    </td>
+                                    <td class="px-6 py-4 text-blue-800">
+                                        {{ $conso->created_at?->format('d/m/Y H:i') }}
+                                    </td>
+                                    <td class="px-6 py-4 text-blue-800">
+                                        {{ $conso->submitted_at ? \Carbon\Carbon::parse($conso->submitted_at)->format('d/m/Y H:i') : 'N/A' }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="px-6 py-8 text-center text-gray-500 italic">
+                                        Aucune consommation trouvée.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     @elseif(auth()->check() && in_array(auth()->user()->role->nom_role, ['Administrateur', 'District']))
@@ -268,25 +310,11 @@
             @if (auth()->check() && auth()->user()->role->nom_role === 'District')
                 <div class="relative ml-auto">
                     <!-- Bouton principal -->
-                    <button
+                    <button wire:click="exporterPDF"
                         class="bg-blue-600 text-white hover:bg-blue-800 font-medium py-2 px-4 rounded-lg shadow-sm flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-800"
-                        onclick="document.getElementById('exportMenu').classList.toggle('hidden')">
-                        <i class="bi bi-download"></i> Exporter
-                        <i class="bi bi-caret-down-fill text-xs"></i>
+                        >
+                        <i class="bi bi-file-earmark-pdf bg-white rounded text-red-600"></i> Exporter
                     </button>
-
-                    <!-- Menu dropdown -->
-                    <div id="exportMenu"
-                        class="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg hidden z-20">
-                        <button wire:click="exporterPDF"
-                            class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
-                            <i class="bi bi-file-earmark-pdf text-red-600"></i> PDF
-                        </button>
-                        <button wire:click="exporterExcel"
-                            class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
-                            <i class="bi bi-file-earmark-excel text-green-600"></i> Excel
-                        </button>
-                    </div>
                 </div>
             @endif
 

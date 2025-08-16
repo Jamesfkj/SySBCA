@@ -13,11 +13,8 @@ class UserCheckMail extends Mailable
 
     public $utilisateur;
     public $token;
-    public $lienActivation;
-    public $password;
-    public function __construct($utilisateur, $password)
+    public function __construct($utilisateur)
     {
-        $this->password = $password;
         $this->utilisateur = $utilisateur;
         $this->token = $utilisateur->remember_token;
     }
@@ -32,6 +29,8 @@ class UserCheckMail extends Mailable
             ->with([
                 'utilisateur' => $this->utilisateur,
                 'token' => $this->token,
-            ]);
+            ])->withSwiftMessage(function ($message) {
+                $logoCid = $message->embed(public_path('images/pnlp3.jpg'));
+            });
     }
 }

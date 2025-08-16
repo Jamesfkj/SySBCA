@@ -68,6 +68,10 @@
 
 <body>
     <div class="email-container">
+        <div class="flex justify-center mt-1">
+                <img src="{{ $message->embed(public_path('images/pnlp3.jpg')) }}" alt="Logo PNLP" width="100"
+            style="display:block; margin:auto;">
+            </div>
         <h1>Bonjour {{ $utilisateur->username }} !</h1>
 
         @if($utilisateur->role->nom_role === 'district')

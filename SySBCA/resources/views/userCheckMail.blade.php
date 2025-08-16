@@ -84,6 +84,8 @@
 
 <body>
     <div class="email-container">
+        <img src="{{ $message->embed(public_path('images/pnlp3.jpg')) }}" alt="Logo PNLP" width="100"
+            style="display:block; margin:auto;">
         <h1>Bienvenue {{ $utilisateur->username }}</h1>
 
         <p>

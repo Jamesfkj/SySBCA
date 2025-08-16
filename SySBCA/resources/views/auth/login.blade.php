@@ -1,18 +1,18 @@
 <x-guest-layout>
     <div class="min-h-screen w-full flex items-center justify-center font-[Rubik]"
         style="background-image: url('{{ asset('images/bg.png') }}'); background-repeat: no-repeat; background-size: cover; background-position: center;">
-
         <div
             class="w-full max-w-xl p-6 bg-teal-900 bg-opacity-40 shadow-lg rounded-lg m-4 backdrop-filter backdrop-blur-lg">
-
-            @if ($errors->has('error'))
+            @if ($errors->any())
                 <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 3000)" x-show="show" x-transition.opacity role="alert"
-                    class="text-red-600 bg-red-100 text-center text-sm mt-2 px-4 py-2 rounded-full shadow-sm">
-                    {{ $errors->first('error') }}
+                    class="mx-auto w-[70%] text-red-600 bg-red-100 text-center text-sm mt-4 px-4 py-3 rounded-lg shadow-sm">
+                    <ul class="list-disc list-inside">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             @endif
-
-
             <div class="flex justify-center mt-1">
                 <img src="{{ asset('images/pnlp3.jpg') }}" alt="Logo" class="h-20 font-size-2xl">
             </div>
@@ -22,6 +22,13 @@
                 Entrez vos identifiants pour vous connecter !
             </p>
             <x-auth-session-status class="mb-4 text-center" :status="session('status')" />
+            @if (session('success'))
+                <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 3000)" x-show="show" x-transition.opacity
+                    class="mx-auto w-[70%] text-green-700 bg-green-100 text-center text-sm mt-4 px-4 py-3 rounded-lg shadow-sm"
+                    role="alert">
+                    {{ session('success') }}
+                </div>
+            @endif
 
             <form class="space-y-5" method="POST" action="{{ route('login') }}">
                 @csrf

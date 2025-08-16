@@ -3,8 +3,8 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Confirmation de soumission - PNLP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Réinitialisation de votre mot de passe - PNLP</title>
     <style>
         body {
             margin: 0;
@@ -29,21 +29,32 @@
             margin-bottom: 20px;
         }
 
+        h2 {
+            font-size: 18px;
+            margin: 30px 0 10px;
+            color: #222;
+        }
+
         p {
             font-size: 15px;
             line-height: 1.6;
             margin-bottom: 15px;
         }
 
-        ul.details {
-            font-size: 15px;
-            line-height: 1.6;
-            margin-bottom: 15px;
-            padding-left: 20px;
+        .btn-wrapper {
+            text-align: center;
+            margin: 30px 0;
         }
 
-        ul.details li {
-            margin-bottom: 6px;
+        .btn {
+            background-color: #0f766e;
+            color: #ffffff !important;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
         }
 
         .footer {
@@ -62,39 +73,41 @@
             h1 {
                 font-size: 20px;
             }
+
+            .btn {
+                font-size: 15px;
+                padding: 10px 20px;
+            }
         }
     </style>
 </head>
 
 <body>
     <div class="email-container">
-        <div class="flex justify-center mt-1">
-               <img src="{{ $message->embed(public_path('images/pnlp3.jpg')) }}" alt="Logo PNLP" width="100"
+        <img src="{{ $message->embed(public_path('images/pnlp3.jpg')) }}" alt="Logo PNLP" width="100"
             style="display:block; margin:auto;">
-            </div>
-        <h1>Bonjour {{ $utilisateur->username }} !</h1>
+        <h1>Bonjour {{ $utilisateur->username }}</h1>
 
         <p>
-            Votre consommation a bien été soumise avec succès.
+            Nous avons reçu une demande de réinitialisation du mot de passe pour votre compte sur la plateforme de
+            collecte
+            des données du <strong>PNLP</strong>.
+        </p>
+
+        <h2>Réinitialisez votre mot de passe :</h2>
+
+        <div class="btn-wrapper">
+            <a href="{{ route('activation.compte', $token) }}" class="btn" target="_blank" rel="noopener noreferrer">
+                Réinitialiser mon mot de passe
+            </a>
+        </div>
+
+        <p>
+            Si vous n’avez pas demandé cette réinitialisation, vous pouvez ignorer ce message.
         </p>
 
         <p>
-            Détails de la consommation soumise :
-        </p>
-
-        <ul class="details">
-            <li><strong>Formation sanitaire :</strong> {{ $conso->formationSanitaire->nom ?? 'N/A' }}</li>
-            <li><strong>Acteur concerné :</strong> {{ $conso->acteur ?? 'N/A' }}</li>
-            <li><strong>Période :</strong> {{ $conso->periode->nom ?? 'N/A' }}</li>
-            <li><strong>Date de soumission :</strong> {{ optional($conso->submitted_at ?? $conso->updated_at)->format('d/m/Y H:i') ?? 'N/A' }}</li>
-        </ul>
-
-        <p>
-            Les quantités commandées seront validées par le district dans les bref délais. Vous pouvez effectuer le suivi de votre consommation en vous connectant à votre espace personnel.
-        </p>
-
-        <p>
-            Merci pour votre collaboration.<br />
+            Bien cordialement,<br>
             <strong>L’équipe PNLP</strong>
         </p>
 

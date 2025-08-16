@@ -152,13 +152,6 @@
                                             <option value="{{ $fs->id }}">{{ $fs->nom }}</option>
                                         @endforeach
                                     </select>
-                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 9l-7 7-7-7"></path>
-                                        </svg>
-                                    </div>
                                 </div>
                             @endif
 
@@ -168,13 +161,6 @@
                                     <option value="FS">FS</option>
                                     <option value="ASC">ASC</option>
                                 </select>
-                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                </div>
                             </div>
 
                             <div class="">
@@ -245,8 +231,9 @@
             <div class="overflow-hidden rounded-3xl">
                 <div class="flex transition-transform duration-500 ease-in-out"
                     style="transform: translateX(-{{ ($currentSlide ?? 0) * 100 }}%)">
-                    @php$cardIndex = 0;
-                                                                                                                        @endphp ?>
+                    @php
+                        $cardIndex = 0;
+                    @endphp
                     @foreach ($visibleCards->chunk(1) as $cardPair)
                         <div class="flex-shrink-0 min-w-full flex gap-4 px-2">
                             @foreach ($cardPair as $consommation)
@@ -584,9 +571,10 @@
                             <div
                                 class="text-center text-gray-500 py-32 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
                                 <i class="bi bi-inbox text-6xl text-gray-300 mb-4"></i>
-                                <p class="text-2xl font-medium text-gray-400 mb-2">Aucune consommation
+                                <p class="text-2xl font-medium text-gray-400 mb-2">Aucune commande
                                     enregistrée</p>
-                                <p class="text-gray-400">Les données apparaîtront ici une fois disponibles</p>
+                                <p class="text-gray-400">Si vous avez des données enrégistrées cliquer sur "afficher
+                                    les médicaments non commandés"</p>
                             </div>
                         </div>
                     @endif
@@ -602,25 +590,38 @@
                     Précédent
                 </button>
                 @if ($conso)
-                    <div class="flex gap-3" wire:key="conso--{{ $conso->id }}">
+                    <div class="flex flex-wrap items-center gap-2" wire:key="conso--{{ $conso->id }}">
+
+                        {{-- Bouton Exporter --}}
                         <button wire:click="exporterPDF({{ $this->conso->id ?? 0 }})"
-                            class="bg-blue-600 text-white hover:bg-blue-800 font-normal py-1.5 px-4 rounded-full shadow flex items-center gap-1">
-                            <i class="bi bi-download"></i> Exporter
+                            class="group inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 hover:text-slate-900 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-1 transition-all duration-200 shadow-sm hover:shadow-md">
+                            <i class="bi bi-download text-slate-500 group-hover:text-slate-700"></i>
+                            <span>Exporter</span>
                         </button>
+
+                        {{-- Bouton Valider --}}
                         @if ($this->conso->etat === 'soumis' && auth()->check() && optional(auth()->user()->role)->nom_role === 'District')
                             <button wire:click="validerConsommation({{ $this->conso->id }})"
-                                class="bg-green-600 hover:bg-green-700 text-white font-normal py-1.5 px-4 rounded-full shadow flex items-center gap-1">
-                                <i class="bi bi-check"></i> Valider
+                                class="group inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 hover:text-emerald-900 hover:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 transition-all duration-200 shadow-sm hover:shadow-md">
+                                <i class="bi bi-check-circle text-emerald-600 group-hover:text-emerald-700"></i>
+                                <span>Valider</span>
                             </button>
                         @endif
+
+                        {{-- Boutons pour Formation sanitaire --}}
                         @if ($this->conso->etat === 'en_cours' && auth()->check() && auth()->user()->role->nom_role === 'Formation sanitaire')
+                            {{-- Bouton Modifier --}}
                             <button wire:click="activerEdition({{ $this->conso->id }})"
-                                class="bg-orange-500 hover:bg-orange-700 text-white font-normal py-1.5 px-4 rounded-full shadow flex items-center gap-1">
-                                <i class="bi bi-pencil-square"></i> Modifier
+                                class="group inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 hover:text-amber-900 hover:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1 transition-all duration-200 shadow-sm hover:shadow-md">
+                                <i class="bi bi-pencil-square text-amber-600 group-hover:text-amber-700"></i>
+                                <span>Modifier</span>
                             </button>
+
+                            {{-- Bouton Soumettre --}}
                             <button wire:click="soumettreConsommation({{ $this->conso->id }})"
-                                class="bg-teal-700 hover:bg-teal-800 text-white font-normal py-1.5 px-4 rounded-full shadow flex items-center gap-1">
-                                <i class="bi bi-send-fill"></i> Soumettre
+                                class="group inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-800 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:text-blue-900 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 shadow-sm hover:shadow-md">
+                                <i class="bi bi-send-fill text-blue-600 group-hover:text-blue-700"></i>
+                                <span>Soumettre</span>
                             </button>
                         @endif
                     </div>
@@ -730,15 +731,6 @@
 </div>
 @endif
 @if ($formulaireVisible)
-    <!-- Bouton Toggle -->
-    <button id="toggleButton" onclick="toggleInstructions()"
-        class="flex items-center gap-2 text-teal-600 text-decoration-underline">
-        <span id="buttonText">Masquer les instructions</span>
-        <svg id="arrowIcon" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-        </svg>
-    </button>
     <div class="flex justify-between items-center relative mb-4">
         <div class="flex items-center justify-between">
             <div class="flex items-center">
@@ -826,9 +818,9 @@
     <div
         class="bg-white transition-opacity duration-200 overflow-auto max-h-[650px] {{ empty($type_structure) ? 'bg-gray-500 opacity-50 pointer-events-none select-none' : '' }}">
         <div class="w-full flex justify-end pr-4 hidden mb-1" id="close_form">
-            <div>
-                <i class="bi bi-x-circle-fill text-red-600 text-xl cursor-pointer hover:text-red-800"
-                    title="Fermer tout le formulaire" onclick="masquerToutFormulaire()"></i>
+            <div onclick="masquerToutFormulaire()" title="Masquer tout les formulaire"
+                class="w-8 h-8 bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-md border-0">
+                <i class="bi bi-x-circle-fill"></i>
             </div>
         </div>
         <form wire:submit.prevent="ajouterConsommation">
@@ -846,7 +838,7 @@
                             <div class="flex items-center space-x-4">
                                 <div
                                     class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-                                     <p class="text-white text-xl">{{ $medicament->code }}</p>
+                                    <p class="text-white text-xl">{{ $medicament->code }}</p>
                                 </div>
                                 <div>
                                     <button type="button" onclick="toggleForm({{ $index }})"
@@ -859,7 +851,9 @@
                                                 d="M19 9l-7 7-7-7" />
                                         </svg>
                                     </button>
-                                    <p class="text-gray-500 text-sm mt-1">Conditionnement : {{ $medicament->conditionnement }} : {{ $medicament->qte_par_conditionnement }} {{ $medicament->format }}</p>
+                                    <p class="text-gray-500 text-sm mt-1">Conditionnement :
+                                        {{ $medicament->conditionnement }} :
+                                        {{ $medicament->qte_par_conditionnement }} {{ $medicament->format }}</p>
                                 </div>
                             </div>
                             <div class="flex gap-3 items-center">
@@ -868,10 +862,10 @@
                                     Médicament #{{ $index + 1 }}
                                 </span>
                                 <div>
-                                    <button type="button" onclick="masquerFormulaire({{ $index }})"
-                                        class="w-10 h-10 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-md border-0">
-                                        <i class="bi bi-x-circle-fill text-xl cursor-pointer"
-                                            title="Masquer ce formulaire"></i>
+                                    <button title="Masquer ce formulaire" type="button"
+                                        onclick="masquerFormulaire({{ $index }})"
+                                        class="w-8 h-8 bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-md border-0">
+                                        <i class="bi bi-x-circle-fill text-xl cursor-pointer"></i>
                                     </button>
                                 </div>
                             </div>
@@ -930,7 +924,7 @@
                             <div class="form-group">
                                 <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
                                     <i class="bi bi-arrow-down-circle text-blue-500"></i>
-                                    Quantité reçue dans le trimestre
+                                    Qte reçue dans le trimestre
                                 </label>
                                 <input type="number" id="qte_recu_{{ $index }}"
                                     oninput="calculerStock({{ $index }}), checkInput({{ $index }})"
@@ -953,7 +947,6 @@
                             <!-- Quantité utilisée -->
                             <div class="form-group">
                                 <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
-                                    <span class="text-red-500 text-lg">*</span>
                                     <i class="bi bi-arrow-up-circle text-blue-500"></i>
                                     Quantité utilisée
                                 </label>
@@ -1007,26 +1000,25 @@
                             <div class="form-group">
                                 <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
                                     <i class="bi bi-arrow-return-left text-purple-500"></i>
-                                    Quantité retournée à la CAMEG
+                                    Qté retournée à la CAMEG
                                 </label>
                                 <input type="number" id="qte_ret_cameg_{{ $index }}"
                                     oninput="checkInput({{ $index }})"
                                     wire:model.debounce.500ms="consommations.{{ $index }}.qte_ret_cameg"
-                                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.qte_ret_cameg') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.qte_ret_cameg') !bg-red-100 !border-red-500 !border-2 @enderror"
                                     placeholder="Saisir..." min="0" step="1" />
                             </div>
 
                             <!-- Jours de rupture -->
                             <div class="form-group">
                                 <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
-                                    <span class="text-red-500 text-lg">*</span>
                                     <i class="bi bi-calendar-x text-red-500"></i>
                                     Nombre de jours de rupture
                                 </label>
                                 <input type="number" id="nb_jour_rupture_{{ $index }}"
                                     oninput="calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
                                     wire:model.debounce.500ms="consommations.{{ $index }}.nb_jour_rupture"
-                                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.nb_jour_rupture') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.nb_jour_rupture') !bg-red-100 !border-red-500 !border-2 @enderror"
                                     placeholder="Saisir..." min="0" step="1" />
                             </div>
 
@@ -1038,7 +1030,7 @@
                                 </label>
                                 <input type="number" readonly id="qte_stock_fin_trim_attendu_{{ $index }}"
                                     wire:model.live="consommations.{{ $index }}.qte_stock_fin_trim_attendu"
-                                    class="w-full px-4 py-3 border-2 border-emerald-200 rounded-xl bg-gradient-to-r from-emerald-50 to-green-50 text-green-700 font-bold text-center text-[17px] shadow-inner" />
+                                    class="w-full px-3 py-2 border-2 border-emerald-200 rounded-xl bg-gradient-to-r from-emerald-50 to-green-50 text-green-700 font-bold text-center text-[17px] shadow-inner" />
                             </div>
 
                             <!-- Stock réel fin -->
@@ -1048,9 +1040,9 @@
                                     Stock réel en fin de trimestre
                                 </label>
                                 <input type="number" id="qte_stock_fin_trim_{{ $index }}"
-                                    oninput="calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
+                                    oninput="calculerStockSecurite({{ $index }}), checkInput({{ $index }})" 
                                     wire:model.debounce.500ms="consommations.{{ $index }}.qte_stock_fin_trim"
-                                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.qte_stock_fin_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.qte_stock_fin_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
                                     placeholder="Saisir..." min="0" step="1" />
                             </div>
 
@@ -1062,7 +1054,7 @@
                                 </label>
                                 <input type="number" readonly id="stk_de_securite_{{ $index }}"
                                     wire:model.debounce.500ms="consommations.{{ $index }}.stk_de_securite"
-                                    class="w-full px-4 py-3 border-2 border-red-200 rounded-xl bg-gradient-to-r from-red-50 to-pink-50 text-red-500 font-bold text-center text-[17px] shadow-inner" />
+                                    class="w-full px-3 py-2 border-2 border-red-200 rounded-xl bg-gradient-to-r from-red-50 to-pink-50 text-red-500 font-bold text-center text-[17px] shadow-inner" />
                             </div>
 
                             <!-- CCMA -->
@@ -1073,7 +1065,7 @@
                                 </label>
                                 <input type="number" readonly id="ccma_{{ $index }}"
                                     wire:model.debounce.500ms="consommations.{{ $index }}.ccma"
-                                    class="w-full px-4 py-3 border-2 border-red-200 rounded-xl bg-gradient-to-r from-red-50 to-pink-50 text-red-500 font-bold text-center text-[17px] shadow-inner" />
+                                    class="w-full px-3 py-2 border-2 border-red-200 rounded-xl bg-gradient-to-r from-red-50 to-pink-50 text-red-500 font-bold text-center text-[17px] shadow-inner" />
                             </div>
 
                             <!-- Quantité commandée -->
@@ -1084,7 +1076,7 @@
                                 </label>
                                 <input type="number" readonly id="cmd_trim_svt_{{ $index }}"
                                     wire:model.debounce.500ms="consommations.{{ $index }}.cmd_trim_svt"
-                                    class="w-full px-4 py-3 border-2 border-red-200 rounded-xl bg-gradient-to-r from-red-50 to-pink-50 text-red-500 font-bold text-center text-[17px] shadow-inner" />
+                                    class="w-full px-3 py-2 border-2 border-red-200 rounded-xl bg-gradient-to-r from-red-50 to-pink-50 text-red-500 font-bold text-center text-[17px] shadow-inner" />
                             </div>
                         </div>
                     </div>
@@ -1092,10 +1084,10 @@
             </div>
 
             <!-- Boutons d'action -->
-            <div class="mt-8 flex justify-end gap-4 pt-8 border-t border-gray-200">
+            <div class="mt-4 flex justify-end gap-4 pt-4 border-t border-gray-200">
                 @if ($modifierConso)
-                    <button type="submit"
-                        class="group relative px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
+                    <button type="submit" @disabled(empty($periode_choisie))
+                        class="group relative px-6 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed">
                         <span class="relative z-10 flex items-center gap-2">
                             <i class="bi bi-pencil-square"></i>
                             Modifier
@@ -1105,8 +1097,8 @@
                         </div>
                     </button>
                 @else
-                    <button type="submit"
-                        class="group relative px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
+                    <button type="submit" @disabled(empty($periode_choisie))
+                        class="group relative px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed">
                         <span class="relative z-10 flex items-center gap-2">
                             <i class="bi bi-check-circle"></i>
                             Enregistrer
@@ -1117,8 +1109,9 @@
                     </button>
                 @endif
 
+
                 <button type="reset"
-                    class="group relative px-8 py-4 bg-gradient-to-r from-gray-400 to-gray-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
+                    class="group relative px-6 py-2 bg-gradient-to-r from-gray-400 to-gray-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
                     <span class="relative z-10 flex items-center gap-2">
                         <i class="bi bi-x-circle"></i>
                         Annuler
@@ -1572,7 +1565,7 @@
         }
         if (qteEnStockFinTrim && qteEnStockFinTrim > reste) {
             alert(
-                'Info : Votre quantité restante réelle saisie est supérieur à la quantité restante théorique. Cliquez Ok pour continuez.'
+                'Info : Votre quantité restante réelle saisie est supérieur à la quantité restante théorique. Vérifiez si ce n\'est pas une erreur.'
             );
         };
         if (nbJourRupture < 0 || nbJourRupture > 89) {

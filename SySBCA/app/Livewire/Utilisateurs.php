@@ -124,7 +124,7 @@ class Utilisateurs extends Component
         $nomRole = Str::lower($role->nom_role);
         $this->assignEntity($utilisateur, $nomRole, $this->zone_sanitaire);
         $utilisateur->remember_token = Str::random(64);
-        Mail::to($utilisateur->email)->send(new UserCheckMail($utilisateur, $this->mot_de_passe));
+        Mail::to($utilisateur->email)->send(new UserCheckMail($utilisateur));
         $utilisateur->save();
         session()->flash('message', 'Utilisateur créé avec succès !');
         $this->afficherTableau();

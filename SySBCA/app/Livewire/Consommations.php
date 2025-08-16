@@ -14,6 +14,9 @@ use App\Mail\SubmitConsommation;
 use App\Mail\ValidateConsommation;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Str;
+use App\Models\ReferenceRapport;
 use Illuminate\Validation\ValidationException;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Encoding\Encoding;
@@ -163,6 +166,10 @@ class Consommations extends Component
         $this->periodes_disponibles = $periodes->filter(function ($periode) use ($consommations_existantes) {
             return !in_array($periode->id, $consommations_existantes);
         })->values();
+        if ($this->periodes_disponibles->isEmpty()) {
+            $this->addError('general', "Vérifiez si vous n'avez pas déjà créé une consommation pour cette structure et cette période");
+            return;
+        }
 
         $this->periode_choisie = $this->periodes_disponibles->isNotEmpty()
             ? $this->periodes_disponibles->first()->id
@@ -261,6 +268,7 @@ class Consommations extends Component
             $this->medicaments = Medicament::whereNotIn('id', $medicaments_fs_only)->get();
         }
         $this->chargerPeriodeActeur();
+
         $this->consoPassee();
         $this->reset('consommations');
         foreach ($this->medicaments as $index => $medicament) {
@@ -712,16 +720,28 @@ class Consommations extends Component
 
     public function exporterPDF($id)
     {
-        $text = urlencode('https://mon-site.fr');
-        $qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&format=png&data={$text}";
+        $utilisateur = auth()->user();
 
+        $nouvelUuid = (string) Str::uuid();
+        $referenceRapport = new ReferenceRapport();
+        $referenceRapport->uuid = $nouvelUuid;
+        $referenceRapport->user_id = $utilisateur->id;
+        $referenceRapport->save();
+
+        $tokenData = [
+            'uuid' => $nouvelUuid,
+            'date' => now()->format('Y-m-d H:i:s'),
+        ];
+        $token = Crypt::encryptString(json_encode($tokenData));
+        $verificationUrl = route('verification', ['token' => $token]);
+
+        $qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&format=png&data=" . urlencode($verificationUrl);
         $qrCodeData = file_get_contents($qrCodeUrl);
         $qrCode = base64_encode($qrCodeData);
         $conso = Consommation::find($id);
         $consommations = $this->consommations_all->filter(function ($c) {
             return !($c->cmma == 0 && $c->stock_securite == 0 && $c->cmd_trim_svt == 0) || $this->showHiddenCards;
         });
-
         $pdf = Pdf::loadView('consommations-pdf', [
             'consommations' => $consommations,
             'conso' => $conso,

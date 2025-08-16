@@ -23,11 +23,12 @@ class SubmitConsommation extends Mailable
     public function build(): static
     {
         return $this->subject('Soumission de consommation')
-                    ->view('submitConsommation')
-                    ->with([
-                        'utilisateur' => $this->utilisateur,
-                        'conso' => $this->conso,
-                    ]);
+            ->view('submitConsommation')
+            ->with([
+                'utilisateur' => $this->utilisateur,
+                'conso' => $this->conso,
+            ])->withSwiftMessage(function ($message) {
+                $logoCid = $message->embed(public_path('images/pnlp3.jpg'));
+            });
     }
-   
 }

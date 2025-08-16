@@ -21,8 +21,8 @@
 
         @if (!empty($user))
             <div class="text-white text-center">
-                <p class="text-center text-gray-700 font-semibold">Bonjour <strong class="text-[18px] text-gray-800">{{ $user->username }}</strong>,
-                veuillez définir un mot de passe pour activer votre compte !</p>
+                <p class="text-center text-gray-700 font-semibold">
+                Veuillez définir votre nouveau mot de passe!</p>
             </div>
 
             <form method="POST" action="{{ route('definir.password', $user->id) }}" class="space-y-5 mt-6">

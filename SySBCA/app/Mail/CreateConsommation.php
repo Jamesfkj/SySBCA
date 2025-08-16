@@ -23,11 +23,12 @@ class CreateConsommation extends Mailable
     public function build(): static
     {
         return $this->subject('Création de consommation')
-                    ->view('createConsommation')
-                    ->with([
-                        'utilisateur' => $this->utilisateur,
-                        'conso' => $this->conso,
-                    ]);
+            ->view('createConsommation')
+            ->with([
+                'utilisateur' => $this->utilisateur,
+                'conso' => $this->conso,
+            ])->withSwiftMessage(function ($message) {
+                $logoCid = $message->embed(public_path('images/pnlp3.jpg'));
+            });
     }
-
 }

@@ -8,14 +8,9 @@ class ReferenceRapport extends Model
 {
     protected $table = 'reference_rapport';
 
-    public function periode()
+    public function utilisateur()
     {
-        return $this->belongsTo(Periode::class);
-    }
-
-    public function district()
-    {
-        return $this->belongsTo(District::class);
+        return $this->belongsTo(Utilisateur::class , 'user_id');
     }
 
 }

@@ -14,15 +14,9 @@ return new class extends Migration
         Schema::create('reference_rapport', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->unsignedBigInteger('district_id');
-            $table->unsignedBigInteger('periode_id');
-            $table->unsignedInteger('version')->default(1);
+            $table->unsignedBigInteger('user_id');
             $table->timestamps();
-
-            $table->unique(['district_id', 'periode_id', 'version']);
-
-            $table->foreign('district_id')->references('id')->on('districts')->onDelete('cascade');
-            $table->foreign('periode_id')->references('id')->on('periodes')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('utilisateurs')->onDelete('cascade');
         });
     }
     public function down(): void

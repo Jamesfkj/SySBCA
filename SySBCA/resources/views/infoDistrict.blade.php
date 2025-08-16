@@ -4,180 +4,259 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rapport PNLP</title>
+    <title>Rapport PNLP - Informations sur les Districts</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* Variables CSS */
+        :root {
+            --primary-color: #0d5e56;
+            --secondary-color: #1a8f85;
+            --accent-color: #26a69a;
+            --text-dark: #2c3e50;
+            --text-medium: #34495e;
+            --text-light: #7f8c8d;
+            --border-color: #e0e0e0;
+            --background-light: #f8f9fa;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
         }
 
+        /* Styles de base */
         body {
             font-family: Arial, sans-serif;
-            line-height: 1.4;
-            color: #333;
-            background: #fff;
-            padding: 20px;
+            font-size: 10pt;
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
         }
 
-        .report-container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+
+        .page {
+            page-break-after: always;
+            position: relative;
+            padding: 1cm;
+        }
+
+        .page:last-child {
+            page-break-after: auto;
+        }
+
+        /* Page de garde */
+        .cover-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: center;
         }
 
         .header {
-            text-align: center;
-            border-bottom: 2px solid #0d9488;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-        }
-
-        .header-layout {
             width: 100%;
-            border: none;
-            margin-bottom: 20px;
+            margin-bottom: 2cm;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 1cm;
         }
 
-        .header-layout td {
-            border: none;
-            padding: 5px 0;
-            vertical-align: top;
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .header-left {
-            text-align: left;
-            width: 50%;
+        .logo {
+            height: 80px;
         }
 
-        .header-right {
-            text-align: right;
-            width: 50%;
-        }
-
-        .ministry-title {
-            font-size: 14px;
+        .ministry-name {
             font-weight: bold;
-            color: #0d9488;
+            font-size: 14pt;
+            color: var(--primary-color);
+            text-transform: uppercase;
             margin-bottom: 5px;
         }
 
-        .ministry-subtitle {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 15px;
+        .program-name {
+            font-weight: 600;
+            font-size: 12pt;
+            color: var(--text-medium);
         }
 
-        .country-info {
-            font-size: 14px;
+        .republic {
             font-weight: bold;
-            color: #0d9488;
-            margin-bottom: 20px;
+            font-size: 12pt;
         }
 
-        .report-title {
-            font-size: 18px;
+        .motto {
+            font-style: italic;
+            font-size: 10pt;
+            margin: 5px 0;
+        }
+
+        .document-title {
             font-weight: bold;
-            color: #0d9488;
-            margin-top: 10px;
+            font-size: 20pt;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            margin: 1cm 0;
+        }
+
+        .cover-info-table {
+            width: 100%; 
+            border-collapse: collapse;
+            margin: 2cm 0;
+        }
+
+        .cover-info-table td {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 9pt;
+        }
+
+        .info-value {
+            font-size: 10pt;
+            margin-top: 5px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 9pt;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            background-color: #fff3e0;
+            color: #e65100;
+            border: 1px solid #ff9800;
+        }
+
+        .cover-footer {
+            position: absolute;
+            bottom: 1.5cm;
+            width: calc(100% - 3cm);
             text-align: center;
+            font-size: 9pt;
+            color: var(--text-light);
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+        }
+
+        /* Pages de contenu */
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5cm;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 15px;
+        }
+
+        .content-title {
+            font-weight: bold;
+            font-size: 14pt;
+            color: var(--primary-color);
+        }
+
+        .content-subtitle {
+            font-size: 10pt;
+            color: var(--text-light);
+        }
+
+        .page-info {
+            text-align: right;
+            font-size: 9pt;
+            color: var(--text-light);
+        }
+
+        .section-title {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 15px;
+            font-weight: bold;
+            font-size: 12pt;
+            border-radius: 5px 5px 0 0;
+            margin: 20px 0 0 0;
         }
 
         .info-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 30px;
-            border: 1px solid #ddd;
+            margin-bottom: 1cm;
         }
 
         .info-table th {
-            background: #f0fdfc;
-            font-weight: bold;
-            padding: 12px;
+            background-color: var(--background-light);
+            color: var(--text-dark);
             text-align: left;
-            border: 1px solid #ddd;
-            color: #0d9488;
+            padding: 10px;
+            font-weight: bold;
+            font-size: 9pt;
+            border: 1px solid var(--border-color);
         }
 
         .info-table td {
-            padding: 10px 12px;
-            border: 1px solid #ddd;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            font-size: 10pt;
         }
 
         .info-table tr:nth-child(even) {
-            background: #f9f9f9;
-        }
-
-        .section-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #0d9488;
-            margin: 25px 0 15px 0;
-            border-bottom: 1px solid #0d9488;
-            padding-bottom: 5px;
+            background-color: #f9f9f9;
         }
 
         .metrics-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 25px;
-            border: 1px solid #ddd;
         }
 
         .metrics-table th {
-            background: #0d9488;
+            background: var(--text-dark);
             color: white;
             font-weight: bold;
             padding: 12px;
             text-align: left;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
         }
 
         .metrics-table td {
             padding: 10px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
         }
 
         .metrics-table tr:nth-child(even) {
             background: #f9f9f9;
         }
 
-        .section-title {
-            font-size: 16px;
+        .highlight {
             font-weight: bold;
-            color: #2c3e50;
-            margin: 25px 0 15px 0;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 5px;
         }
 
-        .metrics-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 25px;
-            border: 1px solid #ddd;
+        .positive {
+            color: var(--success-color);
         }
 
-        .metrics-table th {
-            background: #2c3e50;
-            color: white;
-            font-weight: bold;
-            padding: 12px;
-            text-align: left;
-            border: 1px solid #ddd;
+        .warning {
+            color: var(--warning-color);
         }
 
-        .metrics-table td {
-            padding: 10px 12px;
-            border: 1px solid #ddd;
+        .danger {
+            color: var(--danger-color);
         }
 
-        .metrics-table tr:nth-child(even) {
-            background: #f9f9f9;
-        }
-
-        .percentage-red {
-            background: #e74c3c;
+        .status-negative {
+            background: var(--danger-color);
             color: white;
             padding: 4px 8px;
             border-radius: 4px;
@@ -185,8 +264,17 @@
             font-size: 12px;
         }
 
-        .status-negative {
-            background: #e74c3c;
+        .status-positive {
+            background: var(--success-color);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .status-neutral {
+            background: var(--text-light);
             color: white;
             padding: 4px 8px;
             border-radius: 4px;
@@ -203,189 +291,274 @@
             font-weight: bold;
         }
 
-        .footer {
-            text-align: center;
-            font-size: 11px;
-            color: #666;
-            border-top: 1px solid #ddd;
-            padding-top: 15px;
-            margin-top: 30px;
+        .page-footer {
+            position: absolute;
+            bottom: 1.5cm;
+            left: 1cm;
+            right: 1cm;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 8pt;
+            color: var(--text-light);
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+        }
+
+        .page-number {
+            font-weight: bold;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .page {
+                page-break-after: always;
+            }
+            
+            .page:last-child {
+                page-break-after: avoid;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="report-container">
-        <header class="header">
-            <table class="header-layout">
-                <tr>
-                    <td class="header-left">
-                        <div class="ministry-title">MINISTÈRE DE LA SANTÉ DE L'HYGIÈNE PUBLIQUE ET DE L'ACCÈS UNIVERSELLE
-                            AUX SOINS</div>
-                        <div class="ministry-subtitle">
-                            DIRECTION GÉNÉRALE DE L'ACTION SANITAIRE<br>
-                            DIRECTION DE LA LUTTE CONTRE LA MALADIE ET LES PROGRAMMES DE SANTÉ PUBLIQUE<br>
-                            PROGRAMME NATIONAL DE LUTTE CONTRE LE PALUDISME
-                        </div>
-                    </td>
-                    <td class="header-right">
-                        <div class="country-info">RÉPUBLIQUE TOGOLAISE<br><em>Travail - Liberté - Patrie</em></div>
-                    </td>
-                </tr>
-            </table>
-            <h1 class="report-title">INFORMATIONS SUR LES DISTRICTS</h1>
-        </header>
+    <!-- Page de garde -->
+    <div class="page cover-page">
+        <div class="header">
+            <div class="header-content">
+                <div>
+                    <img src="data:image/jpeg;base64,{{ base64_encode(file_get_contents(public_path('images/pnlp3.jpg'))) }}"
+                        alt="Logo PNLP" class="logo">
+                </div>
+                <div>
+                    <div class="ministry-name">Ministère de la Santé et de l'Hygiène Publique</div>
+                    <div class="program-name">Programme National de Lutte contre le Paludisme</div>
+                </div>
+                <div>
+                    <div class="republic">République Togolaise</div>
+                    <div class="motto">Travail - Liberté - Patrie</div>
+                    <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/armoirie.webp'))) }}"
+                        alt="Armoiries Togo" class="logo">
+                </div>
+            </div>
+        </div>
 
-        <main>
-            <table class="info-table">
+        <div class="document-title">
+            Informations sur les Districts
+        </div>
+
+        <table class="cover-info-table">
+            <tbody>
                 <tr>
-                    <th>Année</th>
-                    <td>{{ now()->year() }}</td>
-                    <th>Date de rapport</th>
-                    <td>{{ now()->format('d/m/y') }}</td>
-                </tr>
-                <tr>
-                    <th>Région</th>
-                    <td>{{ $district->region->nom }}</td>
-                    <th>District</th>
-                    <td>{{ $district->nom }}</td>
+                    <td class="info-label">Année</td>
+                    <td class="info-value">{{ now()->year }}</td>
+                    <td class="info-label">Date de rapport</td>
+                    <td class="info-value">{{ now()->format('d/m/y') }}</td>
                 </tr>
                 <tr>
-                    <th>Nombre de FS dans le district</th>
-                    <td>{{ $nb_fs }}</td>
-                    <th>Nombre d'ASC dans le district</th>
-                    <td>{{ $nb_asc }}</td>
+                    <td class="info-label">Région</td>
+                    <td class="info-value">{{ $district->region->nom }}</td>
+                    <td class="info-label">District</td>
+                    <td class="info-value">{{ $district->nom }}</td>
                 </tr>
                 <tr>
-                    <th>Rapport de la période de</th>
-                    <td> {{ $periode->mois_debut }} - {{ $periode->mois_fin }}</td>
-                    <th>Trimestre</th>
-                    <td>{{ $periode->nom }}</td>
+                    <td class="info-label">Nombre de FS dans le district</td>
+                    <td class="info-value">{{ $nb_fs }}</td>
+                    <td class="info-label">Nombre d'ASC dans le district</td>
+                    <td class="info-value">{{ $nb_asc }}</td>
                 </tr>
                 <tr>
-                    <th>Commande pour la période de</th>
-                    <td>{{ $periode_suivant->mois_debut }} - {{ $periode_suivant->mois_fin }}</td>
-                    <th>Trimestre</th>
-                    <td>{{ $periode_suivant->nom }}</td>
+                    <td class="info-label">Rapport de la période de</td>
+                    <td class="info-value">{{ $periode->mois_debut }} - {{ $periode->mois_fin }}</td>
+                    <td class="info-label">Trimestre</td>
+                    <td class="info-value">{{ $periode->nom }}</td>
                 </tr>
                 <tr>
-                    <th>Deadline/Délai de rapportage</th>
-                    <td colspan="3">{{ $deadline->format('d/m/yy') }}</td>
+                    <td class="info-label">Commande pour la période de</td>
+                    <td class="info-value">{{ $periode_suivant->mois_debut }} - {{ $periode_suivant->mois_fin }}</td>
+                    <td class="info-label">Trimestre</td>
+                    <td class="info-value">{{ $periode_suivant->nom }}</td>
                 </tr>
-            </table>
+                <tr>
+                    <td class="info-label">Deadline/Délai de rapportage</td>
+                    <td class="info-value" colspan="3">{{ $deadline->format('d/m/yy') }}</td>
+                </tr>
+            </tbody>
+        </table>
 
-            <h2 class="section-title">COMPLÉTUDE</h2>
-            <table class="metrics-table">
-                <thead>
-                    <tr>
-                        <th>Indicateur</th>
-                        <th>Valeur</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Nombre de FS dans le district ayant rapporté</td>
-                        <td>{{ $nb_fs_soumission }}</td>
-                    </tr>
-                    <tr>
-                        <td>Nombre d'ASC dans le district ayant rapporté (rapports reçus)</td>
-                        <td>{{ $nb_asc_soumission }}</td>
-                    </tr>
-                    <tr>
-                        <td>Calcul de la Complétude des FS</td>
-                        <td>{{ ($nb_fs_soumission / $nb_fs) * 100 }} %</td>
-                    </tr>
-                    <tr>
-                        <td>Calcul de la Complétude des ASC</td>
-                        <td>{{ ($nb_asc_soumission / $nb_fs) * 100 }} %</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="page-footer">
+            <div>
+                <img src="data:image/png;base64,{{ $qrCode }}" alt="QR Code" style="height: 30px;">
+                <span style="margin-left: 10px;">Créé le {{now()->format('d/m/yy h:i')}}</span>
+            </div>
+        </div>
+    </div>
 
-            <h2 class="section-title">PROMPTITUDE</h2>
-            <table class="metrics-table">
-                <thead>
-                    <tr>
-                        <th>Indicateur</th>
-                        <th>Nombre</th>
-                        <th>Pourcentage</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Nombre de FS dans le district prompts</td>
-                        <td>{{ $fs_prompt }}</td>
-                        <td>{{ ($fs_prompt / $nb_fs) * 100 }} %</td>
-                    </tr>
-                    <tr>
-                        <td>Nombre de FS dans le district pas prompts</td>
-                        <td>{{ $nb_fs - $fs_prompt }}</td>
-                        <td><span class="">{{ (($nb_fs - $fs_prompt) / $nb_fs) * 100 }} %</span></td>
-                    </tr>
-                    <tr>
-                        <td>Synthèse de rapport d'ASC dans le district prompts</td>
-                        <td>{{ $asc_prompt }}</td>
-                        <td>{{ ($asc_prompt / $nb_fs) * 100 }} %</td>
-                    </tr>
-                    <tr>
-                        <td>Synthèse de rapport d'ASC dans le district pas prompts</td>
-                        <td>{{ $nb_fs - $asc_prompt }}</td>
-                        <td><span class="">{{ (($nb_fs - $asc_prompt) / $nb_fs) * 100 }} %</span></td>
-                    </tr>
-                </tbody>
-            </table>
+    <!-- Page de complétude -->
+    <div class="page">
+        <div class="content-header">
+            <div>
+                <div class="content-title">Informations sur les Districts</div>
+                <div class="content-subtitle">
+                    District: {{ $district->nom }} |
+                    Région: {{ $district->region->nom }}
+                </div>
+            </div>
+            <div class="page-info">
+                {{ date('d/m/Y') }}
+            </div>
+        </div>
 
-            <h2 class="section-title">DÉTAIL DES STRUCTURES</h2>
-            <table class="metrics-table">
-                <thead>
+        <div class="section-title">
+            COMPLÉTUDE
+        </div>
+
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>Indicateur</th>
+                    <th>Valeur</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Nombre de FS dans le district ayant rapporté</td>
+                    <td>{{ $nb_fs_soumission }}</td>
+                </tr>
+                <tr>
+                    <td>Nombre d'ASC dans le district ayant rapporté (rapports reçus)</td>
+                    <td>{{ $nb_asc_soumission }}</td>
+                </tr>
+                <tr>
+                    <td>Calcul de la Complétude des FS</td>
+                    <td>{{ ($nb_fs_soumission / $nb_fs) * 100 }} %</td>
+                </tr>
+                <tr>
+                    <td>Calcul de la Complétude des ASC</td>
+                    <td>{{ ($nb_asc_soumission / $nb_fs) * 100 }} %</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="section-title">
+            PROMPTITUDE
+        </div>
+
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>Indicateur</th>
+                    <th>Nombre</th>
+                    <th>Pourcentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Nombre de FS dans le district prompts</td>
+                    <td>{{ $fs_prompt }}</td>
+                    <td>{{ ($fs_prompt / $nb_fs) * 100 }} %</td>
+                </tr>
+                <tr>
+                    <td>Nombre de FS dans le district pas prompts</td>
+                    <td>{{ $nb_fs - $fs_prompt }}</td>
+                    <td>{{ (($nb_fs - $fs_prompt) / $nb_fs) * 100 }} %</td>
+                </tr>
+                <tr>
+                    <td>Synthèse de rapport d'ASC dans le district prompts</td>
+                    <td>{{ $asc_prompt }}</td>
+                    <td>{{ ($asc_prompt / $nb_fs) * 100 }} %</td>
+                </tr>
+                <tr>
+                    <td>Synthèse de rapport d'ASC dans le district pas prompts</td>
+                    <td>{{ $nb_fs - $asc_prompt }}</td>
+                    <td>{{ (($nb_fs - $asc_prompt) / $nb_fs) * 100 }} %</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="page-footer">
+            <div>
+                <img src="data:image/png;base64,{{ $qrCode }}" alt="QR Code" style="height: 30px;">
+                <span style="margin-left: 10px;">Créé le {{now()->format('d/m/yy h:i')}}</span>
+            </div>
+            <div class="page-number">Page 2</div>
+        </div>
+    </div>
+
+    <!-- Page des détails des structures -->
+    <div class="page">
+        <div class="content-header">
+            <div>
+                <div class="content-title">Informations sur les Districts</div>
+                <div class="content-subtitle">
+                    District: {{ $district->nom }} |
+                    Région: {{ $district->region->nom }}
+                </div>
+            </div>
+            <div class="page-info">
+                {{ date('d/m/Y') }}
+            </div>
+        </div>
+
+        <div class="section-title">
+            DÉTAIL DES STRUCTURES
+        </div>
+
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>N°</th>
+                    <th>Type FS/ASC</th>
+                    <th>Formation sanitaire</th>
+                    <th>Date de dépôt du rapport</th>
+                    <th>Écarts (jours)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($consommations as $index => $conso)
                     <tr>
-                        <th>N°</th>
-                        <th>Type FS/ASC</th>
-                        <th>Formation sanitaire</th>
-                        <th>Date de dépôt du rapport</th>
-                        <th>Écarts (jours)</th>
+                        <td>{{ $index + 1 }}</td>
+                        <td><span class="type-badge">{{ $conso->acteur }}</span></td>
+                        <td>{{ $conso->formationSanitaire->nom }}</td>
+                        @php
+                            $submittedDate = \Carbon\Carbon::parse($conso->submitted_at);
+                            $deadlineDate = \Carbon\Carbon::parse($deadline);
+
+                            $diff = $submittedDate->diffInDays($deadlineDate, false); 
+                            $absDiff = intval(abs($diff));
+
+                            $ecartClass = '';
+                            $ecartText = '';
+
+                            if ($diff > 0) {
+                                $ecartClass = 'status-positive';
+                                $ecartText = "En avance : $absDiff jours";
+                            } elseif ($diff < 0) {
+                                $ecartClass = 'status-negative';
+                                $ecartText = "Retard : $absDiff jours";
+                            } else {
+                                $ecartClass = 'status-neutral';
+                                $ecartText = 'À la date';
+                            }
+                        @endphp
+                        <td>{{ $submittedDate->format('d/m/Y') }}</td>
+                        <td><span class="{{ $ecartClass }}">{{ $ecartText }}</span></td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach ($consommations as $index => $conso)
-                        <tr>
-                            <td>{{ $index + 1 }}</td>
-                            <td><span class="type-badge">{{ $conso->acteur }}</span></td>
-                            <td>{{ $conso->formationSanitaire->nom }}</td>
-                            @php
-                                $submittedDate = \Carbon\Carbon::parse($conso->submitted_at);
-                                $deadlineDate = \Carbon\Carbon::parse($deadline);
+                @endforeach
+            </tbody>
+        </table>
 
-                                $diff = $submittedDate->diffInDays($deadlineDate, false); 
-                                $absDiff = intval(abs($diff));
-
-                                $ecartClass = '';
-                                $ecartText = '';
-
-                                if ($diff > 0) {
-                                    $ecartClass = 'status-positive';
-                                    $ecartText = "En avance : $absDiff jours";
-                                } elseif ($diff < 0) {
-                                    $ecartClass = 'status-negative';
-                                    $ecartText = "Retard : $absDiff jours";
-                                } else {
-                                    $ecartClass = 'status-neutral';
-                                    $ecartText = 'À la date';
-                                }
-                            @endphp
-                            <td>{{ $submittedDate->format('d/m/Y') }}</td>
-                            <td><span class="{{ $ecartClass }}">{{ $ecartText }}</span></td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-
-        </main>
-
-        <footer class="footer">
-            <p></p>
-        </footer>
+        <div class="page-footer">
+            <div>
+                <img src="data:image/png;base64,{{ $qrCode }}" alt="QR Code" style="height: 30px;">
+                <span style="margin-left: 10px;">RPT-{{ date('Y-m-d-His') }}</span>
+            </div>
+            <div class="page-number">Page 3</div>
+        </div>
     </div>
 </body>
-
 </html>

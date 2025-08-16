@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Vues;
+use App\Http\Controllers\RapportController;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Utilisateurs;
 use App\Http\Controllers\ActivateUser;
+use App\Http\Controllers\Profil;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -28,6 +30,8 @@ Route::middleware(['is_autenticated', 'is_suspended'])->group(function () {
 Route::get('/activation-compte/{token}', [ActivateUser::class, 'showActivate'])
     ->name('activation.compte');
 Route::post('/definir-password/{id}', [ActivateUser::class, 'defineNewPassword'])->name('definir.password');
+Route::post('/renitialiser-password', [Profil::class , 'updatePassword'])->name('reset.password');
+Route::get('/verification', [RapportController::class, 'verifierRapport'])->name('verification');
 
 
 

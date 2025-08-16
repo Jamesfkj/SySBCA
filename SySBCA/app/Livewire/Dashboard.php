@@ -4,10 +4,13 @@ namespace App\Livewire;
 
 use App\Models\Consommation;
 use App\Models\FormationSanitaire;
+use App\Models\ReferenceRapport;
 use App\Models\Periode;
 use App\Models\District;
 use App\Models\Region;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Str;
 use Livewire\Component;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -93,46 +96,46 @@ class Dashboard extends Component
     }
 
     private function mettreAJourDonneesAdministrateur()
-{
-    $this->districts = collect();
-    $this->fs = collect();
-    $this->fs_ids = collect();
+    {
+        $this->districts = collect();
+        $this->fs = collect();
+        $this->fs_ids = collect();
 
-    if ($this->region_search) {
-        // Recherche filtrée par région
-        $this->districts = District::where('region_id', $this->region_search)
-            ->orderBy('nom')
-            ->get();
+        if ($this->region_search) {
+            // Recherche filtrée par région
+            $this->districts = District::where('region_id', $this->region_search)
+                ->orderBy('nom')
+                ->get();
 
-        if ($this->district_search) {
-            // Filtré à la fois par région et district
+            if ($this->district_search) {
+                // Filtré à la fois par région et district
+                $this->fs = FormationSanitaire::where('district_id', $this->district_search)
+                    ->orderBy('nom')
+                    ->get();
+            } else {
+                // Toutes les FS de la région sélectionnée
+                $districtIds = $this->districts->pluck('id');
+                $this->fs = FormationSanitaire::whereIn('district_id', $districtIds)
+                    ->orderBy('nom')
+                    ->get();
+            }
+        } elseif ($this->district_search) {
+
+            $this->districts = District::all();
+
             $this->fs = FormationSanitaire::where('district_id', $this->district_search)
                 ->orderBy('nom')
                 ->get();
         } else {
-            // Toutes les FS de la région sélectionnée
-            $districtIds = $this->districts->pluck('id');
-            $this->fs = FormationSanitaire::whereIn('district_id', $districtIds)
-                ->orderBy('nom')
-                ->get();
+            // Aucune région ni district sélectionné
+            $this->districts = District::orderBy('nom')->get();
+            $this->fs = FormationSanitaire::orderBy('nom')->get();
         }
-    } elseif ($this->district_search) {
-        
-        $this->districts = District::all();
 
-        $this->fs = FormationSanitaire::where('district_id', $this->district_search)
-            ->orderBy('nom')
-            ->get();
-    } else {
-        // Aucune région ni district sélectionné
-        $this->districts = District::orderBy('nom')->get();
-        $this->fs = FormationSanitaire::orderBy('nom')->get();
+        $this->fs_ids = $this->fs->pluck('id');
+
+        $this->calculerStatistiquesDeBase();
     }
-
-    $this->fs_ids = $this->fs->pluck('id');
-
-    $this->calculerStatistiquesDeBase();
-}
 
 
     private function initialiserDistrict()
@@ -214,7 +217,7 @@ class Dashboard extends Component
     {
         $this->chargerPeriode();
     }
-    
+
     public function chargerStatistiques()
     {
         if ($this->fs_ids->isEmpty()) {
@@ -250,7 +253,7 @@ class Dashboard extends Component
         $this->nb_asc_soumission = $this->compterConsommations('ASC', ['soumis', 'valide'], $periodeId);
         $this->nb_asc_valide = $this->compterConsommations('ASC', ['valide'], $periodeId);
         $this->asc_prompt = $this->compterConsommationsPrompt('ASC', $periodeId);
-        
+
 
         // Statistiques FS
         $this->nb_fs_soumission = $this->compterConsommations('FS', ['soumis', 'valide'], $periodeId);
@@ -261,32 +264,32 @@ class Dashboard extends Component
         $this->calculerComptPercentage();
     }
 
-    public function calculerPromptPercentage(){
+    public function calculerPromptPercentage()
+    {
         $fs = $this->fs_search;
         $nb_fs = $this->nb_fs ?? 1;
-        if($fs != ""){
-            $this->fs_prompt_pourcentage = intval(($this->fs_prompt) * 100); 
-            $this->asc_prompt_pourcentage = intval(($this->asc_prompt) * 100); 
-        }
-        else{
-            $this->fs_prompt_pourcentage = intval(($this->fs_prompt / $nb_fs) * 100); 
-            $this->asc_prompt_pourcentage = intval(($this->asc_prompt / $nb_fs) * 100); 
+        if ($fs != "") {
+            $this->fs_prompt_pourcentage = intval(($this->fs_prompt) * 100);
+            $this->asc_prompt_pourcentage = intval(($this->asc_prompt) * 100);
+        } else {
+            $this->fs_prompt_pourcentage = intval(($this->fs_prompt / $nb_fs) * 100);
+            $this->asc_prompt_pourcentage = intval(($this->asc_prompt / $nb_fs) * 100);
         }
     }
 
-    public function calculerComptPercentage(){
+    public function calculerComptPercentage()
+    {
         $fs = $this->fs_search;
         $nb_fs = $this->nb_fs ?? 1;
-        if($fs != ""){
-            $this->fs_comp_pourcentage = intval(($this->nb_fs_soumission) * 100); 
-            $this->asc_comp_pourcentage = intval(($this->nb_asc_soumission) * 100); 
-        }
-        else{
-            $this->fs_comp_pourcentage = intval(($this->nb_fs_soumission / $nb_fs) * 100); 
-            $this->asc_comp_pourcentage = intval(($this->nb_asc_soumission / $nb_fs) * 100); 
+        if ($fs != "") {
+            $this->fs_comp_pourcentage = intval(($this->nb_fs_soumission) * 100);
+            $this->asc_comp_pourcentage = intval(($this->nb_asc_soumission) * 100);
+        } else {
+            $this->fs_comp_pourcentage = intval(($this->nb_fs_soumission / $nb_fs) * 100);
+            $this->asc_comp_pourcentage = intval(($this->nb_asc_soumission / $nb_fs) * 100);
         }
     }
-    
+
 
     private function compterConsommations($acteur, $etats, $periodeId)
     {
@@ -369,10 +372,9 @@ class Dashboard extends Component
 
     public function chercherStatistiques()
     {
-        if($this->fs_search != ""){
+        if ($this->fs_search != "") {
             $this->percentage_denominateur = 1;
-        }
-        else{
+        } else {
             $this->percentage_denominateur = $this->nb_fs;
         }
         // Mettre à jour les données selon le rôle
@@ -456,7 +458,7 @@ class Dashboard extends Component
         return view('livewire.dashboard');
     }
 
-   public function exporterPDF()
+    public function exporterPDF()
     {
         $utilisateur = auth()->user();
 
@@ -470,6 +472,31 @@ class Dashboard extends Component
             $fs_ids = FormationSanitaire::where('district_id', $district->id)->pluck('id');
             $consommations = Consommation::where('periode_id', $periode_id)->whereIn('formation_sanitaire_id', $fs_ids)->get();
 
+            // Générer un UUID unique pour le rapport
+            $nouvelUuid = (string) Str::uuid();
+
+            // Enregistrer la référence du rapport
+            $referenceRapport = new ReferenceRapport();
+            $referenceRapport->uuid = $nouvelUuid;
+            $referenceRapport->user_id = $utilisateur->id;
+            $referenceRapport->save();
+
+            // Générer un token sécurisé pour le QR code
+            $tokenData = [
+                'uuid' => $nouvelUuid,
+                'date' => now()->format('Y-m-d H:i:s'),
+            ];
+            $token = Crypt::encryptString(json_encode($tokenData));
+
+            // Créer l’URL de vérification
+            $verificationUrl = route('verification', ['token' => $token]);
+
+            // Générer le QR code via API externe
+            $qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&format=png&data=" . urlencode($verificationUrl);
+            $qrCodeData = file_get_contents($qrCodeUrl);
+            $qrCode = base64_encode($qrCodeData);
+
+
             $pdf = Pdf::loadView('infoDistrict', [
                 'consommations' => $consommations,
                 'periode' => $periode,
@@ -477,6 +504,7 @@ class Dashboard extends Component
                 'district' => $district,
                 'nb_fs' => $nb_fs,
                 'nb_asc' => $nb_asc,
+                'qrCode' => $qrCode,
                 'deadline' => $this->prompt_date,
                 'nb_fs_soumission' => $this->nb_fs_soumission,
                 'nb_asc_soumission' => $this->nb_asc_soumission,
@@ -516,8 +544,8 @@ class Dashboard extends Component
         $this->chargerConsommations();
         if ($user->role->nom_role === 'Formation sanitaire') {
             $periode = Periode::where('nom', $this->periode)->first();
-            $check_fs = $this->consommations_fs->where('periode_id', $periode->id)->count();
-            $check_asc = $this->consommations_asc->where('periode_id', $periode->id)->count();
+            $check_fs = $this->consommations_fs->where('periode_id', $periode->id)->whereIn('etat', ['soumis', 'valide'])->count();
+            $check_asc = $this->consommations_asc->where('periode_id', $periode->id)->whereIn('etat', ['soumis', 'valide'])->count();
             $this->fs_submit = $check_fs > 0;
             $this->asc_submit = $check_asc > 0;
         }
