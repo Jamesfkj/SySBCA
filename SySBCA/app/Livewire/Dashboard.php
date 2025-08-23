@@ -356,9 +356,9 @@ class Dashboard extends Component
             ->join('medicaments as m', 'm.id', '=', 'cm.medicament_id')
             ->select('m.nom', DB::raw('SUM(cm.cmd_trim_svt) as total_commande'))
             ->whereIn('c.formation_sanitaire_id', $this->fs_ids)
+            ->whereIn('c.etat', ['valide', 'soumis'])
             ->where('c.periode_id', $this->periode_search ?? $this->periode_actuelle->id);
 
-        // Appliquer le filtre formation sanitaire si sélectionné
         if ($this->fs_search) {
             $query->where('c.formation_sanitaire_id', $this->fs_search);
         }
@@ -366,7 +366,7 @@ class Dashboard extends Component
         $this->topCommandes = $query
             ->groupBy('m.id', 'm.nom')
             ->orderByDesc('total_commande')
-            ->limit(10)
+            ->limit(5)
             ->get();
     }
 

@@ -308,14 +308,24 @@
                 </div>
             </div>
             @if (auth()->check() && auth()->user()->role->nom_role === 'District')
-                <div class="relative ml-auto">
-                    <!-- Bouton principal -->
-                    <button wire:click="exporterPDF"
-                        class="bg-blue-600 text-white hover:bg-blue-800 font-medium py-2 px-4 rounded-lg shadow-sm flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-800"
-                        >
-                        <i class="bi bi-file-earmark-pdf bg-white rounded text-red-600"></i> Exporter
-                    </button>
-                </div>
+<div class=" shadow-sm flex items-center justify-between gap-2 relative ml-auto">
+    <!-- Titre -->
+    <h4 class="font-semibold text-gray-800 text-lg">Info sur Districts :</h4>
+
+    <button wire:click="exporterPDF"
+        class="relative overflow-hidden bg-white border border-blue-600 text-blue-600 hover:text-white font-semibold py-2 px-5 rounded-xl transition-all duration-300 group focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <span
+            class="absolute inset-0 bg-blue-600 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300">
+        </span>
+        
+        <!-- Contenu -->
+        <span class="relative flex items-center gap-2">
+            <i class="bi bi-file-earmark-pdf"></i>
+            Exporter
+        </span>
+    </button>
+</div>
+
             @endif
 
         </div>
@@ -463,9 +473,8 @@
                     <i class="bi bi-clock-history text-orange-500 text-xl mr-2"></i>
                     <h3 class="text-xl font-semibold text-gray-800">Promptitude des Soumissions</h3>
                     <p class=" text-gray-600 ml-2">
-                        <span class="font-semibold"> | Deadline :</span> {{ $prompt_date->format('d/m/Y') }}
+                        <span class="font-semibold"> | Date limite :</span> {{ $prompt_date->format('d/m/Y') }}
                     </p>
-
                 </div>
                 <div class="space-y-6">
                     <!-- Promptitude FS -->
@@ -515,9 +524,6 @@
                         <h3 class="text-xl font-semibold text-gray-800">Historique des soumission des consommations
                         </h3>
 
-                    </div>
-                    <div class="flex gap-2">
-                        <button>Exporter</button>
                     </div>
                 </div>
 
@@ -597,9 +603,6 @@
                     <div class="flex items-center">
                         <i class="bi bi-clock-history text-purple-600 text-xl mr-2"></i>
                         <h3 class="text-xl font-semibold text-gray-800">Historique de validation des consommation</h3>
-                    </div>
-                    <div class="flex gap-2">
-                        <button>Exporter</button>
                     </div>
                 </div>
                 <div class=" rounded-lg shadow-inner max-h-80 overflow-auto max-h-[400px]">

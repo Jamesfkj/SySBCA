@@ -115,11 +115,12 @@
             padding: 10px;
             border: 1px solid var(--border-color);
         }
-
+        
         .info-label {
             font-weight: bold;
             color: var(--primary-color);
             font-size: 9pt;
+            background-color :hsl(174, 69%, 89%);
         }
 
         .info-value {
@@ -197,7 +198,7 @@
 
         .info-table th {
             background-color: var(--background-light);
-            color: var(--text-dark);
+            color: black;
             text-align: left;
             padding: 10px;
             font-weight: bold;
@@ -223,7 +224,7 @@
 
         .metrics-table th {
             background: var(--text-dark);
-            color: white;
+            color: black;
             font-weight: bold;
             padding: 12px;
             text-align: left;
@@ -271,6 +272,15 @@
             border-radius: 4px;
             font-weight: bold;
             font-size: 12px;
+        }
+
+        .table-head{
+            background-color: var(--background-light);
+            text-align: left;
+            padding: 10px;
+            font-weight: bold;
+            font-size: 9pt;
+            border: 1px solid var(--border-color);
         }
 
         .status-neutral {
@@ -419,7 +429,7 @@
 
         <table class="metrics-table">
             <thead>
-                <tr>
+                <tr class="table-head">
                     <th>Indicateur</th>
                     <th>Valeur</th>
                 </tr>
@@ -450,7 +460,7 @@
 
         <table class="metrics-table">
             <thead>
-                <tr>
+                <tr class="table-head">
                     <th>Indicateur</th>
                     <th>Nombre</th>
                     <th>Pourcentage</th>
@@ -510,7 +520,7 @@
 
         <table class="metrics-table">
             <thead>
-                <tr>
+                <tr class="table-head">
                     <th>N°</th>
                     <th>Type FS/ASC</th>
                     <th>Formation sanitaire</th>

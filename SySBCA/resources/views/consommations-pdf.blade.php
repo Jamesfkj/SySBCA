@@ -489,7 +489,7 @@
                     <img src="data:image/png;base64,{{ $qrCode }}" alt="QR Code" style="height: 30px;">
                 <span style="margin-left: 10px;">Créé le {{now()->format('d/m/yy h:i')}}</span>
                 </div>
-                <div class="page-number">Page {{ $loop->iteration + 1 }}</div>
+                <div class="page-number">Page {{ $loop->iteration }}</div>
             </div>
         </div>
     @endforeach

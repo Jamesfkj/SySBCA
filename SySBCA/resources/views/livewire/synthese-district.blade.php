@@ -189,13 +189,16 @@
                                                 <h2 class="text-xl font-bold text-white mb-1">
                                                     {{ $synthese['medicament']['nom'] ?? 'Médicament inconnu' }}
                                                 </h2>
-                                                <p class="text-teal-100 text-sm">Synthèse trimestrielle</p>
+                                                <p class="text-white text-sm mt-1">Conditionnement :
+                                                            {{ $synthese['medicament']['conditionnement'] }} :
+                                                            {{ $synthese['medicament']['qte_par_conditionnement'] }}
+                                                            {{ $synthese['medicament']['format'] }}</p>
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-4">
                                             <div
                                                 class="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm font-medium">
-                                                <i class="bi bi-check-circle mr-1"></i>Validé
+                                                <i class="bi bi-check-circle mr-1"></i>Synthèse
                                             </div>
                                         </div>
                                     </div>
@@ -291,7 +294,7 @@
                                                 {{ $synthese['qte_accordee'] }}</div>
                                         @else
                                             <div class="text-indigo-800 text-lg font-medium">
-                                                 N/A
+                                                 Non accordée
                                             </div>
                                         @endif
                                     </div>

@@ -9,40 +9,43 @@
     @endif
     <!-- Barre de chargement -->
     <div wire:loading
-        wire:target="afficherFormulaire,exporterPDF,previousSlide,afficherTableau,nextSlide, validerConsommation, filtrerParPériode,ajouterConsommation,renitialiserMedicament,toggleHiddenCards,ajouterMedicament,showEditInput,activerEdition,choix,chargerDepuisSession,chargerMedicaments,chercherConsommations,soumettreConsommation,enregistrerQteAccorde"
+        wire:target="afficherFormulaire,afficherDetails,exporterPDF,previousSlide,afficherTableau,nextSlide,afficherTableConsommations, validerConsommation, filtrerParPériode,ajouterConsommation,renitialiserMedicament,toggleHiddenCards,ajouterMedicament,showEditInput,activerEdition,choix,chargerDepuisSession,chargerMedicaments,chercherConsommations,soumettreConsommation,enregistrerQteAccorde"
         class="absolute top-0 left-0 w-full h-1 bg-teal-600 animate-progress-bar z-20">
     </div>
     <!-- En-tête -->
     <div class="flex justify-between items-center relative mb-4">
         <h2 class="text-2xl font-semibold text-teal-600">
             @if ($tableauVisible)
+                <span class="flex justify-between">
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
+                            <i class="bi bi-box-fill"></i>
+                        </div>
+                        <p>Consommations des médicaments
+                            @if (in_array(auth()->user()->role->nom_role, ['Formation sanitaire', 'District']))
+                                <span class="font-semibold text-[18px] text-gray-500"> |
+                                    {{ Auth::user()->entity['nom'] }}</span>
+                            @endif
+                        </p>
+                    </div>
+                </span>
+            @elseif ($formulaireVisible)
                 <span class="flex items-center gap-2">
                     <div
                         class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
-                        <i class="bi bi-box-fill"></i>
+                        <i class="bi bi-plus"></i>
                     </div>
-                    <p>Consommations des médicaments
+                    <p>Ajouter une consommation
                         @if (in_array(auth()->user()->role->nom_role, ['Formation sanitaire', 'District']))
                             <span class="font-semibold text-[18px] text-gray-500"> |
                                 {{ Auth::user()->entity['nom'] }}</span>
+                        @endif
                     </p>
-            @endif
-            </span>
-        @elseif ($formulaireVisible)
-            <span class="flex items-center gap-2">
-                <div class="bg-teal-100 w-9 aspect-square rounded-full flex items-center justify-center text-teal-600">
-                    <i class="bi bi-plus"></i>
-                </div>
-                <p>Ajouter une consommation
-                    @if (in_array(auth()->user()->role->nom_role, ['Formation sanitaire', 'District']))
-                        <span class="font-semibold text-[18px] text-gray-500"> |
-                            {{ Auth::user()->entity['nom'] }}</span>
-                </p>
-                @endif
-            </span>
+                </span>
             @endif
         </h2>
-        <div>
+        <div class="flex justify-center gap-2">
             @if ($tableauVisible && auth()->check() && auth()->user()->role->nom_role == 'Formation sanitaire')
                 <button wire:click="afficherFormulaire"
                     class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
@@ -55,7 +58,7 @@
                     </span>
                 </button>
             @endif
-            @if ($formulaireVisible)
+            @if ($voirDetails || $formulaireVisible)
                 <button wire:click="afficherTableau"
                     class="flex items-center gap-2 p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-700 transition">
                     <span class="flex items-center gap-2">
@@ -67,6 +70,7 @@
                     </span>
                 </button>
             @endif
+
         </div>
     </div>
     @if ($errors->any())
@@ -80,155 +84,632 @@
     @endif
     <div class="bg-white">
         @if ($tableauVisible)
-            <div
-                class="relative bg-gradient-to-r from-white via-blue-50 to-indigo-50 border border-blue-100 px-6 py-4 rounded-xl shadow-lg backdrop-blur-sm">
-                <!-- Ligne décorative supérieure -->
-                <div
-                    class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 via-indigo-500 to-blue-600 rounded-t-xl">
+            @if ($afficherTable)
+                <!-- Champ de recherche dynamique -->
+                <div class="search-container mb-4 flex justify-between">
+                    <div
+                        class="flex justify-between items-center gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                        <div class="search-input-wrapper relative flex-1 min-w-[400px]">
+                            <i
+                                class="bi bi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="searchInput"
+                                class="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-gray-50 focus:bg-white transition-colors"
+                                placeholder="Rechercher sur toutes les colones...">
+                            <button
+                                class="clear-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 rounded hidden"
+                                id="clearSearch" type="button">
+                                <i class="bi bi-x-lg text-sm"></i>
+                            </button>
+                        </div>
+                        <div class="search-results text-sm text-gray-600" id="searchResults">
+                            <span id="resultsText">Tous les résultats affichés</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-center items-center gap-3 mb-2">
+                        <i class="bi bi-funnel text-teal-600 text-lg"></i>
+                        <span class="text-sm font-medium text-gray-700">Filtrez par période</span>
+
+                        <select wire:model="conso_liste_filter" wire:change="afficherTableConsommations"
+                            class="w-64 px-3 py-2 border border-gray-300 rounded-lg shadow-sm text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                            @foreach ($periodes_lists as $periode)
+                                <option value="{{ $periode->id }}">{{ $periode->nom }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
-                <div class="flex justify-between">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <div class="flex items-center gap-3 text-sm font-medium text-gray-700">
-                                @if (auth()->check() && in_array(auth()->user()->role->nom_role, ['District', 'Administrateur']))
+
+               <style>
+                    .table-container table td {
+                        padding-top: 4px;
+                        padding-bottom: 4px;
+                        padding-left: 8px;
+                        padding-right: 8px;
+                    }
+
+                    .table-container table td {
+                        font-size: 0.85rem;
+                    }
+
+                    .col-num {
+                        width: 50px;
+                        min-width: 50px;
+                    }
+
+                    .col-formation {
+                        width: 180px;
+                        min-width: 180px;
+                    }
+
+                    .col-structure {
+                        width: 80px;
+                        min-width: 80px;
+                    }
+
+                    .col-periode {
+                        width: 120px;
+                        min-width: 120px;
+                    }
+
+                    .col-district {
+                        width: 140px;
+                        min-width: 140px;
+                    }
+
+                    .col-etat {
+                        width: 100px;
+                        min-width: 100px;
+                    }
+
+                    .col-soumission {
+                        width: 130px;
+                        min-width: 130px;
+                    }
+
+                    .col-validation {
+                        width: 130px;
+                        min-width: 130px;
+                    }
+
+                    .col-export {
+                        width: 120px;
+                        min-width: 120px;
+                    }
+
+                    .col-detail {
+                        width: 100px;
+                        min-width: 100px;
+                    }
+
+                    /* Style pour les lignes cachées par la recherche */
+                    .table-row-hidden {
+                        display: none !important;
+                    }
+
+                    /* Style pour surligner les termes de recherche */
+                    .highlight {
+                        background-color: #fef08a;
+                        padding: 1px 2px;
+                        border-radius: 2px;
+                        font-weight: 600;
+                    }
+
+                    /* Animation pour les résultats */
+                    .fade-in {
+                        animation: fadeIn 0.3s ease-in;
+                    }
+
+                    @keyframes fadeIn {
+                        from {
+                            opacity: 0;
+                        }
+
+                        to {
+                            opacity: 1;
+                        }
+                    }
+                </style>
+
+                <div class="bg-white rounded-xl shadow-lg border border-gray-200">
+                    <div class="table-container">
+                        <table class="min-w-full divide-y divide-gray-200" id="dataTable">
+                            <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                <tr>
+                                    <th
+                                        class="col-num px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        N°
+                                    </th>
+                                    <th
+                                        class="col-formation px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        Formation Sanitaire
+                                    </th>
+                                    <th
+                                        class="col-structure px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        Structure
+                                    </th>
+                                    <th
+                                        class="col-periode px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        Période
+                                    </th>
+                                    <th
+                                        class="col-district px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        District
+                                    </th>
+                                    <th
+                                        class="col-etat px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        État
+                                    </th>
+                                    <th
+                                        class="col-soumission px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        Date soumission
+                                    </th>
+                                    <th
+                                        class="col-validation px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        Date validation
+                                    </th>
+                                    <th
+                                        class="col-export px-3 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        Export
+                                    </th>
+                                    <th
+                                        class="col-detail px-3 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        Détail
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-100" id="tableBody">
+                                @foreach ($user_consommations as $consommation)
+                                    <tr class="hover:bg-gray-50 transition-colors duration-200 table-row"
+                                        data-row-index="{{ $loop->iteration }}">
+                                        <td
+                                            class="col-num px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            {{ $loop->iteration }}
+                                        </td>
+                                        <td class="col-formation px-3 py-3" data-search-field="formation">
+                                            <div class="text-sm font-medium text-gray-900 truncate"
+                                                title="{{ $consommation->formationSanitaire->nom }}">
+                                                {{ $consommation->formationSanitaire->nom }}
+                                            </div>
+                                        </td>
+                                        <td class="col-structure px-3 py-2 whitespace-nowrap"
+                                            data-search-field="structure">
+                                            <span
+                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
+                                {{ $consommation->acteur == 'FS' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800' }}">
+                                                {{ $consommation->acteur }}
+                                            </span>
+                                        </td>
+                                        <td class="col-periode px-3 py-2 whitespace-nowrap text-sm text-gray-900"
+                                            data-search-field="periode">
+                                            {{ $consommation->periode->nom }}
+                                        </td>
+                                        <td class="col-district px-3 py-2" data-search-field="district">
+                                            <div class="text-sm text-gray-900 truncate"
+                                                title="{{ $consommation->formationSanitaire->district->nom }}">
+                                                {{ $consommation->formationSanitaire->district->nom }}
+                                            </div>
+                                        </td>
+                                        <td class="col-etat px-3 py-2 whitespace-nowrap" data-search-field="etat">
+                                            <span
+                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                @switch($consommation->etat)
+                                    @case('en_cours')
+                                        bg-yellow-100 text-yellow-800
+                                        @break
+                                    @case('soumis')
+                                        bg-blue-100 text-blue-800
+                                        @break
+                                    @case('valide')
+                                        bg-green-100 text-green-800
+                                        @break
+                                    @default
+                                        bg-gray-100 text-gray-800
+                                @endswitch">
+                                                @switch($consommation->etat)
+                                                    @case('en_cours')
+                                                        <i class="bi bi-clock-fill mr-1"></i>Non soumis
+                                                    @break
+
+                                                    @case('soumis')
+                                                        <i class="bi bi-hourglass-split mr-1"></i>Soumis
+                                                    @break
+
+                                                    @case('valide')
+                                                        <i class="bi bi-check-circle-fill mr-1"></i>Validé
+                                                    @break
+
+                                                    @default
+                                                        {{ $consommation->etat }}
+                                                @endswitch
+                                            </span>
+                                        </td>
+                                        <td class="col-soumission px-3 py-2 whitespace-nowrap"
+                                            data-search-field="soumission">
+                                            @if ($consommation->etat == 'en_cours')
+                                                <div class="flex items-center">
+                                                    <i class="bi bi-exclamation-triangle text-amber-500 mr-1"></i>
+                                                    <span class="text-xs text-amber-700">À soumettre</span>
+                                                </div>
+                                            @elseif($consommation->etat == 'soumis' || $consommation->etat == 'valide')
+                                                <div class="text-sm text-gray-900">
+                                                    {{ \Carbon\Carbon::parse($consommation->submitted_at)->format('d/m/Y') }}
+                                                </div>
+                                                <div class="text-xs text-gray-500">
+                                                    {{ \Carbon\Carbon::parse($consommation->submitted_at)->format('H:i') }}
+                                                </div>
+                                            @else
+                                                <span class="text-xs text-gray-400">--</span>
+                                            @endif
+                                        </td>
+                                        <td class="col-validation px-3 py-2 whitespace-nowrap"
+                                            data-search-field="validation">
+                                            @if ($consommation->etat == 'valide')
+                                                <div class="text-sm text-gray-900">
+                                                    {{ \Carbon\Carbon::parse($consommation->updated_at)->format('d/m/Y') }}
+                                                </div>
+                                                <div class="text-xs text-green-600">
+                                                    {{ \Carbon\Carbon::parse($consommation->updated_at)->format('H:i') }}
+                                                </div>
+                                            @elseif($consommation->etat == 'soumis')
+                                                <div class="flex items-center">
+                                                    <div
+                                                        class="animate-spin rounded-full h-3 w-2 border-b-2 border-blue-500 mr-1">
+                                                    </div>
+                                                    <span class="text-xs text-blue-600">En cours</span>
+                                                </div>
+                                            @else
+                                                <span class="text-xs text-gray-400">--</span>
+                                            @endif
+                                        </td>
+                                        <td class="col-export px-3 py-3 whitespace-nowrap text-center">
+                                            <div class="flex justify-center space-x-4">
+                                                <!-- Bouton PDF -->
+                                                <button
+                                                    wire:key="pdf-{{ $consommation->periode->id }}-{{ $consommation->acteur }}-{{ $consommation->formation_sanitaire_id }}"
+                                                    wire:click="exporterPDF({{ $consommation->id }})"
+                                                    class="flex flex-col items-center p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+                                                    title="Exporter en PDF">
+                                                    <i class="bi bi-file-earmark-pdf text-2xl"></i>
+                                                    <span class="text-xs">PDF</span>
+                                                </button>
+
+                                                <!-- Bouton Excel -->
+                                                <button
+                                                    wire:key="excel-{{ $consommation->periode->id }}-{{ $consommation->acteur }}-{{ $consommation->formation_sanitaire_id }}"
+                                                    wire:click="exporterExcel({{ $consommation->id }})"
+                                                    class="flex flex-col items-center p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors"
+                                                    title="Exporter en Excel">
+                                                    <i class="bi bi-file-earmark-excel text-2xl"></i>
+                                                    <span class="text-xs">Excel</span>
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td class="col-detail px-3 py-3 whitespace-nowrap text-center">
+                                            <button
+                                                wire:key="details-{{ $consommation->periode->id }}-{{ $consommation->acteur }}-{{ $consommation->formation_sanitaire_id }}"
+                                                wire:click="afficherDetails({{ $consommation->periode->id }}, '{{ $consommation->acteur }}', {{ $consommation->formation_sanitaire_id }})"
+                                                class="inline-flex items-center p-1.5 text-teal-600 hover:text-teal-800 hover:bg-teal-50 rounded transition-colors"
+                                                title="Voir détails">
+                                                <i class="bi bi-eye text-lg"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const searchInput = document.getElementById('searchInput');
+                        const clearSearch = document.getElementById('clearSearch');
+                        const resultsText = document.getElementById('resultsText');
+                        const tableRows = document.querySelectorAll('.table-row');
+                        const totalRows = tableRows.length;
+
+                        // Fonction pour normaliser le texte (supprimer accents, convertir en minuscules)
+                        function normalizeText(text) {
+                            return text.toLowerCase()
+                                .normalize('NFD')
+                                .replace(/[\u0300-\u036f]/g, '')
+                                .trim();
+                        }
+
+                        // Fonction pour surligner le texte recherché
+                        function highlightText(text, searchTerm) {
+                            if (!searchTerm) return text;
+
+                            const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                            return text.replace(regex, '<span class="highlight">$1</span>');
+                        }
+
+                        // Fonction pour supprimer le surlignage
+                        function removeHighlight() {
+                            const highlighted = document.querySelectorAll('.highlight');
+                            highlighted.forEach(el => {
+                                const parent = el.parentNode;
+                                parent.replaceChild(document.createTextNode(el.textContent), el);
+                                parent.normalize();
+                            });
+                        }
+
+                        // Fonction de recherche
+                        function performSearch() {
+                            const searchTerm = normalizeText(searchInput.value);
+                            let visibleCount = 0;
+                            removeHighlight();
+
+                            tableRows.forEach(row => {
+                                let rowVisible = false;
+
+                                if (searchTerm === '') {
+                                    rowVisible = true;
+                                } else {
+                                    // Rechercher dans tous les champs de données
+                                    const searchFields = row.querySelectorAll('[data-search-field]');
+                                    const allTextContent = row.textContent;
+
+                                    // Recherche globale dans tout le contenu de la ligne
+                                    if (normalizeText(allTextContent).includes(searchTerm)) {
+                                        rowVisible = true;
+
+                                        // Surligner le terme dans les champs spécifiques
+                                        searchFields.forEach(field => {
+                                            const textNodes = [];
+                                            const walker = document.createTreeWalker(
+                                                field,
+                                                NodeFilter.SHOW_TEXT,
+                                                null,
+                                                false
+                                            );
+
+                                            let node;
+                                            while (node = walker.nextNode()) {
+                                                textNodes.push(node);
+                                            }
+
+                                            textNodes.forEach(textNode => {
+                                                if (normalizeText(textNode.textContent).includes(
+                                                        searchTerm)) {
+                                                    const span = document.createElement('span');
+                                                    span.innerHTML = highlightText(textNode.textContent,
+                                                        searchInput.value);
+                                                    textNode.parentNode.replaceChild(span, textNode);
+                                                }
+                                            });
+                                        });
+                                    }
+                                }
+
+                                // Afficher/masquer la ligne
+                                if (rowVisible) {
+                                    row.classList.remove('table-row-hidden');
+                                    row.classList.add('fade-in');
+                                    visibleCount++;
+                                } else {
+                                    row.classList.add('table-row-hidden');
+                                    row.classList.remove('fade-in');
+                                }
+                            });
+
+                            // Mettre à jour le compteur de résultats
+                            updateResultsCount(visibleCount);
+
+                            // Afficher/masquer le bouton de suppression
+                            clearSearch.style.display = searchInput.value ? 'block' : 'none';
+                        }
+
+                        // Fonction pour mettre à jour le compteur de résultats
+                        function updateResultsCount(visibleCount) {
+                            if (searchInput.value === '') {
+                                resultsText.textContent = 'Tous les résultats affichés';
+                            } else if (visibleCount === 0) {
+                                resultsText.textContent = 'Aucun résultat trouvé';
+                            } else if (visibleCount === 1) {
+                                resultsText.textContent = '1 résultat trouvé';
+                            } else {
+                                resultsText.textContent = `${visibleCount} résultats trouvés`;
+                            }
+                        }
+
+                        // Écouteur d'événements pour la saisie
+                        searchInput.addEventListener('input', function() {
+                            // Débounce pour éviter trop d'appels
+                            clearTimeout(this.searchTimeout);
+                            this.searchTimeout = setTimeout(performSearch, 150);
+                        });
+
+                        // Écouteur pour le bouton de suppression
+                        clearSearch.addEventListener('click', function() {
+                            searchInput.value = '';
+                            performSearch();
+                            searchInput.focus();
+                        });
+
+                        // Écouteur pour la touche Échap
+                        searchInput.addEventListener('keydown', function(e) {
+                            if (e.key === 'Escape') {
+                                if (this.value) {
+                                    this.value = '';
+                                    performSearch();
+                                }
+                            }
+                        });
+
+                        // Réinitialiser la recherche quand Livewire recharge le contenu
+                        window.addEventListener('livewire:load', function() {
+                            searchInput.value = '';
+                            performSearch();
+                        });
+
+                        // Gérer les mises à jour Livewire
+                        document.addEventListener('livewire:updated', function() {
+                            // Réappliquer la recherche après une mise à jour Livewire
+                            setTimeout(() => {
+                                // Récupérer les nouvelles lignes du tableau
+                                const newTableRows = document.querySelectorAll('.table-row');
+                                if (searchInput.value) {
+                                    performSearch();
+                                }
+                            }, 100);
+                        });
+
+                        // Initialiser l'affichage
+                        updateResultsCount(totalRows);
+                    });
+                </script>
+            @endif
+            @if ($voirDetails)
+                <div
+                    class="relative bg-gradient-to-r from-white via-blue-50 to-indigo-50 border border-blue-100 px-6 py-4  shadow-lg backdrop-blur-sm">
+                    <!-- Ligne décorative supérieure -->
+                    <div
+                        class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 via-indigo-500 to-blue-600">
+                    </div>
+                    <div class="flex justify-between">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="flex items-center gap-3 text-sm font-medium text-gray-700">
+                                    @if (auth()->check() && in_array(auth()->user()->role->nom_role, ['District', 'Administrateur']))
+                                        <div
+                                            class="flex items-center gap-2 bg-white/70 px-3 py-1.5 rounded-lg border border-blue-200/50 shrink-0">
+                                            <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                                                </path>
+                                            </svg>
+
+                                            <span class="text-blue-800 font-bold truncate max-w-[150px]"
+                                                title="{{ $fs_choisie->nom }}">{{ $fs_choisie->nom }}</span>
+                                        </div>
+                                        <div
+                                            class="w-px h-6 bg-gradient-to-b from-transparent via-blue-300 to-transparent shrink-0">
+                                        </div>
+                                    @endif
+
                                     <div
                                         class="flex items-center gap-2 bg-white/70 px-3 py-1.5 rounded-lg border border-blue-200/50 shrink-0">
-                                        <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
+                                        <svg class="w-4 h-4 text-indigo-600 shrink-0" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                                                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
                                             </path>
                                         </svg>
-
-                                        <span class="text-blue-800 font-bold truncate max-w-[150px]"
-                                            title="{{ $fs_choisie->nom }}">{{ $fs_choisie->nom }}</span>
+                                        <span class="text-gray-600 whitespace-nowrap">Structure :</span>
+                                        <span class="text-indigo-800 font-bold">{{ $structure_defaut }}</span>
                                     </div>
+
                                     <div
                                         class="w-px h-6 bg-gradient-to-b from-transparent via-blue-300 to-transparent shrink-0">
                                     </div>
-                                @endif
 
-                                <div
-                                    class="flex items-center gap-2 bg-white/70 px-3 py-1.5 rounded-lg border border-blue-200/50 shrink-0">
-                                    <svg class="w-4 h-4 text-indigo-600 shrink-0" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
-                                        </path>
-                                    </svg>
-                                    <span class="text-gray-600 whitespace-nowrap">Structure :</span>
-                                    <span class="text-indigo-800 font-bold">{{ $structure_defaut }}</span>
-                                </div>
-
-                                <div
-                                    class="w-px h-6 bg-gradient-to-b from-transparent via-blue-300 to-transparent shrink-0">
-                                </div>
-
-                                <div
-                                    class="flex items-center gap-2 bg-white/70 px-3 py-1.5 rounded-lg border border-blue-200/50 shrink-0">
-                                    <svg class="w-4 h-4 text-green-600 shrink-0" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                        </path>
-                                    </svg>
-                                    <span class="text-gray-600 whitespace-nowrap">Période :</span>
-                                    <span class="text-green-800 font-bold truncate max-w-[120px]"
-                                        title="{{ $periode_actuelle->nom }}">{{ $periode_actuelle->nom }}</span>
+                                    <div
+                                        class="flex items-center gap-2 bg-white/70 px-3 py-1.5 rounded-lg border border-blue-200/50 shrink-0">
+                                        <svg class="w-4 h-4 text-green-600 shrink-0" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                            </path>
+                                        </svg>
+                                        <span class="text-gray-600 whitespace-nowrap">Période :</span>
+                                        <span class="text-green-800 font-bold truncate max-w-[120px]"
+                                            title="{{ $periode_actuelle->nom }}">{{ $periode_actuelle->nom }}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Deuxième ligne : Contrôles de filtrage -->
-                    <div class="flex items-center justify-end">
-                        <div class="flex items-center gap-1">
+                        <!-- Deuxième ligne : Contrôles de filtrage -->
+                        <div class="flex items-center justify-end">
+                            <div class="flex items-center gap-1">
 
-                            @if (auth()->check() && in_array(auth()->user()->role->nom_role, ['District', 'Administrateur']))
+                                @if (auth()->check() && in_array(auth()->user()->role->nom_role, ['District', 'Administrateur']))
+                                    <div class="">
+                                        <select wire:model="fs" wire:change="chercherConsommations"
+                                            class="w-32 bg-white border border-blue-300 text-blue-900 text-sm rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
+                                            @foreach ($formation_sanitaire as $fs)
+                                                <option value="{{ $fs->id }}">{{ $fs->nom }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endif
+
                                 <div class="">
-                                    <select wire:model="fs" wire:change="chercherConsommations"
-                                        class="w-32 bg-white border border-blue-300 text-blue-900 text-sm rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
-                                        @foreach ($formation_sanitaire as $fs)
-                                            <option value="{{ $fs->id }}">{{ $fs->nom }}</option>
+                                    <select wire:model="structure_defaut" wire:change="chercherConsommations"
+                                        class="w-20 bg-white border border-blue-300 text-blue-900 text-sm rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer text-center">
+                                        <option value="FS">FS</option>
+                                        <option value="ASC">ASC</option>
+                                    </select>
+                                </div>
+
+                                <div class="">
+                                    <select wire:model="periode_search" wire:change="chercherConsommations"
+                                        class="w-64 bg-white border border-blue-300 text-blue-900 text-sm rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
+                                        @foreach ($periodes_all as $periode)
+                                            <option value="{{ $periode->id }}">
+                                                {{ $periode->nom }} :
+                                                {{ $periode->mois_debut }}-{{ $periode->mois_fin }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
-                            @endif
-
-                            <div class="">
-                                <select wire:model="structure_defaut" wire:change="chercherConsommations"
-                                    class="w-20 bg-white border border-blue-300 text-blue-900 text-sm rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer text-center">
-                                    <option value="FS">FS</option>
-                                    <option value="ASC">ASC</option>
-                                </select>
-                            </div>
-
-                            <div class="">
-                                <select wire:model="periode_search" wire:change="chercherConsommations"
-                                    class="w-64 bg-white border border-blue-300 text-blue-900 text-sm rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
-                                    @foreach ($periodes_all as $periode)
-                                        <option value="{{ $periode->id }}">
-                                            {{ $periode->nom }} : {{ $periode->mois_debut }}-{{ $periode->mois_fin }}
-                                        </option>
-                                    @endforeach
-                                </select>
                             </div>
                         </div>
                     </div>
-                </div>
-                <!-- Effet de brillance subtil -->
-                <div
-                    class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent rounded-xl pointer-events-none">
-                </div>
-            </div>
-            @if ($this->conso)
-                <div class="flex justify-between items-center mb-4 mt-4"
-                    wire:key="header-buttons-{{ $this->conso->id }}-{{ $this->conso->etat ?? 'inconnu' }}">
-
-                    <select id="medicamentSelector"
-                        class=" p-2 border rounded-full w-72 focus:ring-1 focus:border-teal-600">
-                        @foreach ($consommations_all as $index => $consommation)
-                            @php
-                                $cartesParPage = 2;
-                                $estCachee =
-                                    $consommation->cmma == 0 &&
-                                    $consommation->stock_securite == 0 &&
-                                    $consommation->cmd_trim_svt == 0;
-                            @endphp
-                            @if (!$estCachee || $showHiddenCards)
-                                <option value="{{ $loop->index }}">{{ $consommation->medicament->nom }}</option>
-                            @endif
-                        @endforeach
-                    </select>
-
-                    <div class="flex justify-center items-center gap-4">
-                        <div class="flex items-center gap-2">
-                            @php
-                                $visibleCards = $consommations_all->filter(function ($c) use ($showHiddenCards) {
-                                    return !($c->cmma == 0 && $c->stock_securite == 0 && $c->cmd_trim_svt == 0) ||
-                                        $showHiddenCards;
-                                });
-                                $totalPages = ceil($visibleCards->count() / 1);
-                                $currentPageNumber = floor(($currentSlide ?? 0) / 1) + 1;
-                            @endphp
-
-                            @for ($i = 0; $i < $totalPages; $i++)
-                                <button wire:click="setCurrentSlide({{ $i * 1 }})"
-                                    class="w-3 h-3 rounded-full transition-all duration-300 {{ floor(($currentSlide ?? 0) / 1) == $i ? 'bg-teal-600 w-8' : 'bg-gray-300 hover:bg-gray-400' }}">
-                                </button>
-                            @endfor
-                        </div>
-                        <div class="text-sm text-gray-500 font-medium">
-                            <span class="text-teal-600">{{ $currentPageNumber }}</span> / {{ $totalPages }}
-                        </div>
-                    </div>
-                    <!-- Boutons -->
-                    <div class="flex gap-2">
-                        <!-- Valider (District + soumis) -->
+                    <!-- Effet de brillance subtil -->
+                    <div
+                        class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent rounded-xl pointer-events-none">
                     </div>
                 </div>
-            @endif
-            <div class="overflow-hidden rounded-3xl">
+                @if ($this->conso)
+                    <div class="flex justify-between items-center mb-4 mt-4"
+                        wire:key="header-buttons-{{ $this->conso->id }}-{{ $this->conso->etat ?? 'inconnu' }}">
+
+                        <select id="medicamentSelector"
+                            class=" p-2 border rounded-full w-72 focus:ring-1 focus:border-teal-600">
+                            @foreach ($consommations_all as $index => $consommation)
+                                @php
+                                    $cartesParPage = 2;
+                                    $estCachee =
+                                        $consommation->cmma == 0 &&
+                                        $consommation->stock_securite == 0 &&
+                                        $consommation->cmd_trim_svt == 0;
+                                @endphp
+                                @if (!$estCachee || $showHiddenCards)
+                                    <option value="{{ $loop->index }}">{{ $consommation->medicament->nom }}
+                                    </option>
+                                @endif
+                            @endforeach
+                        </select>
+
+                        <div class="flex justify-center items-center gap-4">
+                            <div class="flex items-center gap-2">
+                                @php
+                                    $visibleCards = $consommations_all->filter(function ($c) use ($showHiddenCards) {
+                                        return !($c->cmma == 0 && $c->stock_securite == 0 && $c->cmd_trim_svt == 0) ||
+                                            $showHiddenCards;
+                                    });
+                                    $totalPages = ceil($visibleCards->count() / 1);
+                                    $currentPageNumber = floor(($currentSlide ?? 0) / 1) + 1;
+                                @endphp
+
+                                @for ($i = 0; $i < $totalPages; $i++)
+                                    <button wire:click="setCurrentSlide({{ $i * 1 }})"
+                                        class="w-3 h-3 rounded-full transition-all duration-300 {{ floor(($currentSlide ?? 0) / 1) == $i ? 'bg-teal-600 w-8' : 'bg-gray-300 hover:bg-gray-400' }}">
+                                    </button>
+                                @endfor
+                            </div>
+                            <div class="text-sm text-gray-500 font-medium">
+                                <span class="text-teal-600">{{ $currentPageNumber }}</span> / {{ $totalPages }}
+                            </div>
+                        </div>
+                        <!-- Boutons -->
+                        <div class="flex gap-2">
+                            <!-- Valider (District + soumis) -->
+                        </div>
+                    </div>
+                @endif
                 <div class="flex transition-transform duration-500 ease-in-out"
                     style="transform: translateX(-{{ ($currentSlide ?? 0) * 100 }}%)">
                     @php
@@ -274,8 +755,10 @@
                                                     <div>
                                                         <h2 class="text-xl font-bold text-white mb-1">
                                                             {{ $consommation->medicament->nom }}</h2>
-                                                        <p class="text-teal-100 text-sm">Consommation
-                                                            trimestrielle</p>
+                                                        <p class="text-white text-sm mt-1">Conditionnement :
+                                                            {{ $consommation->medicament->conditionnement }} :
+                                                            {{ $consommation->medicament->qte_par_conditionnement }}
+                                                            {{ $consommation->medicament->format }}</p>
                                                     </div>
                                                 </div>
                                                 <div
@@ -401,7 +884,7 @@
                                                             <div class="text-3xl font-bold text-indigo-800">
                                                                 {{ $accordee ?? '--' }}
                                                             </div>
-                                                            @if ($this->conso->etat == 'soumis')
+                                                            @if ($this->conso->etat == 'soumis' && $consommation->cmd_trim_svt >= 1)
                                                                 <button type="button"
                                                                     wire:click="showEditInput({{ $medicament_id }}, {{ $consommation_id }})"
                                                                     class="w-10 h-10 flex items-center justify-center bg-white rounded-lg hover:bg-gray-100 border border-gray-300 transition-colors">
@@ -516,7 +999,8 @@
                                                     </div>
                                                     <div
                                                         class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                                        <span class="text-gray-600 font-medium">Quantité retourné à la
+                                                        <span class="text-gray-600 font-medium">Quantité retourné à
+                                                            la
                                                             CAMEG</span>
                                                         <span
                                                             class="font-bold text-gray-800">{{ $consommation->qte_retour_cameg }}</span>
@@ -540,13 +1024,13 @@
                                                     </div>
                                                     <div
                                                         class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                                        <span class="text-gray-600 font-medium">Stock théorique</span>
+                                                        <span class="text-gray-600 font-medium">Stock
+                                                            théorique</span>
                                                         <span
                                                             class="font-bold text-gray-800">{{ $stock_theo }}</span>
                                                     </div>
                                                     <div
-                                                        class="flex justify-between items-center p-3 bg-white rounded-lg border 
-    {{ $perte_non_dec > 0 ? 'border-yellow-300' : 'border-red-200' }}">
+                                                        class="flex justify-between items-center p-3 bg-white rounded-lg border {{ $perte_non_dec > 0 ? 'border-yellow-300' : 'border-red-200' }}">
                                                         <span
                                                             class="{{ $perte_non_dec > 0 ? 'text-yellow-600' : 'text-red-600' }} font-medium">
                                                             Ecart
@@ -556,7 +1040,36 @@
                                                             {{ $perte_non_dec }}
                                                         </span>
                                                     </div>
-
+                                                </div>
+                                                <div
+                                                    class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200 relative group mt-4">
+                                                    <span class="text-gray-600 font-medium">Écart de stock entre la
+                                                        fin
+                                                        du trimestre passé et le début de ce trimestre</span>
+                                                    <div class="text-right">
+                                                        @if ($consommation->a_periode_precedente)
+                                                            @php
+                                                                $ecartClass = match ($consommation->type_ecart) {
+                                                                    'positif' => 'text-green-600',
+                                                                    'negatif' => 'text-red-600',
+                                                                    default => 'text-gray-800',
+                                                                };
+                                                                $badgeClass = match ($consommation->type_ecart) {
+                                                                    'positif' => 'bg-green-100 text-green-800',
+                                                                    'negatif' => 'bg-red-100 text-red-800',
+                                                                    default => 'bg-gray-100 text-gray-800',
+                                                                };
+                                                            @endphp
+                                                            <span class="font-bold {{ $ecartClass }}">
+                                                                @if ($consommation->ecart_stock > 0)
+                                                                    +
+                                                                @endif
+                                                                {{ $consommation->ecart_stock }}
+                                                            </span>
+                                                        @else
+                                                            <span class="font-bold text-gray-400">0</span>
+                                                        @endif
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -573,588 +1086,597 @@
                                 <i class="bi bi-inbox text-6xl text-gray-300 mb-4"></i>
                                 <p class="text-2xl font-medium text-gray-400 mb-2">Aucune commande
                                     enregistrée</p>
-                                <p class="text-gray-400">Si vous avez des données enrégistrées cliquer sur "afficher
+                                <p class="text-gray-400">Si vous avez des données enrégistrées cliquer sur
+                                    "afficher
                                     les médicaments non commandés"</p>
                             </div>
                         </div>
                     @endif
-                </div>
-            </div>
 
-            <!-- Boutons de navigation -->
-            <div class="flex justify-between items-center mt-8">
-                <button wire:click="previousSlide"
-                    class="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    {{ ($currentSlide ?? 0) <= 0 ? 'disabled' : '' }}>
-                    <i class="bi bi-chevron-left"></i>
-                    Précédent
-                </button>
-                @if ($conso)
-                    <div class="flex flex-wrap items-center gap-2" wire:key="conso--{{ $conso->id }}">
 
-                        {{-- Bouton Exporter --}}
-                        <button wire:click="exporterPDF({{ $this->conso->id ?? 0 }})"
-                            class="group inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 hover:text-slate-900 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-1 transition-all duration-200 shadow-sm hover:shadow-md">
-                            <i class="bi bi-download text-slate-500 group-hover:text-slate-700"></i>
-                            <span>Exporter</span>
+                    <!-- Boutons de navigation -->
+                    <div class="flex justify-between items-center mt-8">
+                        <button wire:click="previousSlide"
+                            class="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            {{ ($currentSlide ?? 0) <= 0 ? 'disabled' : '' }}>
+                            <i class="bi bi-chevron-left"></i>
+                            Précédent
                         </button>
+                        @if ($conso)
+                            <div class="flex flex-wrap items-center gap-2" wire:key="conso--{{ $conso->id }}">
 
-                        {{-- Bouton Valider --}}
-                        @if ($this->conso->etat === 'soumis' && auth()->check() && optional(auth()->user()->role)->nom_role === 'District')
-                            <button wire:click="validerConsommation({{ $this->conso->id }})"
-                                class="group inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 hover:text-emerald-900 hover:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 transition-all duration-200 shadow-sm hover:shadow-md">
-                                <i class="bi bi-check-circle text-emerald-600 group-hover:text-emerald-700"></i>
-                                <span>Valider</span>
-                            </button>
-                        @endif
+                                {{-- Bouton Exporter --}}
+                                <button wire:click="exporterPDF({{ $this->conso->id ?? 0 }})"
+                                    class="group inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 hover:text-slate-900 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-1 transition-all duration-200 shadow-sm hover:shadow-md">
+                                    <i class="bi bi-download text-slate-500 group-hover:text-slate-700"></i>
+                                    <span>Exporter</span>
+                                </button>
 
-                        {{-- Boutons pour Formation sanitaire --}}
-                        @if ($this->conso->etat === 'en_cours' && auth()->check() && auth()->user()->role->nom_role === 'Formation sanitaire')
-                            {{-- Bouton Modifier --}}
-                            <button wire:click="activerEdition({{ $this->conso->id }})"
-                                class="group inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 hover:text-amber-900 hover:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1 transition-all duration-200 shadow-sm hover:shadow-md">
-                                <i class="bi bi-pencil-square text-amber-600 group-hover:text-amber-700"></i>
-                                <span>Modifier</span>
-                            </button>
-
-                            {{-- Bouton Soumettre --}}
-                            <button wire:click="soumettreConsommation({{ $this->conso->id }})"
-                                class="group inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-800 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:text-blue-900 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 shadow-sm hover:shadow-md">
-                                <i class="bi bi-send-fill text-blue-600 group-hover:text-blue-700"></i>
-                                <span>Soumettre</span>
-                            </button>
-                        @endif
-                    </div>
-                @endif
-                <button wire:click="nextSlide"
-                    class="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    @disabled(floor($currentSlide ?? 0) >= $totalPages - 1)>
-                    Suivant
-                    <i class="bi bi-chevron-right"></i>
-                </button>
-
-            </div>
-
-            <!-- Bouton pour médicaments cachés -->
-            @if ($this->hiddenCardsCount > 0)
-                <div class="flex justify-center mt-6">
-                    <button type="button" wire:click="toggleHiddenCards"
-                        class="px-6 py-3 {{ $showHiddenCards ? 'bg-red-600 hover:bg-red-700' : 'bg-teal-600 hover:bg-teal-700' }} text-white rounded-xl transition duration-300 font-medium">
-                        @if ($showHiddenCards)
-                            Masquer les médicaments non commandés
-                        @else
-                            Afficher les médicaments non commandés ({{ $this->hiddenCardsCount }})
-                        @endif
-                    </button>
-                </div>
-            @endif
-    </div>
-
-    @push('scripts')
-        <script>
-            // Variable globale pour l'état des détails
-            let detailsVisible = true;
-
-            // Fonction pour toggle les détails
-            function toggleDetails() {
-                detailsVisible = !detailsVisible;
-                const detailsSections = document.querySelectorAll('.details-section');
-                const toggleBtn = document.getElementById('toggle-details-btn');
-
-                detailsSections.forEach(section => {
-                    if (detailsVisible) {
-                        section.style.display = 'block';
-                        section.style.opacity = '0';
-                        setTimeout(() => {
-                            section.style.transition = 'opacity 0.3s ease';
-                            section.style.opacity = '1';
-                        }, 10);
-                    } else {
-                        section.style.transition = 'opacity 0.3s ease';
-                        section.style.opacity = '0';
-                        setTimeout(() => {
-                            section.style.display = 'none';
-                        }, 300);
-                    }
-                });
-                if (detailsVisible) {
-                    toggleBtn.innerHTML = '<i class="bi bi-eye-slash mr-2"></i>Masquer les détails';
-                } else {
-                    toggleBtn.innerHTML = '<i class="bi bi-eye mr-2"></i>Afficher les détails';
-                }
-            }
-
-            // Gestion des touches clavier pour la navigation
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'ArrowLeft') {
-                    @this.call('previousSlide');
-                } else if (e.key === 'ArrowRight') {
-                    @this.call('nextSlide');
-                }
-            });
-
-            // Support du swipe sur mobile
-            let startX = 0;
-            let currentX = 0;
-            let isDragging = false;
-
-            const carousel = document.querySelector('.overflow-hidden');
-
-            carousel.addEventListener('touchstart', function(e) {
-                startX = e.touches[0].clientX;
-                isDragging = true;
-            });
-
-            carousel.addEventListener('touchmove', function(e) {
-                if (!isDragging) return;
-                currentX = e.touches[0].clientX;
-                e.preventDefault();
-            });
-
-            carousel.addEventListener('touchend', function(e) {
-                if (!isDragging) return;
-
-                const diffX = startX - currentX;
-
-                if (Math.abs(diffX) > 50) { // Seuil minimum pour le swipe
-                    if (diffX > 0) {
-                        @this.call('nextSlide');
-                    } else {
-                        @this.call('previousSlide');
-                    }
-                }
-
-                isDragging = false;
-            });
-        </script>
-    @endpush
-</div>
-@endif
-@if ($formulaireVisible)
-    <div class="flex justify-between items-center relative mb-4">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center">
-                @php
-                    // Conditions pour gérer le disabled visuel
-                    $griserTout = empty($type_structure);
-                    $griserMedicaments = !$griserTout && empty($periode_choisie);
-                @endphp
-
-                <div class="flex items-center gap-3 text-sm font-medium text-gray-700">
-
-                    <!-- Structure -->
-                    <div
-                        class="flex items-center gap-2 bg-white/70 px-3 py-1 rounded-lg border border-blue-200/50 shrink-0">
-                        <!-- Icône SVG -->
-                        <svg class="w-4 h-4 text-indigo-600 shrink-0" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <!-- path ... -->
-                        </svg>
-                        <span class="text-gray-600 whitespace-nowrap">Structure :</span>
-                        <select wire:model.live="type_structure" wire:change="chargerMedicaments"
-                            onchange="viderInput()" id="structure"
-                            class="bg-transparent border-0 text-indigo-800 font-bold focus:outline-none focus:ring-0 cursor-pointer">
-                            <option value="">-- Sélectionner --</option>
-                            <option value="FS">FS</option>
-                            <option value="ASC">ASC</option>
-                        </select>
-                    </div>
-
-                    <div class="w-px h-6 bg-gradient-to-b from-transparent via-blue-300 to-transparent shrink-0"></div>
-
-                    <!-- Médicament -->
-                    <div
-                        class="flex items-center gap-2 bg-white/70 px-3 py-1 rounded-lg border border-blue-200/50 shrink-0">
-                        <!-- Icône SVG -->
-                        <svg class="w-4 h-4 text-green-600 shrink-0" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <!-- path ... -->
-                        </svg>
-                        <span class="text-gray-600 whitespace-nowrap">Médicament :</span>
-                        <select id="select_medicament" onchange="afficherFormulaire(this)"
-                            class="bg-transparent border-0 text-green-800 font-bold focus:outline-none focus:ring-0 cursor-pointer max-w-auto
-            {{ $griserTout || $griserMedicaments ? 'opacity-50 pointer-events-none select-none' : '' }}">
-                            <option value="">-- Sélectionner --</option>
-                            <option value="all">Tous les produits</option>
-                            @foreach ($medicaments as $index => $medicament)
-                                <option value="{{ $index }}" data-id="{{ $medicament->id }}">
-                                    {{ $medicament->nom }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="w-px h-6 bg-gradient-to-b from-transparent via-blue-300 to-transparent shrink-0"></div>
-
-                    <!-- Période -->
-                    <div
-                        class=" flex items-center gap-2 bg-white/70 px-3 py-1 rounded-lg border border-blue-200/50 shrink-0">
-                        <!-- Icône SVG -->
-                        <svg class="w-4 h-4 text-purple-600 shrink-0" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <!-- path ... -->
-                        </svg>
-                        <span class="text-gray-600 whitespace-nowrap">Période :</span>
-                        <select wire:model.live="periode_choisie" id="periode_search" onchange="viderInput()"
-                            class="bg-transparent border-0 text-purple-800 font-bold focus:outline-none focus:ring-0 cursor-pointer max-w-auto
-            {{ $griserTout ? 'opacity-50 pointer-events-none select-none' : '' }}">
-                            @foreach ($periodes_disponibles as $periode)
-                                <option value="{{ $periode->id }}">
-                                    {{ $periode->nom }} : {{ $periode->mois_debut }}-{{ $periode->mois_fin }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Effet de brillance subtil -->
-        <div
-            class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent rounded-xl pointer-events-none">
-        </div>
-    </div>
-    <div
-        class="bg-white transition-opacity duration-200 overflow-auto max-h-[650px] {{ empty($type_structure) ? 'bg-gray-500 opacity-50 pointer-events-none select-none' : '' }}">
-        <div class="w-full flex justify-end pr-4 hidden mb-1" id="close_form">
-            <div onclick="masquerToutFormulaire()" title="Masquer tout les formulaire"
-                class="w-8 h-8 bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-md border-0">
-                <i class="bi bi-x-circle-fill"></i>
-            </div>
-        </div>
-        <form wire:submit.prevent="ajouterConsommation">
-            <div class="space-y-8">
-                @foreach ($medicaments as $index => $medicament)
-                    <div wire:key="consommation-{{ $type_structure }}-{{ $periode_choisie }}-{{ $index }}"
-                        class="relative overflow-hidden rounded-2xl shadow-2xl border-0 p-8 hidden glass-effect card-hover bg-white"
-                        id="formulaire_{{ $index }}" wire:key="medicament-{{ $medicament->id }}">
-
-                        <!-- Header avec gradient -->
-                        <div class="absolute top-0 left-0 right-0 h-2 gradient-bg"></div>
-
-                        <!-- En-tête du médicament -->
-                        <div class="flex items-center justify-between mb-8">
-                            <div class="flex items-center space-x-4">
-                                <div
-                                    class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-                                    <p class="text-white text-xl">{{ $medicament->code }}</p>
-                                </div>
-                                <div>
-                                    <button type="button" onclick="toggleForm({{ $index }})"
-                                        class="group flex items-center gap-3 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 hover:from-purple-600 hover:to-blue-600 font-bold text-xl transition-all duration-300">
-                                        <h3 class="text-lg">{{ $medicament->nom }}</h3>
-                                        <svg class="w-5 h-5 transition-all duration-300 group-hover:rotate-180"
-                                            id="arrowIcon_{{ $index }}" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 9l-7 7-7-7" />
-                                        </svg>
+                                {{-- Bouton Valider --}}
+                                @if ($this->conso->etat === 'soumis' && auth()->check() && optional(auth()->user()->role)->nom_role === 'District')
+                                    <button wire:click="validerConsommation({{ $this->conso->id }})"
+                                        class="group inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 hover:text-emerald-900 hover:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 transition-all duration-200 shadow-sm hover:shadow-md">
+                                        <i
+                                            class="bi bi-check-circle text-emerald-600 group-hover:text-emerald-700"></i>
+                                        <span>Valider</span>
                                     </button>
-                                    <p class="text-gray-500 text-sm mt-1">Conditionnement :
-                                        {{ $medicament->conditionnement }} :
-                                        {{ $medicament->qte_par_conditionnement }} {{ $medicament->format }}</p>
-                                </div>
+                                @endif
+
+                                {{-- Boutons pour Formation sanitaire --}}
+                                @if ($this->conso->etat === 'en_cours' && auth()->check() && auth()->user()->role->nom_role === 'Formation sanitaire')
+                                    {{-- Bouton Modifier --}}
+                                    <button wire:click="activerEdition({{ $this->conso->id }})"
+                                        class="group inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 hover:text-amber-900 hover:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1 transition-all duration-200 shadow-sm hover:shadow-md">
+                                        <i class="bi bi-pencil-square text-amber-600 group-hover:text-amber-700"></i>
+                                        <span>Modifier</span>
+                                    </button>
+
+                                    {{-- Bouton Soumettre --}}
+                                    <button wire:click="soumettreConsommation({{ $this->conso->id }})"
+                                        class="group inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-800 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:text-blue-900 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 shadow-sm hover:shadow-md">
+                                        <i class="bi bi-send-fill text-blue-600 group-hover:text-blue-700"></i>
+                                        <span>Soumettre</span>
+                                    </button>
+                                @endif
                             </div>
-                            <div class="flex gap-3 items-center">
-                                <span
-                                    class="bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 px-4 py-1 rounded-full text-sm font-bold shadow-md border border-blue-200">
-                                    Médicament #{{ $index + 1 }}
-                                </span>
-                                <div>
-                                    <button title="Masquer ce formulaire" type="button"
-                                        onclick="masquerFormulaire({{ $index }})"
-                                        class="w-8 h-8 bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-md border-0">
-                                        <i class="bi bi-x-circle-fill text-xl cursor-pointer"></i>
-                                    </button>
-                                </div>
+                        @endif
+                        <button wire:click="nextSlide"
+                            class="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            @disabled(floor($currentSlide ?? 0) >= $totalPages - 1)>
+                            Suivant
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+
+                    <!-- Bouton pour médicaments cachés -->
+                    @if ($this->hiddenCardsCount > 0)
+                        <div class="flex justify-center mt-6">
+                            <button type="button" wire:click="toggleHiddenCards"
+                                class="px-6 py-3 {{ $showHiddenCards ? 'bg-red-600 hover:bg-red-700' : 'bg-teal-600 hover:bg-teal-700' }} text-white rounded-xl transition duration-300 font-medium">
+                                @if ($showHiddenCards)
+                                    Masquer les médicaments non commandés
+                                @else
+                                    Afficher les médicaments non commandés ({{ $this->hiddenCardsCount }})
+                                @endif
+                            </button>
+                        </div>
+                    @endif
+                </div>
+
+                @push('scripts')
+                    <script>
+                        // Variable globale pour l'état des détails
+                        let detailsVisible = true;
+
+                        // Fonction pour toggle les détails
+                        function toggleDetails() {
+                            detailsVisible = !detailsVisible;
+                            const detailsSections = document.querySelectorAll('.details-section');
+                            const toggleBtn = document.getElementById('toggle-details-btn');
+
+                            detailsSections.forEach(section => {
+                                if (detailsVisible) {
+                                    section.style.display = 'block';
+                                    section.style.opacity = '0';
+                                    setTimeout(() => {
+                                        section.style.transition = 'opacity 0.3s ease';
+                                        section.style.opacity = '1';
+                                    }, 10);
+                                } else {
+                                    section.style.transition = 'opacity 0.3s ease';
+                                    section.style.opacity = '0';
+                                    setTimeout(() => {
+                                        section.style.display = 'none';
+                                    }, 300);
+                                }
+                            });
+                            if (detailsVisible) {
+                                toggleBtn.innerHTML = '<i class="bi bi-eye-slash mr-2"></i>Masquer les détails';
+                            } else {
+                                toggleBtn.innerHTML = '<i class="bi bi-eye mr-2"></i>Afficher les détails';
+                            }
+                        }
+
+                        // Gestion des touches clavier pour la navigation
+                        document.addEventListener('keydown', function(e) {
+                            if (e.key === 'ArrowLeft') {
+                                @this.call('previousSlide');
+                            } else if (e.key === 'ArrowRight') {
+                                @this.call('nextSlide');
+                            }
+                        });
+
+                        // Support du swipe sur mobile
+                        let startX = 0;
+                        let currentX = 0;
+                        let isDragging = false;
+
+                        const carousel = document.querySelector('.overflow-hidden');
+
+                        carousel.addEventListener('touchstart', function(e) {
+                            startX = e.touches[0].clientX;
+                            isDragging = true;
+                        });
+
+                        carousel.addEventListener('touchmove', function(e) {
+                            if (!isDragging) return;
+                            currentX = e.touches[0].clientX;
+                            e.preventDefault();
+                        });
+
+                        carousel.addEventListener('touchend', function(e) {
+                            if (!isDragging) return;
+
+                            const diffX = startX - currentX;
+
+                            if (Math.abs(diffX) > 50) { // Seuil minimum pour le swipe
+                                if (diffX > 0) {
+                                    @this.call('nextSlide');
+                                } else {
+                                    @this.call('previousSlide');
+                                }
+                            }
+
+                            isDragging = false;
+                        });
+                    </script>
+                @endpush
+            @endif
+        @endif
+        @if ($formulaireVisible)
+            <div class="flex justify-between items-center relative mb-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        @php
+                            // Conditions pour gérer le disabled visuel
+                            $griserTout = empty($type_structure);
+                            $griserMedicaments = !$griserTout && empty($periode_choisie);
+                        @endphp
+
+                        <div class="flex items-center gap-3 text-sm font-medium text-gray-700">
+
+                            <!-- Structure -->
+                            <div
+                                class="flex items-center gap-2 bg-white/70 px-3 py-1 rounded-lg border border-blue-200/50 shrink-0">
+                                <!-- Icône SVG -->
+                                <svg class="w-4 h-4 text-indigo-600 shrink-0" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <!-- path ... -->
+                                </svg>
+                                <span class="text-gray-600 whitespace-nowrap">Structure :</span>
+                                <select wire:model.live="type_structure" wire:change="chargerMedicaments"
+                                    onchange="viderInput()" id="structure"
+                                    class="bg-transparent border-0 text-indigo-800 font-bold focus:outline-none focus:ring-0 cursor-pointer">
+                                    <option value="">-- Sélectionner --</option>
+                                    <option value="FS">FS</option>
+                                    <option value="ASC">ASC</option>
+                                </select>
+                            </div>
+
+                            <div
+                                class="w-px h-6 bg-gradient-to-b from-transparent via-blue-300 to-transparent shrink-0">
+                            </div>
+
+                            <!-- Médicament -->
+                            <div
+                                class="flex items-center gap-2 bg-white/70 px-3 py-1 rounded-lg border border-blue-200/50 shrink-0">
+                                <!-- Icône SVG -->
+                                <svg class="w-4 h-4 text-green-600 shrink-0" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <!-- path ... -->
+                                </svg>
+                                <span class="text-gray-600 whitespace-nowrap">Médicament :</span>
+                                <select id="select_medicament" onchange="afficherFormulaire(this)"
+                                    class="bg-transparent border-0 text-green-800 font-bold focus:outline-none focus:ring-0 cursor-pointer max-w-auto
+            {{ $griserTout || $griserMedicaments ? 'opacity-50 pointer-events-none select-none' : '' }}">
+                                    <option value="">-- Sélectionner --</option>
+                                    <option value="all">Tous les produits</option>
+                                    @foreach ($medicaments as $index => $medicament)
+                                        <option value="{{ $index }}" data-id="{{ $medicament->id }}">
+                                            {{ $medicament->nom }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div
+                                class="w-px h-6 bg-gradient-to-b from-transparent via-blue-300 to-transparent shrink-0">
+                            </div>
+
+                            <!-- Période -->
+                            <div
+                                class=" flex items-center gap-2 bg-white/70 px-3 py-1 rounded-lg border border-blue-200/50 shrink-0">
+                                <!-- Icône SVG -->
+                                <svg class="w-4 h-4 text-purple-600 shrink-0" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <!-- path ... -->
+                                </svg>
+                                <span class="text-gray-600 whitespace-nowrap">Période :</span>
+                                <select wire:model.live="periode_choisie" id="periode_search" onchange="viderInput()"
+                                    class="bg-transparent border-0 text-purple-800 font-bold focus:outline-none focus:ring-0 cursor-pointer max-w-auto
+            {{ $griserTout ? 'opacity-50 pointer-events-none select-none' : '' }}">
+                                    @foreach ($periodes_disponibles as $periode)
+                                        <option value="{{ $periode->id }}">
+                                            {{ $periode->nom }} :
+                                            {{ $periode->mois_debut }}-{{ $periode->mois_fin }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
 
-                        <!-- Message de sauvegarde -->
-                        <div class="transition-all duration-300 ease-in-out">
-                            @if (session()->has("message_sauvegarde_$index"))
-                                <div
-                                    class="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-400 rounded-lg shadow-md">
-                                    <div class="flex items-center gap-3">
+                    </div>
+                </div>
+
+                <!-- Effet de brillance subtil -->
+                <div
+                    class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent rounded-xl pointer-events-none">
+                </div>
+            </div>
+            <div
+                class="bg-white transition-opacity duration-200 overflow-auto max-h-[650px] {{ empty($type_structure) ? 'bg-gray-500 opacity-50 pointer-events-none select-none' : '' }}">
+                <div class="w-full flex justify-end pr-4 hidden mb-1" id="close_form">
+                    <div onclick="masquerToutFormulaire()" title="Masquer tout les formulaire"
+                        class="w-8 h-8 bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-md border-0">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </div>
+                </div>
+                <form wire:submit.prevent="ajouterConsommation">
+                    <div class="space-y-8">
+                        @foreach ($medicaments as $index => $medicament)
+                            <div wire:key="consommation-{{ $type_structure }}-{{ $periode_choisie }}-{{ $index }}"
+                                class="relative overflow-hidden rounded-2xl shadow-2xl border-0 p-8 hidden glass-effect card-hover bg-white"
+                                id="formulaire_{{ $index }}" wire:key="medicament-{{ $medicament->id }}">
+
+                                <!-- Header avec gradient -->
+                                <div class="absolute top-0 left-0 right-0 h-2 gradient-bg"></div>
+
+                                <!-- En-tête du médicament -->
+                                <div class="flex items-center justify-between mb-8">
+                                    <div class="flex items-center space-x-4">
                                         <div
-                                            class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M5 13l4 4L19 7"></path>
-                                            </svg>
+                                            class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                                            <p class="text-white text-xl">{{ $medicament->code }}</p>
                                         </div>
+                                        <div>
+                                            <button type="button" onclick="toggleForm({{ $index }})"
+                                                class="group flex items-center gap-3 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 hover:from-purple-600 hover:to-blue-600 font-bold text-xl transition-all duration-300">
+                                                <h3 class="text-lg">{{ $medicament->nom }}</h3>
+                                                <svg class="w-5 h-5 transition-all duration-300 group-hover:rotate-180"
+                                                    id="arrowIcon_{{ $index }}" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </button>
+                                            <p class="text-gray-500 text-sm mt-1">Conditionnement :
+                                                {{ $medicament->conditionnement }} :
+                                                {{ $medicament->qte_par_conditionnement }} {{ $medicament->format }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-3 items-center">
                                         <span
-                                            class="text-green-800 font-medium">{{ session("message_sauvegarde_$index") }}</span>
+                                            class="bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 px-4 py-1 rounded-full text-sm font-bold shadow-md border border-blue-200">
+                                            Médicament #{{ $index + 1 }}
+                                        </span>
+                                        <div>
+                                            <button title="Masquer ce formulaire" type="button"
+                                                onclick="masquerFormulaire({{ $index }})"
+                                                class="w-8 h-8 bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-md border-0">
+                                                <i class="bi bi-x-circle-fill text-xl cursor-pointer"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            @endif
-                        </div>
 
-                        <!-- Formulaire avec grille moderne -->
-                        <div id="form_{{ $index }}"
-                            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+                                <!-- Message de sauvegarde -->
+                                <div class="transition-all duration-300 ease-in-out">
+                                    @if (session()->has("message_sauvegarde_$index"))
+                                        <div
+                                            class="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-400 rounded-lg shadow-md">
+                                            <div class="flex items-center gap-3">
+                                                <div
+                                                    class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                                    <svg class="w-5 h-5 text-green-500" fill="none"
+                                                        stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                </div>
+                                                <span
+                                                    class="text-green-800 font-medium">{{ session("message_sauvegarde_$index") }}</span>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
 
-                            <!-- Stock théorique début -->
-                            <div class="form-group">
-                                <label class="flex items-center gap-2 text-sm font-medium text-green-700 mb-3">
-                                    <i class="bi bi-calculator text-emerald-500"></i>
-                                    <span class="font-bold">Stock théorique initiale</span>
-                                </label>
-                                <input type="number" readonly id="stock_debut_attendu_{{ $index }}"
-                                    wire:model.live="consommations.{{ $index }}.stock_debut_attendu"
-                                    class="w-full px-3 py-2 border-2 border-emerald-200 rounded-lg bg-gradient-to-r from-emerald-50 to-green-50 text-green-700 font-bold text-center text-sm shadow-inner" />
+                                <!-- Formulaire avec grille moderne -->
+                                <div id="form_{{ $index }}"
+                                    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+
+                                    <!-- Stock théorique début -->
+                                    <div class="form-group">
+                                        <label class="flex items-center gap-2 text-sm font-medium text-green-700 mb-3">
+                                            <i class="bi bi-calculator text-emerald-500"></i>
+                                            <span class="font-bold">Stock théorique initiale</span>
+                                        </label>
+                                        <input type="number" readonly id="stock_debut_attendu_{{ $index }}"
+                                            wire:model.live="consommations.{{ $index }}.stock_debut_attendu"
+                                            class="w-full px-3 py-2 border-2 border-emerald-200 rounded-lg bg-gradient-to-r from-emerald-50 to-green-50 text-green-700 font-bold text-center text-sm shadow-inner" />
+                                    </div>
+
+                                    <!-- Stock réel début -->
+                                    <div class="form-group">
+                                        <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
+                                            <i class="bi bi-box-seam text-blue-500"></i>
+                                            Stock réel initiale
+                                        </label>
+                                        <input type="number" id="stock_debut_{{ $index }}"
+                                            oninput="calculerStock({{ $index }}), calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
+                                            wire:model.debounce.500ms="consommations.{{ $index }}.stk_dsp_deb_trim"
+                                            class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.stk_dsp_deb_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                            placeholder="Saisir..." min="0" step="1" />
+                                    </div>
+
+                                    <!-- Quantité reçue -->
+                                    <div class="form-group">
+                                        <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
+                                            <i class="bi bi-arrow-down-circle text-blue-500"></i>
+                                            Qte reçue dans le trimestre
+                                        </label>
+                                        <input type="number" id="qte_recu_{{ $index }}"
+                                            oninput="calculerStock({{ $index }}), checkInput({{ $index }})"
+                                            wire:model.debounce.500ms="consommations.{{ $index }}.qte_get_in_trim"
+                                            class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.qte_get_in_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                            placeholder="Saisir..." min="0" step="1" />
+                                    </div>
+
+                                    <!-- Quantité en stock -->
+                                    <div class="form-group">
+                                        <label class="flex items-center gap-2 text-sm font-medium text-red-600 mb-3">
+                                            <i class="bi bi-archive text-red-500"></i>
+                                            <span class="font-bold">Quantité en Stock</span>
+                                        </label>
+                                        <input type="number" readonly id="qte_en_stock_{{ $index }}"
+                                            wire:model.live="consommations.{{ $index }}.qte_en_stock"
+                                            class="w-full px-3 py-2 border-2 border-red-200 rounded-xl bg-gradient-to-r from-red-50 to-pink-50 text-red-500 font-bold text-center text-[17px] shadow-inner" />
+                                    </div>
+
+                                    <!-- Quantité utilisée -->
+                                    <div class="form-group">
+                                        <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
+                                            <i class="bi bi-arrow-up-circle text-blue-500"></i>
+                                            Quantité utilisée
+                                        </label>
+                                        <input type="number" id="qte_used_{{ $index }}"
+                                            oninput="calculerStockSecurite({{ $index }}), calculerStock({{ $index }}), checkInput({{ $index }})"
+                                            wire:model.debounce.500ms="consommations.{{ $index }}.qte_used"
+                                            class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.qte_used') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                            placeholder="Saisir..." min="0" step="1" />
+                                    </div>
+
+                                    <!-- Nombre de bénéficiaires -->
+                                    <div class="form-group">
+                                        <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
+                                            <i class="bi bi-people text-blue-500"></i>
+                                            Nombre de bénéficiaires
+                                        </label>
+                                        <input type="number" id="nb_beneficiaire_{{ $index }}"
+                                            oninput="checkInput({{ $index }})"
+                                            wire:model.debounce.500ms="consommations.{{ $index }}.nb_beneficiaire"
+                                            class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.nb_beneficiaire') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                            placeholder="Saisir..." min="0" step="1" />
+                                    </div>
+
+                                    <!-- Périmé -->
+                                    <div class="form-group">
+                                        <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
+                                            <i class="bi bi-exclamation-triangle text-yellow-500"></i>
+                                            Périmé
+                                        </label>
+                                        <input type="number" id="perimee_{{ $index }}"
+                                            oninput="checkInput({{ $index }})"
+                                            wire:model.debounce.500ms="consommations.{{ $index }}.perimee"
+                                            class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.perimee') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                            placeholder="Saisir..." min="0" step="1" />
+                                    </div>
+
+                                    <!-- Pertes et avariées -->
+                                    <div class="form-group">
+                                        <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
+                                            <i class="bi bi-trash text-orange-500"></i>
+                                            Pertes et avariées
+                                        </label>
+                                        <input type="number" id="perte_avarie_{{ $index }}"
+                                            oninput="checkInput({{ $index }})"
+                                            wire:model.debounce.500ms="consommations.{{ $index }}.perte_avarie"
+                                            class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.perte_avarie') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                            placeholder="Saisir..." min="0" step="1" />
+                                    </div>
+
+                                    <!-- Quantité retournée CAMEG -->
+                                    <div class="form-group">
+                                        <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
+                                            <i class="bi bi-arrow-return-left text-purple-500"></i>
+                                            Qté retournée à la CAMEG
+                                        </label>
+                                        <input type="number" id="qte_ret_cameg_{{ $index }}"
+                                            oninput="checkInput({{ $index }})"
+                                            wire:model.debounce.500ms="consommations.{{ $index }}.qte_ret_cameg"
+                                            class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.qte_ret_cameg') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                            placeholder="Saisir..." min="0" step="1" />
+                                    </div>
+
+                                    <!-- Jours de rupture -->
+                                    <div class="form-group">
+                                        <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
+                                            <i class="bi bi-calendar-x text-red-500"></i>
+                                            Nombre de jours de rupture
+                                        </label>
+                                        <input type="number" id="nb_jour_rupture_{{ $index }}"
+                                            oninput="calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
+                                            wire:model.debounce.500ms="consommations.{{ $index }}.nb_jour_rupture"
+                                            class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.nb_jour_rupture') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                            placeholder="Saisir..." min="0" step="1" />
+                                    </div>
+
+                                    <!-- Stock théorique fin -->
+                                    <div class="form-group">
+                                        <label class="flex items-center gap-2 text-sm font-medium text-green-700 mb-3">
+                                            <i class="bi bi-calculator text-emerald-500"></i>
+                                            <span class="font-bold">Stock théorique en fin de trimestre</span>
+                                        </label>
+                                        <input type="number" readonly
+                                            id="qte_stock_fin_trim_attendu_{{ $index }}"
+                                            wire:model.live="consommations.{{ $index }}.qte_stock_fin_trim_attendu"
+                                            class="w-full px-3 py-2 border-2 border-emerald-200 rounded-xl bg-gradient-to-r from-emerald-50 to-green-50 text-green-700 font-bold text-center text-[17px] shadow-inner" />
+                                    </div>
+
+                                    <!-- Stock réel fin -->
+                                    <div class="form-group">
+                                        <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
+                                            <i class="bi bi-box text-blue-500"></i>
+                                            Stock réel en fin de trimestre
+                                        </label>
+                                        <input type="number" id="qte_stock_fin_trim_{{ $index }}"
+                                            oninput="calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
+                                            wire:model.debounce.500ms="consommations.{{ $index }}.qte_stock_fin_trim"
+                                            class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.qte_stock_fin_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
+                                            placeholder="Saisir..." min="0" step="1" />
+                                    </div>
+
+                                    <!-- Stock de sécurité -->
+                                    <div class="form-group">
+                                        <label class="flex items-center gap-2 text-sm font-medium text-red-600 mb-3">
+                                            <i class="bi bi-shield-check text-red-500"></i>
+                                            <span class="font-bold">Stock de sécurité pour le trimestre à venir</span>
+                                        </label>
+                                        <input type="number" readonly id="stk_de_securite_{{ $index }}"
+                                            wire:model.debounce.500ms="consommations.{{ $index }}.stk_de_securite"
+                                            class="w-full px-3 py-2 border-2 border-red-200 rounded-xl bg-gradient-to-r from-red-50 to-pink-50 text-red-500 font-bold text-center text-[17px] shadow-inner" />
+                                    </div>
+
+                                    <!-- CCMA -->
+                                    <div class="form-group">
+                                        <label class="flex items-center gap-2 text-sm font-medium text-red-600 mb-3">
+                                            <i class="bi bi-graph-up text-red-500"></i>
+                                            <span class="font-bold">Consommation Moyenne Mentuelle ajustée
+                                                (CMMa)
+                                            </span>
+                                        </label>
+                                        <input type="number" readonly id="ccma_{{ $index }}"
+                                            wire:model.debounce.500ms="consommations.{{ $index }}.ccma"
+                                            class="w-full px-3 py-2 border-2 border-red-200 rounded-xl bg-gradient-to-r from-red-50 to-pink-50 text-red-500 font-bold text-center text-[17px] shadow-inner" />
+                                    </div>
+
+                                    <!-- Quantité commandée -->
+                                    <div class="form-group">
+                                        <label class="flex items-center gap-2 text-sm font-medium text-red-600 mb-3">
+                                            <i class="bi bi-cart-plus text-red-500"></i>
+                                            <span class="font-bold">Quantité commandée pour le trimestre à venir</span>
+                                        </label>
+                                        <input type="number" readonly id="cmd_trim_svt_{{ $index }}"
+                                            wire:model.debounce.500ms="consommations.{{ $index }}.cmd_trim_svt"
+                                            class="w-full px-3 py-2 border-2 border-red-200 rounded-xl bg-gradient-to-r from-red-50 to-pink-50 text-red-500 font-bold text-center text-[17px] shadow-inner" />
+                                    </div>
+                                </div>
                             </div>
-
-                            <!-- Stock réel début -->
-                            <div class="form-group">
-                                <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
-                                    <i class="bi bi-box-seam text-blue-500"></i>
-                                    Stock réel initiale
-                                </label>
-                                <input type="number" id="stock_debut_{{ $index }}"
-                                    oninput="calculerStock({{ $index }}), calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
-                                    wire:model.debounce.500ms="consommations.{{ $index }}.stk_dsp_deb_trim"
-                                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.stk_dsp_deb_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
-                                    placeholder="Saisir..." min="0" step="1" />
-                            </div>
-
-                            <!-- Quantité reçue -->
-                            <div class="form-group">
-                                <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
-                                    <i class="bi bi-arrow-down-circle text-blue-500"></i>
-                                    Qte reçue dans le trimestre
-                                </label>
-                                <input type="number" id="qte_recu_{{ $index }}"
-                                    oninput="calculerStock({{ $index }}), checkInput({{ $index }})"
-                                    wire:model.debounce.500ms="consommations.{{ $index }}.qte_get_in_trim"
-                                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.qte_get_in_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
-                                    placeholder="Saisir..." min="0" step="1" />
-                            </div>
-
-                            <!-- Quantité en stock -->
-                            <div class="form-group">
-                                <label class="flex items-center gap-2 text-sm font-medium text-red-600 mb-3">
-                                    <i class="bi bi-archive text-red-500"></i>
-                                    <span class="font-bold">Quantité en Stock</span>
-                                </label>
-                                <input type="number" readonly id="qte_en_stock_{{ $index }}"
-                                    wire:model.live="consommations.{{ $index }}.qte_en_stock"
-                                    class="w-full px-3 py-2 border-2 border-red-200 rounded-xl bg-gradient-to-r from-red-50 to-pink-50 text-red-500 font-bold text-center text-[17px] shadow-inner" />
-                            </div>
-
-                            <!-- Quantité utilisée -->
-                            <div class="form-group">
-                                <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
-                                    <i class="bi bi-arrow-up-circle text-blue-500"></i>
-                                    Quantité utilisée
-                                </label>
-                                <input type="number" id="qte_used_{{ $index }}"
-                                    oninput="calculerStockSecurite({{ $index }}), calculerStock({{ $index }}), checkInput({{ $index }})"
-                                    wire:model.debounce.500ms="consommations.{{ $index }}.qte_used"
-                                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.qte_used') !bg-red-100 !border-red-500 !border-2 @enderror"
-                                    placeholder="Saisir..." min="0" step="1" />
-                            </div>
-
-                            <!-- Nombre de bénéficiaires -->
-                            <div class="form-group">
-                                <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
-                                    <i class="bi bi-people text-blue-500"></i>
-                                    Nombre de bénéficiaires
-                                </label>
-                                <input type="number" id="nb_beneficiaire_{{ $index }}"
-                                    oninput="checkInput({{ $index }})"
-                                    wire:model.debounce.500ms="consommations.{{ $index }}.nb_beneficiaire"
-                                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.nb_beneficiaire') !bg-red-100 !border-red-500 !border-2 @enderror"
-                                    placeholder="Saisir..." min="0" step="1" />
-                            </div>
-
-                            <!-- Périmé -->
-                            <div class="form-group">
-                                <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
-                                    <i class="bi bi-exclamation-triangle text-yellow-500"></i>
-                                    Périmé
-                                </label>
-                                <input type="number" id="perimee_{{ $index }}"
-                                    oninput="checkInput({{ $index }})"
-                                    wire:model.debounce.500ms="consommations.{{ $index }}.perimee"
-                                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.perimee') !bg-red-100 !border-red-500 !border-2 @enderror"
-                                    placeholder="Saisir..." min="0" step="1" />
-                            </div>
-
-                            <!-- Pertes et avariées -->
-                            <div class="form-group">
-                                <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
-                                    <i class="bi bi-trash text-orange-500"></i>
-                                    Pertes et avariées
-                                </label>
-                                <input type="number" id="perte_avarie_{{ $index }}"
-                                    oninput="checkInput({{ $index }})"
-                                    wire:model.debounce.500ms="consommations.{{ $index }}.perte_avarie"
-                                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.perte_avarie') !bg-red-100 !border-red-500 !border-2 @enderror"
-                                    placeholder="Saisir..." min="0" step="1" />
-                            </div>
-
-                            <!-- Quantité retournée CAMEG -->
-                            <div class="form-group">
-                                <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
-                                    <i class="bi bi-arrow-return-left text-purple-500"></i>
-                                    Qté retournée à la CAMEG
-                                </label>
-                                <input type="number" id="qte_ret_cameg_{{ $index }}"
-                                    oninput="checkInput({{ $index }})"
-                                    wire:model.debounce.500ms="consommations.{{ $index }}.qte_ret_cameg"
-                                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.qte_ret_cameg') !bg-red-100 !border-red-500 !border-2 @enderror"
-                                    placeholder="Saisir..." min="0" step="1" />
-                            </div>
-
-                            <!-- Jours de rupture -->
-                            <div class="form-group">
-                                <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
-                                    <i class="bi bi-calendar-x text-red-500"></i>
-                                    Nombre de jours de rupture
-                                </label>
-                                <input type="number" id="nb_jour_rupture_{{ $index }}"
-                                    oninput="calculerStockSecurite({{ $index }}), checkInput({{ $index }})"
-                                    wire:model.debounce.500ms="consommations.{{ $index }}.nb_jour_rupture"
-                                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.nb_jour_rupture') !bg-red-100 !border-red-500 !border-2 @enderror"
-                                    placeholder="Saisir..." min="0" step="1" />
-                            </div>
-
-                            <!-- Stock théorique fin -->
-                            <div class="form-group">
-                                <label class="flex items-center gap-2 text-sm font-medium text-green-700 mb-3">
-                                    <i class="bi bi-calculator text-emerald-500"></i>
-                                    <span class="font-bold">Stock théorique en fin de trimestre</span>
-                                </label>
-                                <input type="number" readonly id="qte_stock_fin_trim_attendu_{{ $index }}"
-                                    wire:model.live="consommations.{{ $index }}.qte_stock_fin_trim_attendu"
-                                    class="w-full px-3 py-2 border-2 border-emerald-200 rounded-xl bg-gradient-to-r from-emerald-50 to-green-50 text-green-700 font-bold text-center text-[17px] shadow-inner" />
-                            </div>
-
-                            <!-- Stock réel fin -->
-                            <div class="form-group">
-                                <label class="flex items-center gap-2 text-sm font-medium text-blue-900 mb-3">
-                                    <i class="bi bi-box text-blue-500"></i>
-                                    Stock réel en fin de trimestre
-                                </label>
-                                <input type="number" id="qte_stock_fin_trim_{{ $index }}"
-                                    oninput="calculerStockSecurite({{ $index }}), checkInput({{ $index }})" 
-                                    wire:model.debounce.500ms="consommations.{{ $index }}.qte_stock_fin_trim"
-                                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600 text-blue-900 font-medium input-focus hover:border-teal-400 transition-all duration-300 @error('consommations.' . $index . '.qte_stock_fin_trim') !bg-red-100 !border-red-500 !border-2 @enderror"
-                                    placeholder="Saisir..." min="0" step="1" />
-                            </div>
-
-                            <!-- Stock de sécurité -->
-                            <div class="form-group">
-                                <label class="flex items-center gap-2 text-sm font-medium text-red-600 mb-3">
-                                    <i class="bi bi-shield-check text-red-500"></i>
-                                    <span class="font-bold">Stock de sécurité pour le trimestre à venir</span>
-                                </label>
-                                <input type="number" readonly id="stk_de_securite_{{ $index }}"
-                                    wire:model.debounce.500ms="consommations.{{ $index }}.stk_de_securite"
-                                    class="w-full px-3 py-2 border-2 border-red-200 rounded-xl bg-gradient-to-r from-red-50 to-pink-50 text-red-500 font-bold text-center text-[17px] shadow-inner" />
-                            </div>
-
-                            <!-- CCMA -->
-                            <div class="form-group">
-                                <label class="flex items-center gap-2 text-sm font-medium text-red-600 mb-3">
-                                    <i class="bi bi-graph-up text-red-500"></i>
-                                    <span class="font-bold">Consommation Moyenne Mentuelle ajustée (CMMa)</span>
-                                </label>
-                                <input type="number" readonly id="ccma_{{ $index }}"
-                                    wire:model.debounce.500ms="consommations.{{ $index }}.ccma"
-                                    class="w-full px-3 py-2 border-2 border-red-200 rounded-xl bg-gradient-to-r from-red-50 to-pink-50 text-red-500 font-bold text-center text-[17px] shadow-inner" />
-                            </div>
-
-                            <!-- Quantité commandée -->
-                            <div class="form-group">
-                                <label class="flex items-center gap-2 text-sm font-medium text-red-600 mb-3">
-                                    <i class="bi bi-cart-plus text-red-500"></i>
-                                    <span class="font-bold">Quantité commandée pour le trimestre à venir</span>
-                                </label>
-                                <input type="number" readonly id="cmd_trim_svt_{{ $index }}"
-                                    wire:model.debounce.500ms="consommations.{{ $index }}.cmd_trim_svt"
-                                    class="w-full px-3 py-2 border-2 border-red-200 rounded-xl bg-gradient-to-r from-red-50 to-pink-50 text-red-500 font-bold text-center text-[17px] shadow-inner" />
-                            </div>
-                        </div>
+                        @endforeach
                     </div>
-                @endforeach
-            </div>
 
-            <!-- Boutons d'action -->
-            <div class="mt-4 flex justify-end gap-4 pt-4 border-t border-gray-200">
-                @if ($modifierConso)
-                    <button type="submit" @disabled(empty($periode_choisie))
-                        class="group relative px-6 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span class="relative z-10 flex items-center gap-2">
-                            <i class="bi bi-pencil-square"></i>
-                            Modifier
-                        </span>
-                        <div
-                            class="absolute inset-0 bg-gradient-to-r from-orange-600 to-orange-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left">
-                        </div>
-                    </button>
-                @else
-                    <button type="submit" @disabled(empty($periode_choisie))
-                        class="group relative px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span class="relative z-10 flex items-center gap-2">
-                            <i class="bi bi-check-circle"></i>
-                            Enregistrer
-                        </span>
-                        <div
-                            class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-green-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left">
-                        </div>
-                    </button>
-                @endif
+                    <!-- Boutons d'action -->
+                    <div class="mt-4 flex justify-end gap-4 pt-4 border-t border-gray-200">
+                        @if ($modifierConso)
+                            <button type="submit" @disabled(empty($periode_choisie))
+                                class="group relative px-6 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span class="relative z-10 flex items-center gap-2">
+                                    <i class="bi bi-pencil-square"></i>
+                                    Modifier
+                                </span>
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-r from-orange-600 to-orange-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left">
+                                </div>
+                            </button>
+                        @else
+                            <button type="submit" @disabled(empty($periode_choisie))
+                                class="group relative px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span class="relative z-10 flex items-center gap-2">
+                                    <i class="bi bi-check-circle"></i>
+                                    Enregistrer
+                                </span>
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-green-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left">
+                                </div>
+                            </button>
+                        @endif
 
 
-                <button type="reset"
-                    class="group relative px-6 py-2 bg-gradient-to-r from-gray-400 to-gray-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
-                    <span class="relative z-10 flex items-center gap-2">
-                        <i class="bi bi-x-circle"></i>
-                        Annuler
-                    </span>
-                    <div
-                        class="absolute inset-0 bg-gradient-to-r from-gray-500 to-gray-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left">
+                        <button type="reset"
+                            class="group relative px-6 py-2 bg-gradient-to-r from-gray-400 to-gray-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
+                            <span class="relative z-10 flex items-center gap-2">
+                                <i class="bi bi-x-circle"></i>
+                                Annuler
+                            </span>
+                            <div
+                                class="absolute inset-0 bg-gradient-to-r from-gray-500 to-gray-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left">
+                            </div>
+                        </button>
                     </div>
-                </button>
+                </form>
+
+                <style>
+                    .gradient-bg {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    }
+
+                    .glass-effect {
+                        backdrop-filter: blur(10px);
+                        background: rgba(255, 255, 255, 0.95);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                    }
+
+                    .input-focus {
+                        transition: all 0.3s ease;
+                    }
+
+                    .input-focus:focus {
+                        transform: translateY(-2px);
+                        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                    }
+
+                    .card-hover {
+                        transition: all 0.3s ease;
+                    }
+
+                    .card-hover:hover {
+                        transform: translateY(-5px);
+                        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                    }
+                </style>
             </div>
-        </form>
-
-        <style>
-            .gradient-bg {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            }
-
-            .glass-effect {
-                backdrop-filter: blur(10px);
-                background: rgba(255, 255, 255, 0.95);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-            }
-
-            .input-focus {
-                transition: all 0.3s ease;
-            }
-
-            .input-focus:focus {
-                transform: translateY(-2px);
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            }
-
-            .card-hover {
-                transition: all 0.3s ease;
-            }
-
-            .card-hover:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            }
-        </style>
     </div>
-    </div>
-@endif
+    @endif
 </div>
 <script>
     let isVisible = true;

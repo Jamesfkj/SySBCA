@@ -8,7 +8,6 @@ use App\Models\District;
 use App\Models\FormationSanitaire;
 use Livewire\Component;
 use App\Exports\SyntheseDistrictExport;
-
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Crypt;
@@ -165,8 +164,6 @@ class SyntheseDistrict extends Component
             'district' => $district,
             'type_synthese' => $type_synthese,
         ])->setPaper('a4', 'portrait');
-
-        // Télécharger le PDF
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->stream();
         }, 'syntheseConsommation.pdf');
@@ -177,8 +174,6 @@ class SyntheseDistrict extends Component
         $filename = 'synthese_district_' . date('Y-m-d_H-i-s') . '.xlsx';
         return Excel::download(new SyntheseDistrictExport($this->synthese_district), $filename);
     }
-
-
 
     public function chargerFs()
     {
