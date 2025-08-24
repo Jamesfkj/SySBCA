@@ -40,6 +40,7 @@ class Consommations extends Component
     public $currentSlide = 0;
     public $voirDetails = false;
     public $afficherTable = true;
+    public $medicamentRecherche = '';
     //--------------------
     public $showHiddenCards = false;
     //----------------
@@ -91,6 +92,27 @@ class Consommations extends Component
     {
         $this->currentSlide = $slideIndex;
     }
+    public function chercherMedicament()
+{
+    $nomMedicament = trim($this->medicamentRecherche);
+
+    if (empty($nomMedicament)) {
+        return;
+    }
+
+    $visibleCards = $this->consommations_all->filter(function ($c) {
+        return !($c->cmma == 0 && $c->stock_securite == 0 && $c->cmd_trim_svt == 0) 
+            || $this->showHiddenCards;
+    })->values(); // réindexer pour que search fonctionne correctement
+
+    $index = $visibleCards->search(function ($c) use ($nomMedicament) {
+        return strcasecmp($c->medicament->nom, $nomMedicament) === 0;
+    });
+
+    if ($index !== false) {
+        $this->currentSlide = $index; // affiche la carte correspondante
+    }
+}
     public function mettreAJourQte($index, $valeur)
     {
         $this->consommations[$index]['qte_en_stock'] = $valeur;
@@ -143,8 +165,8 @@ class Consommations extends Component
         $this->periodes_lists = Periode::where('id', '<=', $this->periode_actuelle->id)->orderByDesc('id')->get();
         $this->chargerConsommations($this->periode_actuelle->id, $this->structure_defaut);
         $this->afficherTableConsommations();
-
     }
+    
 
     public function afficherTableConsommations()
     {
@@ -243,6 +265,7 @@ class Consommations extends Component
         $this->periode_choisie = null;
         $this->mount();
     }
+
     public function activerEdition($id)
     {
         $conso = Consommation::find($id);
@@ -557,7 +580,8 @@ class Consommations extends Component
             $this->periode_actuelle = Periode::find($this->periode_choisie);
             $this->formulaireVisible = false;
             $this->tableauVisible = true;
-            $this->chargerConsommations($this->periode_choisie, $this->type_structure);
+            /*$this->chargerConsommations($this->periode_choisie, $this->type_structure);*/
+            $this->afficherTableau();
         } catch (\Exception $e) {
             DB::rollBack();
             dd($e->getMessage());
@@ -592,6 +616,8 @@ class Consommations extends Component
         $consommation_medicament->cmd_trim_svt = $conso['cmd_trim_svt'];
 
         $consommation_medicament->save();
+
+        session()->flash('message', 'Les données ont été enregistrées avec succès. Veuillez soumettre pour validation.');
     }
     private function nettoyerValeursNul()
     {
@@ -607,14 +633,16 @@ class Consommations extends Component
     public function afficherDetails($periode, $acteur, $fs_id)
     {
         /*dd($periode, $acteur, $fs_id);*/
+        $this->voirDetails = true;
+        $this->afficherTable = false;
         $this->fs = $fs_id;
         $this->periode_search = $periode;
         $this->structure_defaut = $acteur;
         $this->chercherConsommations();
-        $this->afficherTable = false;
-        $this->voirDetails = true;
+        logger()->info('Valeur du filtre sélectionné', [
+            'conso_liste_filter' => $this->voirDetails
+        ]);
     }
-
 
     public function chercherConsommations()
     {
@@ -873,6 +901,7 @@ class Consommations extends Component
         $consommations = $this->consommations_all->filter(function ($c) {
             return !($c->cmma == 0 && $c->stock_securite == 0 && $c->cmd_trim_svt == 0) || $this->showHiddenCards;
         });
+        
         $pdf = Pdf::loadView('consommations-pdf', [
             'consommations' => $consommations,
             'conso' => $conso,
@@ -883,11 +912,18 @@ class Consommations extends Component
             echo $pdf->stream();
         }, 'consommations.pdf');
     }
-    public function exporterExcel($id)
+
+    public function exporterPdfDepuisTable($conso_id, $id, $periode_id, $acteur){
+        $this->fs=$id;
+        $this->chargerConsommations($periode_id, $acteur);
+        return $this->exporterPDF($conso_id);
+
+    }
+    public function exporterExcel($id, $periode_id, $acteur)
     {
-        $conso = Consommation::findorfail($id);
-        $consommations = ConsommationMedicament::where('consommation_id', $conso)->get();
-        $array = $consommations->toArray();
+        $this->fs=$id;
+        $this->chargerConsommations($periode_id, $acteur);
+        $array = $this->consommations_all->toArray();
         $filename = 'consommation_' . date('Y-m-d_H-i-s') . '.xlsx';
         return Excel::download(new SyntheseDistrictExport($array), $filename);
     }

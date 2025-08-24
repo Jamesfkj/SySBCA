@@ -1,5 +1,6 @@
 <div>
-    <div wire:loading wire:target="rechercherSynthese, nextSlide, previousSlide, goToSlide,exporterExcel, exporterPDF"
+    <div wire:loading
+        wire:target="rechercherSynthese,chercherMedicament,afficherCartes,toggleDetails, afficherTables, nextSlide, previousSlide, goToSlide,exporterExcel, exporterPDF"
         class="absolute top-0 left-0 w-full h-1 bg-teal-600 animate-progress-bar z-20">
     </div>
     <div class="flex flex-wrap justify-between items-center relative mb-6 gap-4">
@@ -66,8 +67,9 @@
                 @if (auth()->check() && auth()->user()->role->nom_role == 'Administrateur')
                     <div
                         class="flex items-center gap-2 bg-white/70 px-3 py-1.5 rounded-lg border border-blue-200/50 shrink-0">
-                        <span class="text-blue-900 font-bold truncate max-w-[150px]" title="{{ $district_info->nom ?? 'Tous les districts'}}">
-                            District : {{ $district_info->nom ?? 'Tous les districts'}}  
+                        <span class="text-blue-900 font-bold truncate max-w-[150px]"
+                            title="{{ $district_info->nom ?? 'Tous les districts' }}">
+                            District : {{ $district_info->nom ?? 'Tous les districts' }}
                         </span>
                     </div>
                     <div class="w-px h-6 bg-gradient-to-b from-transparent via-blue-300 to-transparent shrink-0">
@@ -155,317 +157,653 @@
                 </div>
             </div>
         @else
-            <div class="flex transition-transform duration-500 ease-in-out carousel-container"
-                style="transform: translateX(-{{ $currentSlide * 100 }}%)">
-                @foreach ($visibleCards as $index => $synthese)
-                    @php
-                        $stock_theo =
-                                        $synthese['qte_en_stock'] -
-                                        $synthese['qte_utilisee'] -
-                                        $synthese['qte_retour_cameg'] -
-                                        $synthese['perte_avarie'] -
-                                        $synthese['perimee'];
-                                    $perte_non_dec = $synthese['qte_restante'] - $stock_theo;
-                    @endphp
-                    <div class="flex-shrink-0 w-full flex justify-center px-2 min-w-[70%]">
-                        <div
-                            class="bg-white rounded-3xl border border-teal-600 overflow-hidden w-full max-w-4xl mx-auto shadow-lg hover:shadow-xl transition-all duration-300">
+            <div class="flex justify-end mb-1 mr-2">
+    <div class="flex items-center gap-2">
+        <!-- Bouton Liste -->
+        <button wire:click="afficherTables"
+            class="flex items-center justify-center p-2 rounded-lg bg-teal-50 hover:bg-teal-200 shadow-sm transition duration-200 text-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
 
-                            <!-- Header avec gradient -->
+        <!-- Bouton Carré -->
+        <button wire:click="afficherCartes"
+            class="flex items-center justify-center p-2 rounded-lg bg-teal-50 hover:bg-teal-200 shadow-sm transition duration-200 text-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
+                viewBox="0 0 24 24" stroke="none">
+                <rect width="16" height="16" x="4" y="4" rx="2" ry="2" />
+            </svg>
+        </button>
+    </div>
+</div>
+
+            @if ($formatCartes)
+                <div
+                    class="flex border border-gray-300 rounded-full overflow-hidden
+            focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500 max-w-[300px] mb-2">
+
+                    <!-- Input lié à Livewire -->
+                    <input list="medicamentListe" id="medicamentSelector" name="medicament"
+                        placeholder="Nom du médicament..." class="flex-1 px-4 py-2 border-0 focus:outline-none"
+                        wire:model.defer="medicamentRecherche">
+
+                    <!-- Bouton OK -->
+                    <button type="button" wire:click="chercherMedicament"
+                        class="px-3 py-2 bg-teal-600 text-white hover:bg-teal-700 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </button>
+                </div>
+                <datalist id="medicamentListe">
+                    @foreach ($medicaments as $medicament)
+                        <option value="{{ $medicament->nom }}">
+                    @endforeach
+                </datalist>
+                <div class="flex transition-transform duration-500 ease-in-out carousel-container"
+                    style="transform: translateX(-{{ $currentSlide * 100 }}%)">
+                    @foreach ($visibleCards as $index => $synthese)
+                        @php
+                            $stock_theo =
+                                $synthese['qte_en_stock'] -
+                                $synthese['qte_utilisee'] -
+                                $synthese['qte_retour_cameg'] -
+                                $synthese['perte_avarie'] -
+                                $synthese['perimee'];
+                            $perte_non_dec = $synthese['qte_restante'] - $stock_theo;
+                        @endphp
+                        <div class="flex-shrink-0 w-full flex justify-center px-2 min-w-[70%]">
                             <div
-                                class="bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-700 px-6 py-3 relative overflow-hidden">
-                                <div class="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-24 -mt-24">
-                                </div>
-                                <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16">
-                                </div>
-                                <div class="relative z-10">
-                                    <div class="flex items-center justify-between mb-4">
-                                        <div class="flex items-center gap-3">
-                                            <div
-                                                class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm text-white">
-                                                {{ $synthese['medicament']['code'] }}
+                                class="bg-white rounded-3xl border border-teal-600 overflow-hidden w-full max-w-4xl mx-auto shadow-lg hover:shadow-xl transition-all duration-300">
+
+                                <!-- Header avec gradient -->
+                                <div
+                                    class="bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-700 px-6 py-3 relative overflow-hidden">
+                                    <div
+                                        class="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-24 -mt-24">
+                                    </div>
+                                    <div
+                                        class="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16">
+                                    </div>
+                                    <div class="relative z-10">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="flex items-center gap-3">
+                                                <div
+                                                    class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm text-white">
+                                                    {{ $synthese['medicament']['code'] }}
+                                                </div>
+                                                <div>
+                                                    <h2 class="text-xl font-bold text-white mb-1">
+                                                        {{ $synthese['medicament']['nom'] ?? 'Médicament inconnu' }}
+                                                    </h2>
+                                                    <p class="text-white text-sm mt-1">Conditionnement :
+                                                        {{ $synthese['medicament']['conditionnement'] }} :
+                                                        {{ $synthese['medicament']['qte_par_conditionnement'] }}
+                                                        {{ $synthese['medicament']['format'] }}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <h2 class="text-xl font-bold text-white mb-1">
-                                                    {{ $synthese['medicament']['nom'] ?? 'Médicament inconnu' }}
-                                                </h2>
-                                                <p class="text-white text-sm mt-1">Conditionnement :
-                                                            {{ $synthese['medicament']['conditionnement'] }} :
-                                                            {{ $synthese['medicament']['qte_par_conditionnement'] }}
-                                                            {{ $synthese['medicament']['format'] }}</p>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-4">
-                                            <div
-                                                class="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm font-medium">
-                                                <i class="bi bi-check-circle mr-1"></i>Synthèse
+                                            <div class="flex items-center gap-4">
+                                                <div
+                                                    class="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm font-medium">
+                                                    <i class="bi bi-check-circle mr-1"></i>Synthèse
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <!-- Corps de la carte -->
-                            <div class="p-4">
-                                <!-- Métriques principales -->
-                                <div class="grid grid-cols-3 gap-6 mb-3">
-                                    <!-- Stock total en début -->
-                                    <div
-                                        class="bg-slate-100 border-l-4 border-blue-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
-                                        <div class="flex items-center gap-3 mb-3">
-                                            <div
-                                                class="bg-blue-100 text-blue-600 w-10 h-10 flex items-center justify-center rounded-full shadow">
-                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path
-                                                        d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4zM3 8a1 1 0 000 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a1 1 0 100-2H3zm8 6a1 1 0 11-2 0V9a1 1 0 112 0v5z" />
-                                                </svg>
+                                <!-- Corps de la carte -->
+                                <div class="p-4">
+                                    <!-- Métriques principales -->
+                                    <div class="grid grid-cols-3 gap-6 mb-3">
+                                        <!-- Stock total en début -->
+                                        <div
+                                            class="bg-slate-100 border-l-4 border-blue-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
+                                            <div class="flex items-center gap-3 mb-3">
+                                                <div
+                                                    class="bg-blue-100 text-blue-600 w-10 h-10 flex items-center justify-center rounded-full shadow">
+                                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path
+                                                            d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4zM3 8a1 1 0 000 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a1 1 0 100-2H3zm8 6a1 1 0 11-2 0V9a1 1 0 112 0v5z" />
+                                                    </svg>
+                                                </div>
+                                                <span class="text-blue-700">Stock total</span>
                                             </div>
-                                            <span class="text-blue-700">Stock total</span>
+                                            <div class="text-3xl font-bold text-blue-700">
+                                                {{ $synthese['qte_en_stock'] ?? 0 }}</div>
                                         </div>
-                                        <div class="text-3xl font-bold text-blue-700">
-                                            {{ $synthese['qte_en_stock'] ?? 0 }}</div>
-                                    </div>
 
-                                    <!-- CMM ajustée -->
-                                    <div
-                                        class="bg-slate-100 border-l-4 border-orange-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
-                                        <div class="flex items-center gap-3 mb-3">
-                                            <div
-                                                class="bg-orange-100 text-orange-600 w-10 h-10 flex items-center justify-center rounded-full shadow">
-                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd"
-                                                        d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
+                                        <!-- CMM ajustée -->
+                                        <div
+                                            class="bg-slate-100 border-l-4 border-orange-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
+                                            <div class="flex items-center gap-3 mb-3">
+                                                <div
+                                                    class="bg-orange-100 text-orange-600 w-10 h-10 flex items-center justify-center rounded-full shadow">
+                                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd"
+                                                            d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                </div>
+                                                <span class="text-orange-700">CMM ajustée</span>
                                             </div>
-                                            <span class="text-orange-700">CMM ajustée</span>
+                                            <div class="text-3xl font-bold text-orange-700">
+                                                {{ $synthese['cmma'] ?? 0 }}
+                                            </div>
                                         </div>
-                                        <div class="text-3xl font-bold text-orange-700">{{ $synthese['cmma'] ?? 0 }}
-                                        </div>
-                                    </div>
 
-                                    <!-- Stock de sécurité -->
-                                    <div
-                                        class="bg-slate-100 border-l-4 border-teal-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
-                                        <div class="flex items-center gap-3 mb-3">
-                                            <div
-                                                class="bg-teal-100 text-teal-600 w-10 h-10 flex items-center justify-center rounded-full shadow">
-                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd"
-                                                        d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
+                                        <!-- Stock de sécurité -->
+                                        <div
+                                            class="bg-slate-100 border-l-4 border-teal-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
+                                            <div class="flex items-center gap-3 mb-3">
+                                                <div
+                                                    class="bg-teal-100 text-teal-600 w-10 h-10 flex items-center justify-center rounded-full shadow">
+                                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd"
+                                                            d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                </div>
+                                                <span class="text-teal-700">Stock de sécurité</span>
                                             </div>
-                                            <span class="text-teal-700">Stock de sécurité</span>
+                                            <div class="text-3xl font-bold text-teal-700">
+                                                {{ $synthese['stock_securite'] ?? 0 }}</div>
                                         </div>
-                                        <div class="text-3xl font-bold text-teal-700">
-                                            {{ $synthese['stock_securite'] ?? 0 }}</div>
-                                    </div>
 
-                                    <!-- Quantité commandée -->
-                                    <div
-                                        class="bg-slate-100 border-l-4 border-gray-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
-                                        <div class="flex items-center gap-3 mb-3">
-                                            <div
-                                                class="bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center rounded-full shadow">
-                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path
-                                                        d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
-                                                </svg>
+                                        <!-- Quantité commandée -->
+                                        <div
+                                            class="bg-slate-100 border-l-4 border-gray-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
+                                            <div class="flex items-center gap-3 mb-3">
+                                                <div
+                                                    class="bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center rounded-full shadow">
+                                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path
+                                                            d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                                                    </svg>
+                                                </div>
+                                                <span class="text-gray-700">Quantité commandée</span>
                                             </div>
-                                            <span class="text-gray-700">Quantité commandée</span>
+                                            <div class="text-3xl font-bold text-gray-700">
+                                                {{ $synthese['cmd_trim_svt'] ?? 0 }}</div>
                                         </div>
-                                        <div class="text-3xl font-bold text-gray-700">
-                                            {{ $synthese['cmd_trim_svt'] ?? 0 }}</div>
-                                    </div>
 
-                                    <!-- Quantité accordée -->
-                                    <div
-                                        class="bg-slate-100 border-l-4 border-indigo-800 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
-                                        <div class="flex items-center gap-3 mb-3">
-                                            <div
-                                                class="bg-indigo-200 text-indigo-800 w-10 h-10 flex items-center justify-center rounded-full shadow">
-                                                <i class="bi bi-check2-square text-indigo-800 text-lg"></i>
+                                        <!-- Quantité accordée -->
+                                        <div
+                                            class="bg-slate-100 border-l-4 border-indigo-800 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
+                                            <div class="flex items-center gap-3 mb-3">
+                                                <div
+                                                    class="bg-indigo-200 text-indigo-800 w-10 h-10 flex items-center justify-center rounded-full shadow">
+                                                    <i class="bi bi-check2-square text-indigo-800 text-lg"></i>
+                                                </div>
+                                                <span class="text-indigo-800">Quantité accordée</span>
                                             </div>
-                                            <span class="text-indigo-800">Quantité accordée</span>
+                                            @if ($synthese['qte_accordee'])
+                                                <div class="text-3xl font-bold text-indigo-800">
+                                                    {{ $synthese['qte_accordee'] }}</div>
+                                            @else
+                                                <div class="text-indigo-800 text-lg font-medium">
+                                                    Non accordée
+                                                </div>
+                                            @endif
                                         </div>
-                                        @if ($synthese['qte_accordee'])
-                                            <div class="text-3xl font-bold text-indigo-800">
-                                                {{ $synthese['qte_accordee'] }}</div>
-                                        @else
-                                            <div class="text-indigo-800 text-lg font-medium">
-                                                 Non accordée
+
+                                        <!-- Différence ajout/retrait (si applicable) -->
+                                        @if ($synthese['qte_accordee'] && $synthese['qte_accordee'] != $synthese['cmd_trim_svt'])
+                                            <div
+                                                class="bg-gradient-to-br rounded-xl border p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center
+                                        {{ $synthese['qte_accordee'] > $synthese['cmd_trim_svt'] ? 'from-emerald-50 to-emerald-100 border-emerald-200' : 'from-red-50 to-red-100 border-red-200' }}">
+                                                <div class="flex items-center gap-2 mb-3">
+                                                    <i
+                                                        class="text-xl {{ $synthese['qte_accordee'] > $synthese['cmd_trim_svt'] ? 'bi bi-arrow-up-circle text-emerald-600' : 'bi bi-arrow-down-circle text-red-600' }}"></i>
+                                                    <h3
+                                                        class="text-lg font-bold {{ $synthese['qte_accordee'] > $synthese['cmd_trim_svt'] ? 'text-emerald-800' : 'text-red-800' }}">
+                                                        {{ $synthese['qte_accordee'] > $synthese['cmd_trim_svt'] ? 'Ajout' : 'Retiré' }}
+                                                    </h3>
+                                                </div>
+                                                <div
+                                                    class="text-3xl font-bold {{ $synthese['qte_accordee'] > $synthese['cmd_trim_svt'] ? 'text-emerald-800' : 'text-red-800' }}">
+                                                    {{ $synthese['qte_accordee'] > $synthese['cmd_trim_svt'] ? '+' : '' }}{{ $synthese['qte_accordee'] - $synthese['cmd_trim_svt'] }}
+                                                </div>
                                             </div>
                                         @endif
                                     </div>
 
-                                    <!-- Différence ajout/retrait (si applicable) -->
-                                    @if ($synthese['qte_accordee'] && $synthese['qte_accordee'] != $synthese['cmd_trim_svt'])
-                                        <div
-                                            class="bg-gradient-to-br rounded-xl border p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center
-                                        {{ $synthese['qte_accordee'] > $synthese['cmd_trim_svt'] ? 'from-emerald-50 to-emerald-100 border-emerald-200' : 'from-red-50 to-red-100 border-red-200' }}">
-                                            <div class="flex items-center gap-2 mb-3">
-                                                <i
-                                                    class="text-xl {{ $synthese['qte_accordee'] > $synthese['cmd_trim_svt'] ? 'bi bi-arrow-up-circle text-emerald-600' : 'bi bi-arrow-down-circle text-red-600' }}"></i>
-                                                <h3
-                                                    class="text-lg font-bold {{ $synthese['qte_accordee'] > $synthese['cmd_trim_svt'] ? 'text-emerald-800' : 'text-red-800' }}">
-                                                    {{ $synthese['qte_accordee'] > $synthese['cmd_trim_svt'] ? 'Ajout' : 'Retiré' }}
-                                                </h3>
+                                    <!-- Bouton toggle détails -->
+                                    <div class="flex justify-center">
+                                        <button type="button"
+                                            class="toggle-details px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm rounded-lg transition-colors">
+                                            Voir plus
+                                        </button>
+                                    </div>
+
+                                    <!-- Détails étendus (cachables) -->
+                                    <div
+                                        class="details-section bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-4 border border-gray-200 mt-2 hidden">
+                                        <h3 class="text-gray-800 font-bold text-lg mb-4 flex items-center gap-2">
+                                            <div class="w-2 h-2 bg-teal-600 rounded-full"></div>
+                                            Informations détaillées du trimestre
+                                        </h3>
+                                        <div class="grid grid-cols-2 gap-3 text-sm">
+                                            <div
+                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                <span class="text-gray-600 font-medium">Stock début</span>
+                                                <span
+                                                    class="font-bold text-gray-800">{{ $synthese['qte_dispo_deb_periode'] ?? 0 }}</span>
                                             </div>
                                             <div
-                                                class="text-3xl font-bold {{ $synthese['qte_accordee'] > $synthese['cmd_trim_svt'] ? 'text-emerald-800' : 'text-red-800' }}">
-                                                {{ $synthese['qte_accordee'] > $synthese['cmd_trim_svt'] ? '+' : '' }}{{ $synthese['qte_accordee'] - $synthese['cmd_trim_svt'] }}
+                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                <span class="text-gray-600 font-medium">Qté reçue</span>
+                                                <span
+                                                    class="font-bold text-gray-800">{{ $synthese['qte_recu'] ?? 0 }}</span>
+                                            </div>
+                                            <div
+                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                <span class="text-gray-600 font-medium">Qté utilisée</span>
+                                                <span
+                                                    class="font-bold text-gray-800">{{ $synthese['qte_utilisee'] ?? 0 }}</span>
+                                            </div>
+                                            <div
+                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                <span class="text-gray-600 font-medium">Bénéficiaires</span>
+                                                <span
+                                                    class="font-bold text-gray-800">{{ $synthese['nb_beneficiaire'] ?? 0 }}</span>
+                                            </div>
+                                            <div
+                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                <span class="text-gray-600 font-medium">Périmé</span>
+                                                <span
+                                                    class="font-bold text-gray-800">{{ $synthese['perimee'] ?? 0 }}</span>
+                                            </div>
+                                            <div
+                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                <span class="text-gray-600 font-medium">Pertes et avariées</span>
+                                                <span
+                                                    class="font-bold text-gray-800">{{ $synthese['perte_avarie'] ?? 0 }}</span>
+                                            </div>
+                                            <div
+                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                <span class="text-gray-600 font-medium">Retournés CAMEG</span>
+                                                <span
+                                                    class="font-bold text-gray-800">{{ $synthese['qte_retour_cameg'] ?? 0 }}</span>
+                                            </div>
+                                            <div
+                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                <span class="text-gray-600 font-medium">Jours de rupture</span>
+                                                <span
+                                                    class="font-bold text-gray-800">{{ $synthese['nb_jour_rupture'] ?? 0 }}</span>
                                             </div>
                                         </div>
-                                    @endif
-                                </div>
-
-                                <!-- Bouton toggle détails -->
-                                <div class="flex justify-center">
-                                    <button type="button"
-                                        class="toggle-details px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm rounded-lg transition-colors">
-                                        Voir plus
-                                    </button>
-                                </div>
-
-                                <!-- Détails étendus (cachables) -->
-                                <div
-                                    class="details-section bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-4 border border-gray-200 mt-2 hidden">
-                                    <h3 class="text-gray-800 font-bold text-lg mb-4 flex items-center gap-2">
-                                        <div class="w-2 h-2 bg-teal-600 rounded-full"></div>
-                                        Informations détaillées du trimestre
-                                    </h3>
-                                    <div class="grid grid-cols-2 gap-3 text-sm">
-                                        <div
-                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                            <span class="text-gray-600 font-medium">Stock début</span>
-                                            <span
-                                                class="font-bold text-gray-800">{{ $synthese['qte_dispo_deb_periode'] ?? 0 }}</span>
-                                        </div>
-                                        <div
-                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                            <span class="text-gray-600 font-medium">Qté reçue</span>
-                                            <span
-                                                class="font-bold text-gray-800">{{ $synthese['qte_recu'] ?? 0 }}</span>
-                                        </div>
-                                        <div
-                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                            <span class="text-gray-600 font-medium">Qté utilisée</span>
-                                            <span
-                                                class="font-bold text-gray-800">{{ $synthese['qte_utilisee'] ?? 0 }}</span>
-                                        </div>
-                                        <div
-                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                            <span class="text-gray-600 font-medium">Bénéficiaires</span>
-                                            <span
-                                                class="font-bold text-gray-800">{{ $synthese['nb_beneficiaire'] ?? 0 }}</span>
-                                        </div>
-                                        <div
-                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                            <span class="text-gray-600 font-medium">Périmé</span>
-                                            <span
-                                                class="font-bold text-gray-800">{{ $synthese['perimee'] ?? 0 }}</span>
-                                        </div>
-                                        <div
-                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                            <span class="text-gray-600 font-medium">Pertes et avariées</span>
-                                            <span
-                                                class="font-bold text-gray-800">{{ $synthese['perte_avarie'] ?? 0 }}</span>
-                                        </div>
-                                        <div
-                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                            <span class="text-gray-600 font-medium">Retournés CAMEG</span>
-                                            <span
-                                                class="font-bold text-gray-800">{{ $synthese['qte_retour_cameg'] ?? 0 }}</span>
-                                        </div>
-                                        <div
-                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                            <span class="text-gray-600 font-medium">Jours de rupture</span>
-                                            <span
-                                                class="font-bold text-gray-800">{{ $synthese['nb_jour_rupture'] ?? 0 }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="grid grid-cols-3 gap-3 text-sm mt-4">
-                                        <div
-                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                            <span class="text-gray-600 font-medium">Stock réel en
-                                                fin</span>
-                                            <span
-                                                class="font-bold text-gray-800">{{ $synthese['qte_restante'] ?? 0 }}</span>
-                                        </div>
-                                        <div
-                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                            <span class="text-gray-600 font-medium">Stock théorique</span>
-                                            <span class="font-bold text-gray-800">{{ $stock_theo }}</span>
-                                        </div>
-                                        <div
-                                            class="flex justify-between items-center p-3 bg-white rounded-lg border 
+                                        <div class="grid grid-cols-3 gap-3 text-sm mt-4">
+                                            <div
+                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                <span class="text-gray-600 font-medium">Stock réel en
+                                                    fin</span>
+                                                <span
+                                                    class="font-bold text-gray-800">{{ $synthese['qte_restante'] ?? 0 }}</span>
+                                            </div>
+                                            <div
+                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                <span class="text-gray-600 font-medium">Stock théorique</span>
+                                                <span class="font-bold text-gray-800">{{ $stock_theo }}</span>
+                                            </div>
+                                            <div
+                                                class="flex justify-between items-center p-3 bg-white rounded-lg border 
     {{ $perte_non_dec > 0 ? 'border-yellow-300' : 'border-red-200' }}">
-                                            <span
-                                                class="{{ $perte_non_dec > 0 ? 'text-yellow-600' : 'text-red-600' }} font-medium">
-                                                Ecart
-                                            </span>
-                                            <span
-                                                class="font-bold {{ $perte_non_dec > 0 ? 'text-yellow-600' : 'text-red-600' }}">
-                                                {{ $perte_non_dec }}
-                                            </span>
+                                                <span
+                                                    class="{{ $perte_non_dec > 0 ? 'text-yellow-600' : 'text-red-600' }} font-medium">
+                                                    Ecart
+                                                </span>
+                                                <span
+                                                    class="font-bold {{ $perte_non_dec > 0 ? 'text-yellow-600' : 'text-red-600' }}">
+                                                    {{ $perte_non_dec }}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    @endforeach
+                </div>
+                @if (count($visibleCards) > 1)
+                    <div class="flex justify-between items-center mt-6">
+                        <button wire:click="previousSlide"
+                            class="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            {{ $currentSlide <= 0 ? 'disabled' : '' }}>
+                            <i class="bi bi-chevron-left"></i>
+                            Précédent
+                        </button>
+                        <div
+                            class="mx-auto flex items-center gap-3 bg-white/40 backdrop-blur-sm px-4 py-2 rounded-full shadow-md z-10">
+
+                            <!-- Compteur -->
+                            <div class="flex items-center gap-1 text-sm font-medium">
+                                <span class="text-teal-600 font-bold">{{ $currentSlide + 1 }}</span>
+                                <span class="text-gray-500">/ {{ count($visibleCards) }}</span>
+                            </div>
+
+                            <!-- Séparateur -->
+                            @if (count($visibleCards) > 1)
+                                <div class="w-px h-4 bg-gray-300"></div>
+                            @endif
+
+                            <!-- Indicateurs (dots) -->
+                            @if (count($visibleCards) > 1)
+                                <div class="flex items-center gap-1">
+                                    @for ($i = 0; $i < count($visibleCards); $i++)
+                                        <button wire:click="goToSlide({{ $i }})"
+                                            class="h-2.5 rounded-full transition-all duration-300 
+                        {{ $currentSlide == $i ? 'bg-teal-600 w-6 shadow-md' : 'bg-gray-300 hover:bg-gray-400 w-2.5' }}">
+                                        </button>
+                                    @endfor
+                                </div>
+                            @endif
+
+                        </div>
+                        <button wire:click="nextSlide"
+                            class="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            {{ $currentSlide >= count($visibleCards) - 1 ? 'disabled' : '' }}>
+                            Suivant
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
                     </div>
-                @endforeach
-            </div>
+                @endif
+            @endif
+            @if ($formatTables)
+                <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+                    <!-- Barre de recherche -->
+                    <div class="p-4 border-b border-gray-200 bg-gray-50">
+                        <div class="relative">
+                            <input type="text" wire:model.live.debounce.300ms="searchTerm"
+                                placeholder="Rechercher par nom du médicament ..."
+                                class="w-full px-4 py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
 
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <!-- En-tête -->
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                        Médicament</th>
+                                    <th
+                                        class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                        Stock total</th>
+                                    <th
+                                        class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                        CMM ajustée</th>
+                                    <th
+                                        class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                        Stock sécurité</th>
+                                    <th
+                                        class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                        Qté commandée</th>
+                                    <th
+                                        class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                        Qté accordée</th>
+                                    <th
+                                        class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                        Différence</th>
+                                    <th
+                                        class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                        Actions</th>
+                                </tr>
+                            </thead>
 
+                            <!-- Corps -->
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                @forelse ($this->getFilteredCards() as $index => $synthese)
+                                    @php
+                                        $stock_theo =
+                                            $synthese['qte_en_stock'] -
+                                            $synthese['qte_utilisee'] -
+                                            $synthese['qte_retour_cameg'] -
+                                            $synthese['perte_avarie'] -
+                                            $synthese['perimee'];
+                                        $perte_non_dec = $synthese['qte_restante'] - $stock_theo;
+                                        $difference = $synthese['qte_accordee']
+                                            ? $synthese['qte_accordee'] - $synthese['cmd_trim_svt']
+                                            : null;
+                                    @endphp
+
+                                    <!-- Ligne principale -->
+                                    <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                        <!-- Médicament -->
+                                        <td class="px-4 py-4">
+                                            <div class="flex items-center gap-3">
+                                                <div
+                                                    class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center text-gray-700 font-semibold text-sm">
+                                                    {{ $synthese['medicament']['code'] }}
+                                                </div>
+                                                <div>
+                                                    <div class="text-sm font-medium text-gray-900">
+                                                        {{ $synthese['medicament']['nom'] ?? 'Médicament inconnu' }}
+                                                    </div>
+                                                    <div class="text-xs text-gray-500">
+                                                        {{ $synthese['medicament']['conditionnement'] }} :
+                                                        {{ $synthese['medicament']['qte_par_conditionnement'] }}
+                                                        {{ $synthese['medicament']['format'] }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <!-- Stock total -->
+                                        <td class="px-4 py-4 text-center">
+                                            <span
+                                                class="inline-flex items-center px-2 py-1 rounded-full bg-gray-50 text-gray-700 text-sm font-medium">
+                                                {{ $synthese['qte_en_stock'] ?? 0 }}
+                                            </span>
+                                        </td>
+
+                                        <!-- CMM ajustée -->
+                                        <td class="px-4 py-4 text-center">
+                                            <span
+                                                class="inline-flex items-center px-2 py-1 rounded-full bg-gray-50 text-gray-700 text-sm font-medium">
+                                                {{ $synthese['cmma'] ?? 0 }}
+                                            </span>
+                                        </td>
+
+                                        <!-- Stock sécurité -->
+                                        <td class="px-4 py-4 text-center">
+                                            <span
+                                                class="inline-flex items-center px-2 py-1 rounded-full bg-gray-50 text-gray-700 text-sm font-medium">
+                                                {{ $synthese['stock_securite'] ?? 0 }}
+                                            </span>
+                                        </td>
+
+                                        <!-- Qté commandée -->
+                                        <td class="px-4 py-4 text-center">
+                                            <span
+                                                class="inline-flex items-center px-2 py-1 rounded-full bg-gray-50 text-gray-700 text-sm font-medium">
+                                                {{ $synthese['cmd_trim_svt'] ?? 0 }}
+                                            </span>
+                                        </td>
+
+                                        <!-- Qté accordée -->
+                                        <td class="px-4 py-4 text-center">
+                                            @if ($synthese['qte_accordee'])
+                                                <span
+                                                    class="inline-flex items-center px-2 py-1 rounded-full bg-green-50 text-green-700 text-sm font-medium">
+                                                    {{ $synthese['qte_accordee'] }}
+                                                </span>
+                                            @else
+                                                <span
+                                                    class="inline-flex items-center px-2 py-1 rounded-full bg-red-50 text-red-700 text-sm font-medium">
+                                                    Non accordée
+                                                </span>
+                                            @endif
+                                        </td>
+
+                                        <!-- Différence -->
+                                        <td class="px-4 py-4 text-center">
+                                            @if ($difference !== null && $difference != 0)
+                                                <span
+                                                    class="inline-flex items-center px-2 py-1 rounded-full {{ $difference > 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }} text-sm font-medium">
+                                                    {{ $difference > 0 ? '+' : '' }}{{ $difference }}
+                                                </span>
+                                            @else
+                                                <span class="text-gray-400 text-sm">-</span>
+                                            @endif
+                                        </td>
+
+                                        <!-- Actions -->
+                                        <td class="px-4 py-4 text-center">
+                                            <button type="button" wire:click="toggleDetails({{ $index }})"
+                                                class="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition text-sm font-medium">
+                                                <i
+                                                    class="bi bi-{{ $this->isDetailVisible($index) ? 'eye-slash' : 'eye' }} mr-1"></i>
+                                                <span>{{ $this->isDetailVisible($index) ? 'Masquer' : 'Détails' }}</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Ligne de détails -->
+                                    @if ($this->isDetailVisible($index))
+                                        <tr class="bg-gray-50">
+                                            <td colspan="8" class="px-4 py-6">
+                                                <div class="max-w-6xl mx-auto space-y-4">
+                                                    <h4
+                                                        class="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                                                        <div class="w-2 h-2 bg-gray-700 rounded-full"></div>
+                                                        Informations détaillées du trimestre
+                                                    </h4>
+
+                                                    <!-- Détails principaux -->
+                                                    <div class="grid grid-cols-4 gap-4">
+                                                        <div
+                                                            class="bg-white rounded-lg p-3 border border-gray-200 text-center">
+                                                            <div class="text-sm text-gray-600">Stock début</div>
+                                                            <div class="text-lg font-semibold text-gray-800">
+                                                                {{ $synthese['qte_dispo_deb_periode'] ?? 0 }}
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            class="bg-white rounded-lg p-3 border border-gray-200 text-center">
+                                                            <div class="text-sm text-gray-600">Qté reçue</div>
+                                                            <div class="text-lg font-semibold text-gray-800">
+                                                                {{ $synthese['qte_recu'] ?? 0 }}
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            class="bg-white rounded-lg p-3 border border-gray-200 text-center">
+                                                            <div class="text-sm text-gray-600">Qté utilisée</div>
+                                                            <div class="text-lg font-semibold text-gray-800">
+                                                                {{ $synthese['qte_utilisee'] ?? 0 }}
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            class="bg-white rounded-lg p-3 border border-gray-200 text-center">
+                                                            <div class="text-sm text-gray-600">Bénéficiaires</div>
+                                                            <div class="text-lg font-semibold text-gray-800">
+                                                                {{ $synthese['nb_beneficiaire'] ?? 0 }}
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            class="bg-white rounded-lg p-3 border border-gray-200 text-center">
+                                                            <div class="text-sm text-gray-600">Périmé</div>
+                                                            <div class="text-lg font-semibold text-gray-800">
+                                                                {{ $synthese['perimee'] ?? 0 }}
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            class="bg-white rounded-lg p-3 border border-gray-200 text-center">
+                                                            <div class="text-sm text-gray-600">Perte / Avarie</div>
+                                                            <div class="text-lg font-semibold text-gray-800">
+                                                                {{ $synthese['perte_avarie'] ?? 0 }}
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            class="bg-white rounded-lg p-3 border border-gray-200 text-center">
+                                                            <div class="text-sm text-gray-600">Retournés CAMEG</div>
+                                                            <div class="text-lg font-semibold text-gray-800">
+                                                                {{ $synthese['qte_retour_cameg'] ?? 0 }}
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            class="bg-white rounded-lg p-3 border border-gray-200 text-center">
+                                                            <div class="text-sm text-gray-600">Jours de rupture</div>
+                                                            <div class="text-lg font-semibold text-gray-800">
+                                                                {{ $synthese['nb_jour_rupture'] ?? 0 }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Stocks et écarts -->
+                                                    <div class="grid grid-cols-3 gap-4 mt-4">
+                                                        <div
+                                                            class="bg-white rounded-lg p-3 border border-gray-200 text-center">
+                                                            <div class="text-sm text-gray-600">Stock réel en fin</div>
+                                                            <div class="text-lg font-semibold text-gray-800">
+                                                                {{ $synthese['qte_restante'] ?? 0 }}
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            class="bg-white rounded-lg p-3 border border-gray-200 text-center">
+                                                            <div class="text-sm text-gray-600">Stock théorique</div>
+                                                            <div class="text-lg font-semibold text-gray-800">
+                                                                {{ $stock_theo }}
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            class="bg-white rounded-lg p-3 border {{ $perte_non_dec > 0 ? 'border-yellow-300' : 'border-red-300' }} text-center">
+                                                            <div
+                                                                class="text-sm {{ $perte_non_dec > 0 ? 'text-yellow-600' : 'text-red-600' }}">
+                                                                Écart
+                                                            </div>
+                                                            <div
+                                                                class="text-lg font-semibold {{ $perte_non_dec > 0 ? 'text-yellow-700' : 'text-red-700' }}">
+                                                                {{ $perte_non_dec }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endif
+                                @empty
+                                    <tr>
+                                        <td colspan="8" class="px-4 py-8 text-center text-gray-500">
+                                            <div class="flex flex-col items-center gap-2">
+                                                <svg class="w-12 h-12 text-gray-300" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.566-.966-6.174-2.686C4.942 11.4 4 10.207 4 9c0-5.523 4.477-10 10-10s10 4.477 10 10c0 1.207-.942 2.4-1.826 3.314A7.962 7.962 0 0112 15z">
+                                                    </path>
+                                                </svg>
+                                                <span>
+                                                    @if ($searchTerm)
+                                                        Aucun médicament trouvé pour "{{ $searchTerm }}"
+                                                    @else
+                                                        Aucun médicament disponible
+                                                    @endif
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
         @endif
     </div>
 
     <!-- Boutons de navigation -->
-    @if (count($visibleCards) > 1)
-        <div class="flex justify-between items-center mt-6">
-            <button wire:click="previousSlide"
-                class="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                {{ $currentSlide <= 0 ? 'disabled' : '' }}>
-                <i class="bi bi-chevron-left"></i>
-                Précédent
-            </button>
-            <div
-                class="mx-auto flex items-center gap-3 bg-white/40 backdrop-blur-sm px-4 py-2 rounded-full shadow-md z-10">
-
-                <!-- Compteur -->
-                <div class="flex items-center gap-1 text-sm font-medium">
-                    <span class="text-teal-600 font-bold">{{ $currentSlide + 1 }}</span>
-                    <span class="text-gray-500">/ {{ count($visibleCards) }}</span>
-                </div>
-
-                <!-- Séparateur -->
-                @if (count($visibleCards) > 1)
-                    <div class="w-px h-4 bg-gray-300"></div>
-                @endif
-
-                <!-- Indicateurs (dots) -->
-                @if (count($visibleCards) > 1)
-                    <div class="flex items-center gap-1">
-                        @for ($i = 0; $i < count($visibleCards); $i++)
-                            <button wire:click="goToSlide({{ $i }})"
-                                class="h-2.5 rounded-full transition-all duration-300 
-                        {{ $currentSlide == $i ? 'bg-teal-600 w-6 shadow-md' : 'bg-gray-300 hover:bg-gray-400 w-2.5' }}">
-                            </button>
-                        @endfor
-                    </div>
-                @endif
-
-            </div>
-            <button wire:click="nextSlide"
-                class="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                {{ $currentSlide >= count($visibleCards) - 1 ? 'disabled' : '' }}>
-                Suivant
-                <i class="bi bi-chevron-right"></i>
-            </button>
-        </div>
-    @endif
 
     <script>
         // Fonction pour basculer les détails

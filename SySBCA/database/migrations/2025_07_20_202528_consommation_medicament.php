@@ -24,7 +24,7 @@ return new class extends Migration
             $table->unsignedBigInteger('qte_restante')->nullable();
             $table->unsignedBigInteger('stock_securite')->nullable();
             $table->unsignedBigInteger('cmma')->nullable();
-            $table->unsignedBigInteger('cmd_trim_svt')->nullable();
+            $table->bigInteger('cmd_trim_svt')->nullable();
             $table->unsignedBigInteger('qte_accordee')->nullable();
             $table->timestamps();
         });

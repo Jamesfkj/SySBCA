@@ -6,6 +6,7 @@ use App\Models\Consommation;
 use App\Models\ConsommationMedicament;
 use App\Models\District;
 use App\Models\FormationSanitaire;
+use App\Models\Medicament;
 use Livewire\Component;
 use App\Exports\SyntheseDistrictExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -26,9 +27,12 @@ class SyntheseDistrict extends Component
     public $conso_asc = [];
     public $type_synthese = 'FS';
     public $user;
+    public $formatCartes = true;
+    public $formatTables = false;
     public $cardsContent;
     public $fs = [];
     public $districts = [];
+    public $medicaments;
     public $district_actuelle;
     public $districts_search;
     public $district_info;
@@ -36,6 +40,45 @@ class SyntheseDistrict extends Component
     public $periode_search;
     public $periode_info;
     public $currentSlide = 0;
+    public $medicamentRecherche;
+    public $searchTerm = '';
+    public $visibleDetails = []; // Array pour stocker les IDs des lignes de détails visibles
+
+    public function toggleDetails($index)
+    {
+        if (in_array($index, $this->visibleDetails)) {
+            // Masquer les détails
+            $this->visibleDetails = array_filter($this->visibleDetails, function($id) use ($index) {
+                return $id !== $index;
+            });
+        } else {
+            // Afficher les détails
+            $this->visibleDetails[] = $index;
+        }
+    }
+
+    public function isDetailVisible($index)
+    {
+        return in_array($index, $this->visibleDetails);
+    }
+
+    public function getFilteredCards()
+    {
+        if (empty($this->searchTerm)) {
+            return $this->synthese_district;
+        }
+
+        return array_filter($this->synthese_district, function($synthese) {
+            $searchTerm = strtolower($this->searchTerm);
+            $nom = strtolower($synthese['medicament']['nom'] ?? '');
+            $code = strtolower($synthese['medicament']['code'] ?? '');
+            $conditionnement = strtolower($synthese['medicament']['conditionnement'] ?? '');
+
+            return str_contains($nom, $searchTerm) || 
+                   str_contains($code, $searchTerm) || 
+                   str_contains($conditionnement, $searchTerm);
+        });
+    }
 
 
     public function nextSlide()
@@ -61,6 +104,26 @@ class SyntheseDistrict extends Component
             $this->currentSlide = $index;
         }
     }
+    public function chercherMedicament()
+    {
+        $nomMedicament = trim($this->medicamentRecherche);
+
+        if (empty($nomMedicament)) {
+            return;
+        }
+
+        // Filtrer les cartes visibles (ou médicaments)
+        $visibleMedicaments = $this->medicaments->values(); // réindexer pour search
+
+        // Trouver l'index du médicament
+        $index = $visibleMedicaments->search(function ($m) use ($nomMedicament) {
+            return strcasecmp($m->nom, $nomMedicament) === 0;
+        });
+
+        if ($index !== false) {
+            $this->currentSlide = $index; // afficher directement le "slide" correspondant
+        }
+    }
 
     public function render()
     {
@@ -78,6 +141,16 @@ class SyntheseDistrict extends Component
         $this->chargerFs();
         $this->determinerPeriodeActuelle();
         $this->rechercherSynthese();
+        $this->medicaments = Medicament::all();
+    }
+
+    public function afficherCartes(){
+        $this->formatCartes = true;
+        $this->formatTables = false;
+    }
+    public function afficherTables(){
+        $this->formatCartes = false;
+        $this->formatTables = true;
     }
 
     public function determinerPeriodeActuelle()
@@ -120,8 +193,8 @@ class SyntheseDistrict extends Component
 
         if ($utilisateur->role->nom_role === 'District') {
             $district = District::find($utilisateur->entity_id);
-        } elseif ($utilisateur->role->nom_role === 'Administrateur') {    
-                $district = District::where('id', $this->districts_search)->first() ?? null;
+        } elseif ($utilisateur->role->nom_role === 'Administrateur') {
+            $district = District::where('id', $this->districts_search)->first() ?? null;
         }
         $periode_id = $this->periode_search ?? $this->periode_actuelle->id;
         $periode = Periode::find($periode_id);

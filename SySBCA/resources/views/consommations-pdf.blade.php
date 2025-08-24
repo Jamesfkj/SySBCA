@@ -383,116 +383,123 @@
 
     <!-- Pages de consommation -->
     @foreach ($consommations as $consommation)
-        <div class="page">
-            <div class="consumption-header">
-                <div>
-                    <div class="consumption-title">Rapport de Consommation - Médicaments Antipaludiques</div>
-                    <div class="consumption-subtitle">
-                        Période: {{ $conso->periode->nom ?? 'Non spécifiée' }} |
-                        Formation: {{ $conso->formation_sanitaire->nom ?? 'Non spécifié' }}
-                    </div>
-                </div>
-                <div class="page-info">
-                    Médicament {{ $loop->iteration }} sur {{ count($consommations) }}<br>
-                    {{ date('d/m/Y') }}
+    @php
+        // Écart calculé pour le trimestre courant
+        $ecart_trim = $consommation->qte_dispo_deb_periode 
+                       - $consommation->qte_utilisee 
+                       - $consommation->perte_avarie 
+                       - $consommation->perimee 
+                       - $consommation->qte_retour_cameg;
+    @endphp
+
+    <div class="page">
+        <div class="consumption-header">
+            <div>
+                <div class="consumption-title">Rapport de Consommation - Médicaments Antipaludiques</div>
+                <div class="consumption-subtitle">
+                    Période: {{ $conso->periode->nom ?? 'Non spécifiée' }} |
+                    Formation: {{ $conso->formation_sanitaire->nom ?? 'Non spécifié' }}
                 </div>
             </div>
-
-            <div class="medication-header">
-                {{ $consommation->medicament->nom }}
-            </div>
-
-            <table class="consumption-table">
-                <tr>
-                    <td>Stock début de période</td>
-                    <td class="{{ $consommation->qte_dispo_deb_periode <= 0 ? 'danger highlight' : 'highlight' }}">
-                        {{ $consommation->qte_dispo_deb_periode }}
-                    </td>
-                </tr>
-                <tr>
-                    <td>Quantité reçue</td>
-                    <td class="{{ $consommation->qte_recu <= 0 ? 'warning highlight' : 'highlight' }}">
-                        {{ $consommation->qte_recu }}
-                    </td>
-                </tr>
-                <tr>
-                    <td>Quantité total en stock</td>
-                    <td class="{{ $consommation->qte_en_stock <= 0 ? 'warning highlight' : 'highlight' }}">
-                        {{ $consommation->qte_en_stock }}
-                    </td>
-                </tr>
-                <tr>
-                    <td>Quantité utilisée</td>
-                    <td class="highlight">
-                        {{ $consommation->qte_utilisee }}
-                    </td>
-                </tr>
-                <tr>
-                    <td>Nombre de bénéficiaires</td>
-                    <td class="highlight">
-                        {{ $consommation->nb_beneficiaire }} patients
-                    </td>
-                </tr>
-                <tr>
-                    <td>Médicaments périmés</td>
-                    <td class="{{ $consommation->perimee > 0 ? 'danger highlight' : 'highlight' }}">
-                        {{ $consommation->perimee }}
-                    </td>
-                </tr>
-                <tr>
-                    <td>Pertes et avariées</td>
-                    <td class="{{ $consommation->perte_avarie > 0 ? 'danger highlight' : 'highlight' }}">
-                        {{ $consommation->perte_avarie }}
-                    </td>
-                </tr>
-                <tr>
-                    <td>Retour CAMEG</td>
-                    <td>
-                        {{ $consommation->qte_retour_cameg }}
-                    </td>
-                </tr>
-                <tr>
-                    <td>Jours de rupture</td>
-                    <td class="{{ $consommation->nb_jour_rupture > 0 ? 'danger highlight' : 'positive highlight' }}">
-                        {{ $consommation->nb_jour_rupture }} jours
-                    </td>
-                </tr>
-                <tr>
-                    <td>Stock de sécurité</td>
-                    <td>
-                        {{ $consommation->stock_securite }}
-                    </td>
-                </tr>
-                <tr>
-                    <td>CMM ajustée</td>
-                    <td class="{{ $consommation->cmma ? 'highlight' : 'warning' }}">
-                        {{ $consommation->cmma ? $consommation->cmma : 'Non calculée' }}
-                    </td>
-                </tr>
-                <tr>
-                    <td>Commande prévue trimestre suivant</td>
-                    <td class="highlight">
-                        {{ $consommation->cmd_trim_svt }}
-                    </td>
-                </tr>
-                <tr>
-                    <td>Quantité accordée</td>
-                    <td
-                        class="{{ $consommation->qte_accordee === null ? 'warning highlight' : 'positive highlight' }}">
-                        {{ $consommation->qte_accordee !== null ? $consommation->qte_accordee : 'Non validé' }}
-                    </td>
-                </tr>
-
-            </table>
-            <div class="page-footer">
-                <div>
-                    <img src="data:image/png;base64,{{ $qrCode }}" alt="QR Code" style="height: 30px;">
-                <span style="margin-left: 10px;">Créé le {{now()->format('d/m/yy h:i')}}</span>
-                </div>
-                <div class="page-number">Page {{ $loop->iteration }}</div>
+            <div class="page-info">
+                Médicament {{ $loop->iteration }} sur {{ count($consommations) }}<br>
+                {{ date('d/m/Y') }}
             </div>
         </div>
-    @endforeach
+
+        <div class="medication-header">
+            {{ $consommation->medicament->nom }}
+        </div>
+
+        <table class="consumption-table">
+            <tr>
+                <td>Stock début de période</td>
+                <td class="{{ $consommation->qte_dispo_deb_periode <= 0 ? 'danger highlight' : 'highlight' }}">
+                    {{ $consommation->qte_dispo_deb_periode }}
+                </td>
+            </tr>
+            <tr>
+                <td>Quantité reçue</td>
+                <td class="{{ $consommation->qte_recu <= 0 ? 'warning highlight' : 'highlight' }}">
+                    {{ $consommation->qte_recu }}
+                </td>
+            </tr>
+            <tr>
+                <td>Quantité totale en stock</td>
+                <td class="{{ $consommation->qte_en_stock <= 0 ? 'warning highlight' : 'highlight' }}">
+                    {{ $consommation->qte_en_stock }}
+                </td>
+            </tr>
+            <tr>
+                <td>Quantité utilisée</td>
+                <td class="highlight">{{ $consommation->qte_utilisee }}</td>
+            </tr>
+            <tr>
+                <td>Nombre de bénéficiaires</td>
+                <td class="highlight">{{ $consommation->nb_beneficiaire }} patients</td>
+            </tr>
+            <tr>
+                <td>Médicaments périmés</td>
+                <td class="{{ $consommation->perimee > 0 ? 'danger highlight' : 'highlight' }}">
+                    {{ $consommation->perimee }}
+                </td>
+            </tr>
+            <tr>
+                <td>Pertes et avariées</td>
+                <td class="{{ $consommation->perte_avarie > 0 ? 'danger highlight' : 'highlight' }}">
+                    {{ $consommation->perte_avarie }}
+                </td>
+            </tr>
+            <tr>
+                <td>Retour CAMEG</td>
+                <td>{{ $consommation->qte_retour_cameg }}</td>
+            </tr>
+            <tr>
+                <td>Jours de rupture</td>
+                <td class="{{ $consommation->nb_jour_rupture > 0 ? 'danger highlight' : 'positive highlight' }}">
+                    {{ $consommation->nb_jour_rupture }} jours
+                </td>
+            </tr>
+            <tr>
+                <td>Stock de sécurité</td>
+                <td>{{ $consommation->stock_securite }}</td>
+            </tr>
+            <tr>
+                <td>CMM ajustée</td>
+                <td class="{{ $consommation->cmma ? 'highlight' : 'warning' }}">
+                    {{ $consommation->cmma ? $consommation->cmma : 'Non calculée' }}
+                </td>
+            </tr>
+            <tr>
+                <td>Commande prévue trimestre suivant</td>
+                <td class="highlight">{{ $consommation->cmd_trim_svt }}</td>
+            </tr>
+            <tr>
+                <td>Quantité accordée</td>
+                <td class="{{ $consommation->qte_accordee === null ? 'warning highlight' : 'positive highlight' }}">
+                    {{ $consommation->qte_accordee !== null ? $consommation->qte_accordee : 'Non validé' }}
+                </td>
+            </tr>
+            <tr>
+                <td>Écart avec stock trimestre précédent et ce trimestre</td>
+                <td class="highlight">{{ $consommation->ecart_stock }}</td>
+            </tr>
+            <tr>
+                <td>Écart entre qte en stock et consommé ce trimestre</td>
+                <td class="highlight">{{ $ecart_trim }}</td>
+            </tr>
+        </table>
+
+        <div class="page-footer">
+            <div>
+                <img src="data:image/png;base64,{{ $qrCode }}" alt="QR Code" style="height: 30px;">
+                <span style="margin-left: 10px;">Créé le {{ now()->format('d/m/yy H:i') }}</span>
+            </div>
+            <div class="page-number">Page {{ $loop->iteration }}</div>
+        </div>
+    </div>
+@endforeach
+
 </body>
 
 </html>

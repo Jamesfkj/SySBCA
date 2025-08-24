@@ -160,7 +160,7 @@
                                         {{ $conso->created_at?->format('d/m/Y H:i') }}
                                     </td>
                                     <td class="px-6 py-4 text-blue-800">
-                                        {{ $conso->submitted_at ? \Carbon\Carbon::parse($conso->submitted_at)->format('d/m/Y H:i') : 'N/A' }}
+                                        {{ $conso->submitted_at ? \Carbon\Carbon::parse($conso->submitted_at)->format('d/m/Y H:i') : 'Non soumis' }}
                                     </td>
                                 </tr>
                             @empty
@@ -209,7 +209,7 @@
                                         {{ $conso->created_at?->format('d/m/Y H:i') }}
                                     </td>
                                     <td class="px-6 py-4 text-blue-800">
-                                        {{ $conso->submitted_at ? \Carbon\Carbon::parse($conso->submitted_at)->format('d/m/Y H:i') : 'N/A' }}
+                                        {{ $conso->submitted_at ? \Carbon\Carbon::parse($conso->submitted_at)->format('d/m/Y H:i') : 'Non soumis' }}
                                     </td>
                                 </tr>
                             @empty
