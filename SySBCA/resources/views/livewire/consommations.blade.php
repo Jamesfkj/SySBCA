@@ -715,7 +715,8 @@
                     @if ($this->conso)
                         <div class="flex justify-between items-center mb-4 mt-4"
                             wire:key="header-buttons-{{ $this->conso->id }}-{{ $this->conso->etat ?? 'inconnu' }}">
-                            <div class="flex border border-gray-300 rounded-full overflow-hidden min-w-[300px]
+                            <div
+                                class="flex border border-gray-300 rounded-full overflow-hidden min-w-[300px]
                               focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500">
                                 <!-- Input lié à la propriété Livewire -->
                                 <input list="medicamentListe" id="medicamentSelector" name="medicament"
@@ -744,405 +745,410 @@
                                 @endforeach
                             </datalist>
                             <div class="flex justify-center items-center gap-4">
-                                <div class="flex items-center gap-2">
-                                    @php
-                                        $visibleCards = $consommations_all->filter(function ($c) use (
-                                            $showHiddenCards,
-                                        ) {
-                                            return !(
-                                                $c->cmma == 0 &&
-                                                $c->stock_securite == 0 &&
-                                                $c->cmd_trim_svt == 0
-                                            ) || $showHiddenCards;
-                                        });
-                                        $totalPages = ceil($visibleCards->count() / 1);
-                                        $currentPageNumber = floor(($currentSlide ?? 0) / 1) + 1;
-                                    @endphp
+                        <div class="flex items-center gap-2">
+                            @php
+                                $visibleCards = $consommations_all->filter(function ($c) use ($showHiddenCards) {
+                                    return !($c->cmma == 0 && $c->stock_securite == 0 && $c->cmd_trim_svt == 0) ||
+                                        $showHiddenCards;
+                                });
+                                $totalPages = ceil($visibleCards->count() / 1);
+                                $currentPageNumber = floor(($currentSlide ?? 0) / 1) + 1;
+                            @endphp
 
-                                    @for ($i = 0; $i < $totalPages; $i++)
-                                        <button wire:click="setCurrentSlide({{ $i * 1 }})"
-                                            class="w-3 h-3 rounded-full transition-all duration-300 {{ floor(($currentSlide ?? 0) / 1) == $i ? 'bg-teal-600 w-8' : 'bg-gray-300 hover:bg-gray-400' }}">
-                                        </button>
-                                    @endfor
-                                </div>
-                                <div class="text-sm text-gray-500 font-medium">
-                                    <span class="text-teal-600">{{ $currentPageNumber }}</span> / {{ $totalPages }}
-                                </div>
-                            </div>
+                            @for ($i = 0; $i < $totalPages; $i++)
+                                <button wire:click="setCurrentSlide({{ $i * 1 }})"
+                                    class="w-3 h-3 rounded-full transition-all duration-300 {{ floor(($currentSlide ?? 0) / 1) == $i ? 'bg-teal-600 w-8' : 'bg-gray-300 hover:bg-gray-400' }}">
+                                </button>
+                            @endfor
+                        </div>
+                        <div class="text-sm text-gray-500 font-medium">
+                            <span class="text-teal-600">{{ $currentPageNumber }}</span> / {{ $totalPages }}
+                        </div>
+                    </div>
                             <!-- Boutons -->
                             <div class="flex gap-2">
                                 <!-- Valider (District + soumis) -->
                             </div>
                         </div>
                     @endif
-                    <div class="flex transition-transform duration-500 ease-in-out"
-                        style="transform: translateX(-{{ ($currentSlide ?? 0) * 100 }}%)">
-                        @php
-                            $cardIndex = 0;
-                        @endphp
-                        @foreach ($visibleCards->chunk(1) as $cardPair)
-                            <div class="flex-shrink-0 min-w-full flex gap-4 px-2">
-                                @foreach ($cardPair as $consommation)
-                                    @php
-                                        $user = auth()->user();
-                                        $role = $user?->role->nom_role;
-                                        $accordee = $consommation->qte_accordee;
-                                        $medicament_id = $consommation->medicament_id;
-                                        $consommation_id = $consommation->consommation_id;
-                                        $stock_theo =
-                                            $consommation->qte_en_stock -
-                                            $consommation->qte_utilisee -
-                                            $consommation->qte_retour_cameg -
-                                            $consommation->perte_avarie -
-                                            $consommation->perimee;
-                                        $perte_non_dec = $consommation->qte_restante - $stock_theo;
+                    <div class="overflow-hidden rounded-3xl">
+                        <div class="flex transition-transform duration-500 ease-in-out"
+                            style="transform: translateX(-{{ ($currentSlide ?? 0) * 100 }}%)">
+                            @php
+                                $cardIndex = 0;
+                            @endphp
+                            @foreach ($visibleCards->chunk(1) as $cardPair)
+                                <div class="flex-shrink-0 min-w-full flex gap-4 px-2">
+                                    @foreach ($cardPair as $consommation)
+                                        @php
+                                            $user = auth()->user();
+                                            $role = $user?->role->nom_role;
+                                            $accordee = $consommation->qte_accordee;
+                                            $medicament_id = $consommation->medicament_id;
+                                            $consommation_id = $consommation->consommation_id;
+                                            $stock_theo =
+                                                $consommation->qte_en_stock -
+                                                $consommation->qte_utilisee -
+                                                $consommation->qte_retour_cameg -
+                                                $consommation->perte_avarie -
+                                                $consommation->perimee;
+                                            $perte_non_dec = $consommation->qte_restante - $stock_theo;
 
-                                    @endphp
+                                        @endphp
 
-                                    <div class="bg-white rounded-3xl border border-teal-600 overflow-hidden min-w-[70%] min-h-auto mx-auto"
-                                        wire:key="consommation-{{ $consommation->consommation_id }}">
-                                        <!-- Header avec gradient -->
-                                        <div
-                                            class="bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-700 px-6 py-3 relative overflow-hidden">
+                                        <div class="bg-white rounded-3xl border border-teal-600 overflow-hidden min-w-[70%] min-h-auto mx-auto"
+                                            wire:key="consommation-{{ $consommation->consommation_id }}">
+                                            <!-- Header avec gradient -->
                                             <div
-                                                class="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-24 -mt-24">
-                                            </div>
-                                            <div
-                                                class="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16">
-                                            </div>
-                                            <div class="relative z-10">
-                                                <div class="flex items-center justify-between mb-4">
-                                                    <div class="flex items-center gap-3">
-                                                        <div
-                                                            class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm text-white">
-                                                            {{ $consommation->medicament->code }}
-                                                        </div>
-                                                        <div>
-                                                            <h2 class="text-xl font-bold text-white mb-1">
-                                                                {{ $consommation->medicament->nom }}</h2>
-                                                            <p class="text-white text-sm mt-1">Conditionnement :
-                                                                {{ $consommation->medicament->conditionnement }} :
-                                                                {{ $consommation->medicament->qte_par_conditionnement }}
-                                                                {{ $consommation->medicament->format }}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div
-                                                        class="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm font-medium">
-                                                        @if ($this->conso->etat == 'soumis')
-                                                            <i class="bi bi-clock mr-1"></i>En validation
-                                                        @elseif ($this->conso->etat == 'valide')
-                                                            <i class="bi bi-check-circle mr-1"></i>Validé
-                                                        @elseif ($this->conso->etat == 'en_cours')
-                                                            <i class="bi bi-x-circle-fill mr-1"></i>Non soumis
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="p-4 ">
-                                            <!-- Métriques principales -->
-                                            <div class="grid grid-cols-3 gap-6 mb-3">
+                                                class="bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-700 px-6 py-3 relative overflow-hidden">
                                                 <div
-                                                    class="bg-slate-100 border-l-4 border-blue-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
-                                                    <div class="flex items-center gap-3 mb-3">
-                                                        <div
-                                                            class="bg-blue-100 text-blue-600 w-10 h-10 flex items-center justify-center rounded-full shadow">
-                                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path
-                                                                    d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4zM3 8a1 1 0 000 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a1 1 0 100-2H3zm8 6a1 1 0 11-2 0V9a1 1 0 112 0v5z" />
-                                                            </svg>
-                                                        </div>
-                                                        <span class="text-blue-700 ">Stock total en
-                                                            début</span>
-                                                    </div>
-                                                    <div class="text-3xl font-bold text-blue-700">
-                                                        {{ $consommation->qte_en_stock }}
-                                                    </div>
-                                                </div>
-
-                                                <!-- Carte CMM ajustée -->
-                                                <div
-                                                    class="bg-slate-100 border-l-4 border-orange-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
-                                                    <div class="flex items-center gap-3 mb-3">
-                                                        <div
-                                                            class="bg-orange-100 text-orange-600 w-10 h-10 flex items-center justify-center rounded-full shadow">
-                                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path fill-rule="evenodd"
-                                                                    d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z"
-                                                                    clip-rule="evenodd" />
-                                                            </svg>
-                                                        </div>
-                                                        <span class="text-orange-700 ">CMM
-                                                            ajustée</span>
-                                                    </div>
-                                                    <div class="text-3xl font-bold text-orange-700">
-                                                        {{ $consommation->cmma }}
-                                                    </div>
-                                                </div>
-
-                                                <!-- Carte Stock sécurité -->
-                                                <div
-                                                    class="bg-slate-100 border-l-4 border-teal-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
-                                                    <div class="flex items-center gap-3 mb-3">
-                                                        <div
-                                                            class="bg-teal-100 text-teal-600 w-10 h-10 flex items-center justify-center rounded-full shadow">
-                                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path fill-rule="evenodd"
-                                                                    d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                                                    clip-rule="evenodd" />
-                                                            </svg>
-                                                        </div>
-                                                        <span class="text-teal-700">Stock de
-                                                            sécurité</span>
-                                                    </div>
-                                                    <div class="text-3xl font-bold text-teal-700">
-                                                        {{ $consommation->stock_securite }}
-                                                    </div>
-                                                </div>
-
-                                                <!-- Carte Qté commandée -->
-                                                <div
-                                                    class="bg-slate-100 border-l-4 border-gray-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
-                                                    <div class="flex items-center gap-3 mb-3">
-                                                        <div
-                                                            class="bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center rounded-full shadow">
-                                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path
-                                                                    d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
-                                                            </svg>
-                                                        </div>
-                                                        <span class="text-gray-700">Quantité
-                                                            commandée</span>
-                                                    </div>
-                                                    <div class="text-3xl font-bold text-gray-700">
-                                                        {{ $consommation->cmd_trim_svt }}
-                                                    </div>
+                                                    class="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-24 -mt-24">
                                                 </div>
                                                 <div
-                                                    class="bg-slate-100 border-l-4 border-indigo-800 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
-
-                                                    <div class="flex items-center gap-3 mb-3">
-                                                        <div
-                                                            class="bg-indigo-200 text-indigo-800 w-10 h-10 flex items-center justify-center rounded-full shadow">
-                                                            <i class="bi bi-check2-square text-indigo-800 text-lg"></i>
-                                                        </div>
-                                                        <span class="text-indigo-800">Quantité accordée</span>
-                                                    </div>
-
-                                                    @if ($role === 'Formation sanitaire' && $this->conso->etat == 'soumis')
-                                                        <div class="text-indigo-800 text-lg font-medium">
-                                                            <i class="bi bi-hourglass-split mr-2"></i>En cours de
-                                                            validation...
-                                                        </div>
-                                                    @elseif ($role === 'Formation sanitaire' && $this->conso->etat == 'en_cours')
-                                                        <div class="text-red-600 flex justify-center gap-2">
-                                                            <i class="bi bi-exclamation-triangle"></i>
-                                                            <p>Soumettre pour validation !</p>
-                                                        </div>
-                                                    @elseif ($role === 'Formation sanitaire' && $this->conso->etat == 'valide')
-                                                        <div class="text-3xl font-bold text-indigo-800">
-                                                            {{ $accordee ?? 'Non validé' }}
-                                                        </div>
-                                                    @elseif ($role === 'District')
-                                                        @if ($not_edit[$medicament_id])
-                                                            <div class="flex items-center justify-between w-full">
-                                                                <div class="text-3xl font-bold text-indigo-800">
-                                                                    {{ $accordee ?? '--' }}
-                                                                </div>
-                                                                @if ($this->conso->etat == 'soumis' && $consommation->cmd_trim_svt >= 1)
-                                                                    <button type="button"
-                                                                        wire:click="showEditInput({{ $medicament_id }}, {{ $consommation_id }})"
-                                                                        class="w-10 h-10 flex items-center justify-center bg-white rounded-lg hover:bg-gray-100 border border-gray-300 transition-colors">
-                                                                        <i class="bi bi-pen-fill text-indigo-800"></i>
-                                                                    </button>
-                                                                @endif
+                                                    class="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16">
+                                                </div>
+                                                <div class="relative z-10">
+                                                    <div class="flex items-center justify-between mb-4">
+                                                        <div class="flex items-center gap-3">
+                                                            <div
+                                                                class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm text-white">
+                                                                {{ $consommation->medicament->code }}
                                                             </div>
-                                                        @endif
-
-                                                        @if ($edit[$medicament_id])
-                                                            <form
-                                                                wire:submit.prevent="enregistrerQteAccorde({{ $consommation_id }}, {{ $consommation->medicament_id }})"
-                                                                class="mt-3 w-full">
-                                                                <div class="flex gap-3 items-center">
-                                                                    <input type="number"
-                                                                        wire:model="quantites_accordees.{{ $medicament_id }}"
-                                                                        placeholder="Saisir quantité"
-                                                                        class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
-                                                                        min="0" step="1" required>
-                                                                    <button type="submit"
-                                                                        class="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 text-sm font-medium border border-gray-300 transition-colors">
-                                                                        OK
-                                                                    </button>
-                                                                </div>
-                                                            </form>
-                                                        @endif
-                                                    @endif
-                                                    @if ($role === 'Administrateur' && $this->conso->etat == 'valide')
-                                                        <div class="text-3xl font-bold text-indigo-800">
-                                                            {{ $accordee ?? 'Non validé' }}
-                                                        </div>
-                                                    @endif
-                                                </div>
-
-                                                <!-- Différence ajout/retrait -->
-                                                @if (
-                                                    !is_null($accordee) &&
-                                                        $accordee != $consommation->cmd_trim_svt &&
-                                                        !($role === 'Formation sanitaire' && $this->conso->etat !== 'valide'))
-                                                    <div
-                                                        class="flex-1 p-4 bg-gradient-to-br from-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-50 to-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-100 rounded-xl border border-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-200">
-                                                        <div class="flex items-center gap-2 mb-3">
-                                                            <i
-                                                                class="bi bi-{{ $accordee > $consommation->cmd_trim_svt ? 'arrow-up-circle' : 'arrow-down-circle' }} text-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-600 text-xl"></i>
-                                                            <h3
-                                                                class="text-lg font-bold text-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-800">
-                                                                {{ $accordee > $consommation->cmd_trim_svt ? 'Ajout' : 'Retiré' }}
-                                                            </h3>
+                                                            <div>
+                                                                <h2 class="text-xl font-bold text-white mb-1">
+                                                                    {{ $consommation->medicament->nom }}</h2>
+                                                                <p class="text-white text-sm mt-1">Conditionnement :
+                                                                    {{ $consommation->medicament->conditionnement }} :
+                                                                    {{ $consommation->medicament->qte_par_conditionnement }}
+                                                                    {{ $consommation->medicament->format }}</p>
+                                                            </div>
                                                         </div>
                                                         <div
-                                                            class="text-3xl font-bold text-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-800">
-                                                            {{ $accordee > $consommation->cmd_trim_svt ? '+' : '' }}{{ $accordee - $consommation->cmd_trim_svt }}
-                                                        </div>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                            <div x-data="{ open: false }" class="flex flex-col" wire:ignore>
-                                                <div class="flex justify-center">
-                                                    <button type="button" @click="open = !open"
-                                                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm rounded-lg transition-colors">
-                                                        <span x-text="open ? 'Voir moins' : 'Voir plus'"></span>
-                                                    </button>
-                                                </div>
-                                                <div x-show="open" x-transition
-                                                    class="details-section bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-4 border border-gray-200 mt-2">
-                                                    <h3
-                                                        class="text-gray-800 font-bold text-lg mb-4 flex items-center gap-2">
-                                                        <div class="w-2 h-2 bg-teal-600 rounded-full"></div>
-                                                        Informations détaillées du trimestre
-                                                    </h3>
-                                                    <div class="grid grid-cols-2 gap-3 text-sm">
-                                                        <div
-                                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                                            <span class="text-gray-600 font-medium">Stock
-                                                                en début</span>
-                                                            <span
-                                                                class="font-bold text-gray-800">{{ $consommation->qte_dispo_deb_periode }}</span>
-                                                        </div>
-                                                        <div
-                                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                                            <span class="text-gray-600 font-medium">Quantité reçue
-                                                                durant</span>
-                                                            <span
-                                                                class="font-bold text-gray-800">{{ $consommation->qte_recu }}</span>
-                                                        </div>
-                                                        <div
-                                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                                            <span class="text-gray-600 font-medium">Quantité
-                                                                utilisée</span>
-                                                            <span
-                                                                class="font-bold text-gray-800">{{ $consommation->qte_utilisee }}</span>
-                                                        </div>
-                                                        <div
-                                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                                            <span class="text-gray-600 font-medium">Nombre de
-                                                                bénéficiaires</span>
-                                                            <span
-                                                                class="font-bold text-gray-800">{{ $consommation->nb_beneficiaire }}</span>
-                                                        </div>
-                                                        <div
-                                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                                            <span class="text-gray-600 font-medium">Périmé</span>
-                                                            <span
-                                                                class="font-bold text-gray-800">{{ $consommation->perimee }}</span>
-                                                        </div>
-                                                        <div
-                                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                                            <span class="text-gray-600 font-medium">Pertes et
-                                                                avariées</span>
-                                                            <span
-                                                                class="font-bold text-gray-800">{{ $consommation->perte_avarie }}</span>
-                                                        </div>
-                                                        <div
-                                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                                            <span class="text-gray-600 font-medium">Quantité retourné à
-                                                                la
-                                                                CAMEG</span>
-                                                            <span
-                                                                class="font-bold text-gray-800">{{ $consommation->qte_retour_cameg }}</span>
-                                                        </div>
-                                                        <div
-                                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                                            <span class="text-gray-600 font-medium">Nombre de jours de
-                                                                rupture</span>
-                                                            <span
-                                                                class="font-bold text-gray-800">{{ $consommation->nb_jour_rupture }}</span>
-                                                        </div>
-
-                                                    </div>
-                                                    <div class="grid grid-cols-3 gap-3 text-sm mt-4">
-                                                        <div
-                                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                                            <span class="text-gray-600 font-medium">Stock réel en
-                                                                fin</span>
-                                                            <span
-                                                                class="font-bold text-gray-800">{{ $consommation->qte_restante }}</span>
-                                                        </div>
-                                                        <div
-                                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
-                                                            <span class="text-gray-600 font-medium">Stock
-                                                                théorique</span>
-                                                            <span
-                                                                class="font-bold text-gray-800">{{ $stock_theo }}</span>
-                                                        </div>
-                                                        <div
-                                                            class="flex justify-between items-center p-3 bg-white rounded-lg border {{ $perte_non_dec > 0 ? 'border-yellow-300' : 'border-red-200' }}">
-                                                            <span
-                                                                class="{{ $perte_non_dec > 0 ? 'text-yellow-600' : 'text-red-600' }} font-medium">
-                                                                Ecart
-                                                            </span>
-                                                            <span
-                                                                class="font-bold {{ $perte_non_dec > 0 ? 'text-yellow-600' : 'text-red-600' }}">
-                                                                {{ $perte_non_dec }}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    <div
-                                                        class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200 relative group mt-4">
-                                                        <span class="text-gray-600 font-medium">Écart de stock entre la
-                                                            fin
-                                                            du trimestre passé et le début de ce trimestre</span>
-                                                        <div class="text-right">
-                                                            @if ($consommation->a_periode_precedente)
-                                                                @php
-                                                                    $ecartClass = match ($consommation->type_ecart) {
-                                                                        'positif' => 'text-green-600',
-                                                                        'negatif' => 'text-red-600',
-                                                                        default => 'text-gray-800',
-                                                                    };
-                                                                    $badgeClass = match ($consommation->type_ecart) {
-                                                                        'positif' => 'bg-green-100 text-green-800',
-                                                                        'negatif' => 'bg-red-100 text-red-800',
-                                                                        default => 'bg-gray-100 text-gray-800',
-                                                                    };
-                                                                @endphp
-                                                                <span class="font-bold {{ $ecartClass }}">
-                                                                    @if ($consommation->ecart_stock > 0)
-                                                                        +
-                                                                    @endif
-                                                                    {{ $consommation->ecart_stock }}
-                                                                </span>
-                                                            @else
-                                                                <span class="font-bold text-gray-400">0</span>
+                                                            class="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm font-medium">
+                                                            @if ($this->conso->etat == 'soumis')
+                                                                <i class="bi bi-clock mr-1"></i>En validation
+                                                            @elseif ($this->conso->etat == 'valide')
+                                                                <i class="bi bi-check-circle mr-1"></i>Validé
+                                                            @elseif ($this->conso->etat == 'en_cours')
+                                                                <i class="bi bi-x-circle-fill mr-1"></i>Non soumis
                                                             @endif
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="p-4 ">
+                                                <!-- Métriques principales -->
+                                                <div class="grid grid-cols-3 gap-6 mb-3">
+                                                    <div
+                                                        class="bg-slate-100 border-l-4 border-blue-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
+                                                        <div class="flex items-center gap-3 mb-3">
+                                                            <div
+                                                                class="bg-blue-100 text-blue-600 w-10 h-10 flex items-center justify-center rounded-full shadow">
+                                                                <svg class="w-5 h-5" fill="currentColor"
+                                                                    viewBox="0 0 20 20">
+                                                                    <path
+                                                                        d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4zM3 8a1 1 0 000 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a1 1 0 100-2H3zm8 6a1 1 0 11-2 0V9a1 1 0 112 0v5z" />
+                                                                </svg>
+                                                            </div>
+                                                            <span class="text-blue-700 ">Stock total en
+                                                                début</span>
+                                                        </div>
+                                                        <div class="text-3xl font-bold text-blue-700">
+                                                            {{ $consommation->qte_en_stock }}
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Carte CMM ajustée -->
+                                                    <div
+                                                        class="bg-slate-100 border-l-4 border-orange-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
+                                                        <div class="flex items-center gap-3 mb-3">
+                                                            <div
+                                                                class="bg-orange-100 text-orange-600 w-10 h-10 flex items-center justify-center rounded-full shadow">
+                                                                <svg class="w-5 h-5" fill="currentColor"
+                                                                    viewBox="0 0 20 20">
+                                                                    <path fill-rule="evenodd"
+                                                                        d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z"
+                                                                        clip-rule="evenodd" />
+                                                                </svg>
+                                                            </div>
+                                                            <span class="text-orange-700 ">CMM
+                                                                ajustée</span>
+                                                        </div>
+                                                        <div class="text-3xl font-bold text-orange-700">
+                                                            {{ $consommation->cmma }}
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Carte Stock sécurité -->
+                                                    <div
+                                                        class="bg-slate-100 border-l-4 border-teal-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
+                                                        <div class="flex items-center gap-3 mb-3">
+                                                            <div
+                                                                class="bg-teal-100 text-teal-600 w-10 h-10 flex items-center justify-center rounded-full shadow">
+                                                                <svg class="w-5 h-5" fill="currentColor"
+                                                                    viewBox="0 0 20 20">
+                                                                    <path fill-rule="evenodd"
+                                                                        d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                                        clip-rule="evenodd" />
+                                                                </svg>
+                                                            </div>
+                                                            <span class="text-teal-700">Stock de
+                                                                sécurité</span>
+                                                        </div>
+                                                        <div class="text-3xl font-bold text-teal-700">
+                                                            {{ $consommation->stock_securite }}
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Carte Qté commandée -->
+                                                    <div
+                                                        class="bg-slate-100 border-l-4 border-gray-500 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
+                                                        <div class="flex items-center gap-3 mb-3">
+                                                            <div
+                                                                class="bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center rounded-full shadow">
+                                                                <svg class="w-5 h-5" fill="currentColor"
+                                                                    viewBox="0 0 20 20">
+                                                                    <path
+                                                                        d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                                                                </svg>
+                                                            </div>
+                                                            <span class="text-gray-700">Quantité
+                                                                commandée</span>
+                                                        </div>
+                                                        <div class="text-3xl font-bold text-gray-700">
+                                                            {{ $consommation->cmd_trim_svt }}
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        class="bg-slate-100 border-l-4 border-indigo-800 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center h-full text-center">
+
+                                                        <div class="flex items-center gap-3 mb-3">
+                                                            <div
+                                                                class="bg-indigo-200 text-indigo-800 w-10 h-10 flex items-center justify-center rounded-full shadow">
+                                                                <i class="bi bi-check2-square text-indigo-800 text-lg"></i>
+                                                            </div>
+                                                            <span class="text-indigo-800">Quantité accordée</span>
+                                                        </div>
+
+                                                        @if ($role === 'Formation sanitaire' && $this->conso->etat == 'soumis')
+                                                            <div class="text-indigo-800 text-lg font-medium">
+                                                                <i class="bi bi-hourglass-split mr-2"></i>En cours de
+                                                                validation...
+                                                            </div>
+                                                        @elseif ($role === 'Formation sanitaire' && $this->conso->etat == 'en_cours')
+                                                            <div class="text-red-600 flex justify-center gap-2">
+                                                                <i class="bi bi-exclamation-triangle"></i>
+                                                                <p>Soumettre pour validation !</p>
+                                                            </div>
+                                                        @elseif ($role === 'Formation sanitaire' && $this->conso->etat == 'valide')
+                                                            <div class="text-3xl font-bold text-indigo-800">
+                                                                {{ $accordee ?? 'Non validé' }}
+                                                            </div>
+                                                        @elseif ($role === 'District')
+                                                            @if ($not_edit[$medicament_id])
+                                                                <div class="flex items-center justify-between w-full">
+                                                                    <div class="text-3xl font-bold text-indigo-800">
+                                                                        {{ $accordee ?? '--' }}
+                                                                    </div>
+                                                                    @if ($this->conso->etat == 'soumis' && $consommation->cmd_trim_svt >= 1)
+                                                                        <button type="button"
+                                                                            wire:click="showEditInput({{ $medicament_id }}, {{ $consommation_id }})"
+                                                                            class="w-10 h-10 flex items-center justify-center bg-white rounded-lg hover:bg-gray-100 border border-gray-300 transition-colors">
+                                                                            <i class="bi bi-pen-fill text-indigo-800"></i>
+                                                                        </button>
+                                                                    @endif
+                                                                </div>
+                                                            @endif
+
+                                                            @if ($edit[$medicament_id])
+                                                                <form
+                                                                    wire:submit.prevent="enregistrerQteAccorde({{ $consommation_id }}, {{ $consommation->medicament_id }})"
+                                                                    class="mt-3 w-full">
+                                                                    <div class="flex gap-3 items-center">
+                                                                        <input type="number"
+                                                                            wire:model="quantites_accordees.{{ $medicament_id }}"
+                                                                            placeholder="Saisir quantité"
+                                                                            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+                                                                            min="0" step="1" required>
+                                                                        <button type="submit"
+                                                                            class="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 text-sm font-medium border border-gray-300 transition-colors">
+                                                                            OK
+                                                                        </button>
+                                                                    </div>
+                                                                </form>
+                                                            @endif
+                                                        @endif
+                                                        @if ($role === 'Administrateur' && $this->conso->etat == 'valide')
+                                                            <div class="text-3xl font-bold text-indigo-800">
+                                                                {{ $accordee ?? 'Non validé' }}
+                                                            </div>
+                                                        @endif
+                                                    </div>
+
+                                                    <!-- Différence ajout/retrait -->
+                                                    @if (
+                                                        !is_null($accordee) &&
+                                                            $accordee != $consommation->cmd_trim_svt &&
+                                                            !($role === 'Formation sanitaire' && $this->conso->etat !== 'valide'))
+                                                        <div
+                                                            class="flex-1 p-4 bg-gradient-to-br from-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-50 to-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-100 rounded-xl border border-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-200">
+                                                            <div class="flex items-center gap-2 mb-3">
+                                                                <i
+                                                                    class="bi bi-{{ $accordee > $consommation->cmd_trim_svt ? 'arrow-up-circle' : 'arrow-down-circle' }} text-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-600 text-xl"></i>
+                                                                <h3
+                                                                    class="text-lg font-bold text-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-800">
+                                                                    {{ $accordee > $consommation->cmd_trim_svt ? 'Ajout' : 'Retiré' }}
+                                                                </h3>
+                                                            </div>
+                                                            <div
+                                                                class="text-3xl font-bold text-{{ $accordee > $consommation->cmd_trim_svt ? 'emerald' : 'red' }}-800">
+                                                                {{ $accordee > $consommation->cmd_trim_svt ? '+' : '' }}{{ $accordee - $consommation->cmd_trim_svt }}
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <div x-data="{ open: false }" class="flex flex-col" wire:ignore>
+                                                    <div class="flex justify-center">
+                                                        <button type="button" @click="open = !open"
+                                                            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm rounded-lg transition-colors">
+                                                            <span x-text="open ? 'Voir moins' : 'Voir plus'"></span>
+                                                        </button>
+                                                    </div>
+                                                    <div x-show="open" x-transition
+                                                        class="details-section bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-4 border border-gray-200 mt-2">
+                                                        <h3
+                                                            class="text-gray-800 font-bold text-lg mb-4 flex items-center gap-2">
+                                                            <div class="w-2 h-2 bg-teal-600 rounded-full"></div>
+                                                            Informations détaillées du trimestre
+                                                        </h3>
+                                                        <div class="grid grid-cols-2 gap-3 text-sm">
+                                                            <div
+                                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                                <span class="text-gray-600 font-medium">Stock
+                                                                    en début</span>
+                                                                <span
+                                                                    class="font-bold text-gray-800">{{ $consommation->qte_dispo_deb_periode }}</span>
+                                                            </div>
+                                                            <div
+                                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                                <span class="text-gray-600 font-medium">Quantité reçue
+                                                                    durant</span>
+                                                                <span
+                                                                    class="font-bold text-gray-800">{{ $consommation->qte_recu }}</span>
+                                                            </div>
+                                                            <div
+                                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                                <span class="text-gray-600 font-medium">Quantité
+                                                                    utilisée</span>
+                                                                <span
+                                                                    class="font-bold text-gray-800">{{ $consommation->qte_utilisee }}</span>
+                                                            </div>
+                                                            <div
+                                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                                <span class="text-gray-600 font-medium">Nombre de
+                                                                    bénéficiaires</span>
+                                                                <span
+                                                                    class="font-bold text-gray-800">{{ $consommation->nb_beneficiaire }}</span>
+                                                            </div>
+                                                            <div
+                                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                                <span class="text-gray-600 font-medium">Périmé</span>
+                                                                <span
+                                                                    class="font-bold text-gray-800">{{ $consommation->perimee }}</span>
+                                                            </div>
+                                                            <div
+                                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                                <span class="text-gray-600 font-medium">Pertes et
+                                                                    avariées</span>
+                                                                <span
+                                                                    class="font-bold text-gray-800">{{ $consommation->perte_avarie }}</span>
+                                                            </div>
+                                                            <div
+                                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                                <span class="text-gray-600 font-medium">Quantité retourné à
+                                                                    la
+                                                                    CAMEG</span>
+                                                                <span
+                                                                    class="font-bold text-gray-800">{{ $consommation->qte_retour_cameg }}</span>
+                                                            </div>
+                                                            <div
+                                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                                <span class="text-gray-600 font-medium">Nombre de jours de
+                                                                    rupture</span>
+                                                                <span
+                                                                    class="font-bold text-gray-800">{{ $consommation->nb_jour_rupture }}</span>
+                                                            </div>
+
+                                                        </div>
+                                                        <div class="grid grid-cols-3 gap-3 text-sm mt-4">
+                                                            <div
+                                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                                <span class="text-gray-600 font-medium">Stock réel en
+                                                                    fin</span>
+                                                                <span
+                                                                    class="font-bold text-gray-800">{{ $consommation->qte_restante }}</span>
+                                                            </div>
+                                                            <div
+                                                                class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                                                <span class="text-gray-600 font-medium">Stock
+                                                                    théorique</span>
+                                                                <span
+                                                                    class="font-bold text-gray-800">{{ $stock_theo }}</span>
+                                                            </div>
+                                                            <div
+                                                                class="flex justify-between items-center p-3 bg-white rounded-lg border {{ $perte_non_dec > 0 ? 'border-yellow-300' : 'border-red-200' }}">
+                                                                <span
+                                                                    class="{{ $perte_non_dec > 0 ? 'text-yellow-600' : 'text-red-600' }} font-medium">
+                                                                    Ecart
+                                                                </span>
+                                                                <span
+                                                                    class="font-bold {{ $perte_non_dec > 0 ? 'text-yellow-600' : 'text-red-600' }}">
+                                                                    {{ $perte_non_dec }}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200 relative group mt-4">
+                                                            <span class="text-gray-600 font-medium">Écart de stock entre la
+                                                                fin
+                                                                du trimestre passé et le début de ce trimestre</span>
+                                                            <div class="text-right">
+                                                                @if ($consommation->a_periode_precedente)
+                                                                    @php
+                                                                        $ecartClass = match (
+                                                                            $consommation->type_ecart
+                                                                        ) {
+                                                                            'positif' => 'text-green-600',
+                                                                            'negatif' => 'text-red-600',
+                                                                            default => 'text-gray-800',
+                                                                        };
+                                                                        $badgeClass = match (
+                                                                            $consommation->type_ecart
+                                                                        ) {
+                                                                            'positif' => 'bg-green-100 text-green-800',
+                                                                            'negatif' => 'bg-red-100 text-red-800',
+                                                                            default => 'bg-gray-100 text-gray-800',
+                                                                        };
+                                                                    @endphp
+                                                                    <span class="font-bold {{ $ecartClass }}">
+                                                                        @if ($consommation->ecart_stock > 0)
+                                                                            +
+                                                                        @endif
+                                                                        {{ $consommation->ecart_stock }}
+                                                                    </span>
+                                                                @else
+                                                                    <span class="font-bold text-gray-400">0</span>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endforeach
+                                    @endforeach
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                     <div>
                         @if ($visibleCards->isEmpty())
@@ -1158,7 +1164,6 @@
                                 </div>
                             </div>
                         @endif
-
                         <!-- Boutons de navigation -->
                         <div class="flex justify-between items-center mt-8">
                             <button wire:click="previousSlide"
@@ -1214,20 +1219,8 @@
                         </div>
 
                         <!-- Bouton pour médicaments cachés -->
-                        @if ($this->hiddenCardsCount > 0)
-                            <div class="flex justify-center mt-6">
-                                <button type="button" wire:click="toggleHiddenCards"
-                                    class="px-6 py-3 {{ $showHiddenCards ? 'bg-red-600 hover:bg-red-700' : 'bg-teal-600 hover:bg-teal-700' }} text-white rounded-xl transition duration-300 font-medium">
-                                    @if ($showHiddenCards)
-                                        Masquer les médicaments non commandés
-                                    @else
-                                        Afficher les médicaments non commandés ({{ $this->hiddenCardsCount }})
-                                    @endif
-                                </button>
-                            </div>
-                        @endif
+                        
                     </div>
-
                     @push('scripts')
                         <script>
                             // Variable globale pour l'état des détails

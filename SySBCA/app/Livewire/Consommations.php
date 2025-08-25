@@ -72,6 +72,7 @@ class Consommations extends Component
             return !($c->cmma == 0 && $c->stock_securite == 0 && $c->cmd_trim_svt == 0) || $this->showHiddenCards;
         });
 
+
         $totalPages = ceil($visibleCards->count() / 1);
         $currentPage = floor($this->currentSlide / 1);
 
@@ -103,7 +104,7 @@ class Consommations extends Component
     $visibleCards = $this->consommations_all->filter(function ($c) {
         return !($c->cmma == 0 && $c->stock_securite == 0 && $c->cmd_trim_svt == 0) 
             || $this->showHiddenCards;
-    })->values(); // réindexer pour que search fonctionne correctement
+    }); // réindexer pour que search fonctionne correctement
 
     $index = $visibleCards->search(function ($c) use ($nomMedicament) {
         return strcasecmp($c->medicament->nom, $nomMedicament) === 0;
@@ -693,6 +694,7 @@ class Consommations extends Component
     public function toggleHiddenCards()
     {
         $this->showHiddenCards = !$this->showHiddenCards;
+        
     }
 
     public function getHiddenCardsCountProperty()
